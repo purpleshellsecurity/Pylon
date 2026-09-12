@@ -1,0 +1,61 @@
+{
+ "resource_type": "Microsoft.Logic/Workflows",
+ "service_name": "Azure Logic Apps",
+ "logging_docs": {
+  "monitor_page": "https://learn.microsoft.com/en-us/azure/logic-apps/monitor-logic-apps-overview",
+  "dedicated_logging_page": "https://learn.microsoft.com/en-us/azure/logic-apps/monitor-workflows-collect-diagnostic-data",
+  "monitoring_data_reference": "https://learn.microsoft.com/en-us/azure/logic-apps/monitor-logic-apps-reference",
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-logic-workflows-logs"
+ },
+ "tables": {
+  "LogicAppWorkflowRuntime": {
+   "schema_mode": "resource-specific",
+   "operation_field": "OperationName",
+   "operations": [
+    "WorkflowRunStarted",
+    "WorkflowRunCompleted",
+    "WorkflowTriggerStarted",
+    "WorkflowTriggerEnded",
+    "WorkflowActionStarted",
+    "WorkflowActionCompleted",
+    "WorkflowBatchMessageSend",
+    "WorkflowBatchMessageRelease"
+   ],
+   "columns": {
+    "ActionName": "string",
+    "ActionTrackingId": "string",
+    "_BilledSize": "real",
+    "ClientKeywords": "string",
+    "ClientTrackingId": "string",
+    "Code": "string",
+    "EndTime": "datetime",
+    "Error": "string",
+    "_IsBillable": "string",
+    "Location": "string",
+    "OperationName": "string",
+    "OriginRunId": "string",
+    "_ResourceId": "string",
+    "RetryHistory": "string",
+    "RunId": "string",
+    "SourceSystem": "string",
+    "StartTime": "datetime",
+    "Status": "string",
+    "_SubscriptionId": "string",
+    "Tags": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "TrackedProperties": "string",
+    "TriggerName": "string",
+    "Type": "string",
+    "WorkflowId": "string",
+    "WorkflowName": "string"
+   }
+  }
+ },
+ "api_references": {
+  "operations_source": "https://learn.microsoft.com/en-us/azure/logic-apps/monitor-workflows-collect-diagnostic-data"
+ },
+ "resource_log_categories": [
+  "WorkflowRuntime"
+ ]
+}

@@ -1,0 +1,119 @@
+# Cross-log correlation map — how to follow one actor across log surfaces.
+#
+# Per-table metadata for actor-correlated pivoting (see
+# docs/correlation-pivot-layer-spec.md). Hand-curated from the table assets
+# (prompts/assets/tables/*.md); small, stable, one entry per table.
+#
+# Schema per table:
+#   plane:    identity | control | data      (drives kill-chain ordering)
+#   role:     detection | context            (context = pivot target, never a rule)
+#   actor:    ordered list of {field, kind[, json_path, array]}
+#               order = join preference; object ID (oid) is the canonical key.
+#               json_path -> field is DYNAMIC; index into it directly
+#               (tostring(Field.a.b)), never through parse_json().
+#               array: true -> field is a dynamic array (use `has`, not `==`).
+#   ip:       {field[, json_path, array]}  or null   (casing is authoritative)
+#   resource: {field, kind}  or null        (scopes the same-resource pivot tier)
+#
+# kind values: oid | upn | appid | spn | upn_or_oid | sql_login | k8s_user
+#   Only same-kind actor fields join directly; the alert supplies the value(s).
+
+tables:
+  # ── Identity plane ──────────────────────────────────────────────────────────
+  SigninLogs:
+    plane: identity
+    role: detection
+    actor:
+      - {field: UserId, kind: oid}
+      - {field: UserPrincipalName, kind: upn}
+    ip: {field: IPAddress}
+    resource: null
+
+  AuditLogs:
+    plane: identity           # Entra directory changes
+    role: detection
+    actor:
+      - {field: InitiatedBy, kind: oid,   json_path: user.id}
+      - {field: InitiatedBy, kind: upn,   json_path: user.userPrincipalName}
+      - {field: InitiatedBy, kind: appid, json_path: app.appId}
+    ip: {field: InitiatedBy, json_path: user.ipAddress}
+    resource: null
+
+  # ── Control plane ───────────────────────────────────────────────────────────
+  AzureActivity:
+    plane: control
+    role: detection
+    actor:
+      - {field: Caller, kind: upn_or_oid}   # UPN for users, object ID for SPs
+    ip: {field: CallerIpAddress}            # lowercase p
+    resource: {field: ResourceId, kind: arm_id}
+
+  # ── Data plane ──────────────────────────────────────────────────────────────
+  AZKVAuditLogs:
+    plane: data
+    role: detection
+    actor:
+      - {field: Identity, kind: oid,   json_path: claim.oid}
+      - {field: Identity, kind: upn,   json_path: claim.upn}
+      - {field: Identity, kind: appid, json_path: claim.appid}
+    # CallerIpAddress — lowercase p. AzureDiagnostics spells it CallerIPAddress
+    # and this dedicated table does not; the previous entry carried the
+    # AzureDiagnostics spelling plus a comment telling the next reader not to
+    # "normalize" it, which is why it survived the schema audit.
+    ip: {field: CallerIpAddress}
+    resource: {field: _ResourceId, kind: arm_id}
+
+  StorageBlobLogs:
+    plane: data
+    role: detection
+    actor:
+      - {field: RequesterObjectId, kind: oid}
+      - {field: RequesterUpn, kind: upn}
+      - {field: RequesterAppId, kind: appid}
+    ip: {field: CallerIpAddress}            # lowercase p
+    resource: {field: AccountName, kind: name}
+
+  # The other three storage services. Same identity columns as blob -- measured
+  # against each table's schema asset, not assumed from the family name -- and
+  # they were missing, so a queue/file/table detection's playbook fell back to
+  # prose and got no grounded pivot at all. A map that lists tables no target can
+  # fire on while omitting three that can is drift in both directions at once.
+  StorageFileLogs:
+    plane: data
+    role: detection
+    actor:
+      - {field: RequesterObjectId, kind: oid}
+      - {field: RequesterUpn, kind: upn}
+      - {field: RequesterAppId, kind: appid}
+    ip: {field: CallerIpAddress}            # lowercase p
+    resource: {field: AccountName, kind: name}
+
+  StorageQueueLogs:
+    plane: data
+    role: detection
+    actor:
+      - {field: RequesterObjectId, kind: oid}
+      - {field: RequesterUpn, kind: upn}
+      - {field: RequesterAppId, kind: appid}
+    ip: {field: CallerIpAddress}
+    resource: {field: AccountName, kind: name}
+
+  StorageTableLogs:
+    plane: data
+    role: detection
+    actor:
+      - {field: RequesterObjectId, kind: oid}
+      - {field: RequesterUpn, kind: upn}
+      - {field: RequesterAppId, kind: appid}
+    ip: {field: CallerIpAddress}
+    resource: {field: AccountName, kind: name}
+
+  MicrosoftGraphActivityLogs:
+    plane: data
+    role: detection
+    actor:
+      - {field: UserId, kind: oid}              # delegated auth
+      - {field: ServicePrincipalId, kind: oid}  # app-only auth
+      - {field: AppId, kind: appid}
+    ip: {field: IPAddress}
+    resource: null

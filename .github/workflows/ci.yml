@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Tests
+    # The suite needs no Azure tenant and no model provider, so it runs
+    # anywhere. Nothing here costs money or touches a workspace.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install
+        # `design` is installed even though no test calls a model: conftest.py
+        # imports pylon.engine, which imports agent_framework at module scope,
+        # so without the extra ZERO tests collect. Deferring that import is the
+        # real fix and is a code change, not a CI one.
+        run: uv sync --extra dev --extra design
+
+      - name: Run the tests
+        run: uv run pytest -q

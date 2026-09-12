@@ -1,0 +1,251 @@
+# Resource types with NO RESOURCE-SPECIFIC log surface worth switching on.
+#
+# Read that carefully, because the obvious reading is wrong and an earlier
+# version of this file made it: none of these are undetectable. Every ARM
+# resource writes its create, modify and delete to the Activity Log — always on,
+# no diagnostic setting, every subscription. A public IP has no resource logs
+# worth a detection and is still detectable:
+#
+#     AzureActivity
+#     | where OperationNameValue == "MICROSOFT.NETWORK/PUBLICIPADDRESSES/WRITE"
+#     | where ActivityStatusValue =~ "Success"
+#
+# Somebody standing up an internet-facing address is a real finding. What these
+# declarations mean is only that there is nothing to ENABLE for these types, so
+# their absence from the data plane is not a gap and must not be reported as one.
+#
+# reason: none
+#   Azure documents no resource logs for this type. `activity_operation` names
+#   the control-plane operation a detection would use instead.
+#
+# reason: operational-only
+#   Resource logs exist and are listed. They describe availability, performance
+#   or attack mitigation — not identity, not intent. A detection built on them
+#   alerts on WEATHER rather than on a person. This one is a judgement this
+#   project is making rather than a fact about Azure, so the categories being
+#   set aside are listed for a reader to disagree with concretely.
+#
+# HOW EACH ENTRY IS VERIFIED, and what is still only an opinion.
+#
+# Azure Monitor generates one page per resource type that has diagnostic-setting
+# categories, at a deterministic URL:
+#
+#     .../azure-monitor/reference/supported-logs/microsoft-<provider>-<type>-logs
+#
+#     404 -> no resource logs exist        -> reason: none
+#     200 -> resource logs exist, listed   -> reason: operational-only + `logs`
+#
+# `activity_operation` is not typed by hand either. Every one is generated from
+# and checked against catalog/provider-operations.json.gz — the vendored ARM
+# operations list — so an invented operation cannot reach a report. That matters
+# because it is the actionable half: a reader pastes it into a query, and an
+# operation that does not exist produces a detection that can never fire.
+#
+# `scripts/verify-no-detection-surface.py` checks every entry below against that
+# and exits non-zero on a contradiction. It found one the first time it ran:
+# microsoft.web/serverfarms was recorded as having no logs and has two.
+#
+# So the REASON on each entry is evidence-backed. The `basis` prose is not — it
+# explains the classification and is written from knowledge, so read it as
+# commentary rather than as citation. And the judgement inside operational-only
+# — that those categories describe availability rather than identity — is a call
+# this project is making, which is why `logs` lists them: you disagree with it by
+# reading the list, not by trusting the label.
+#
+# A type nobody has verified is deliberately absent rather than guessed at. It
+# then reports as "not in the catalog", which is true, instead of becoming a
+# claim nobody made.
+
+types:
+  microsoft.network/publicipaddresses:
+    summary: >-
+      Three DDoS mitigation categories — an attack starting or ending, and traffic dropped. No principal, no operation.
+    activity_operation: MICROSOFT.NETWORK/PUBLICIPADDRESSES/WRITE
+    reason: operational-only
+    logs: [DDoSProtectionNotifications, DDoSMitigationFlowLogs, DDoSMitigationReports]
+    basis: >-
+      All three documented categories are DDoS mitigation: an attack starting or
+      ending, traffic dropped or forwarded during one, and an aggregated Netflow
+      report afterwards. Real telemetry, and none of it names a principal or an
+      operation — there is no actor to alert on.
+
+  microsoft.compute/disks:
+    activity_operation: MICROSOFT.COMPUTE/DISKS/WRITE
+    reason: none
+    basis: >-
+      No resource logs. Disk attach, detach and snapshot are ARM operations and
+      land in AzureActivity, which is where a detection for them belongs.
+
+  microsoft.network/networkinterfaces:
+    activity_operation: MICROSOFT.NETWORK/NETWORKINTERFACES/WRITE
+    reason: none
+    basis: >-
+      No resource logs. NIC traffic is observed at the NSG (flow logs) or the
+      VM, never at the interface resource itself.
+
+  microsoft.compute/galleries:
+    activity_operation: MICROSOFT.COMPUTE/GALLERIES/WRITE
+    reason: none
+    basis: >-
+      No resource logs. Image publication and version changes are ARM
+      operations; a tampered image is caught in AzureActivity, not here.
+
+  microsoft.compute/galleries/applications:
+    activity_operation: MICROSOFT.COMPUTE/GALLERIES/APPLICATIONS/WRITE
+    reason: none
+    basis: Sub-resource of a compute gallery; same absence.
+
+  microsoft.compute/galleries/applications/versions:
+    activity_operation: MICROSOFT.COMPUTE/GALLERIES/APPLICATIONS/VERSIONS/WRITE
+    reason: none
+    basis: Sub-resource of a compute gallery; same absence.
+
+  microsoft.web/serverfarms:
+    summary: >-
+      Console and platform output from the app, with no caller and no operation — nothing that names who acted.
+    activity_operation: MICROSOFT.WEB/SERVERFARMS/WRITE
+    reason: operational-only
+    logs: [AppServiceConsoleLogs, AppServicePlatformLogs]
+    basis: >-
+      Two categories: console output from the application or container, and
+      platform events for the app. Neither is attributed to a principal — no
+      caller, no operation — so neither supports a detection about who did
+      something. The borderline case in this file: an application that logs its
+      own auth failures to the console WOULD be detection-relevant, but that is
+      a property of that application rather than of the resource type, so it
+      cannot be claimed here. First recorded as having no resource logs at all,
+      which the verifier script caught against the docs on its first run.
+
+  microsoft.managedidentity/userassignedidentities:
+    summary: >-
+      No resource logs. What matters is where it is assigned, and what it then does in the target's own logs.
+    activity_operation: MICROSOFT.MANAGEDIDENTITY/USERASSIGNEDIDENTITIES/WRITE
+    reason: none
+    basis: >-
+      No resource logs. What matters about a managed identity is where it is
+      ASSIGNED and what it then does — AzureActivity for the assignment, and the
+      target resource's own logs for the actions.
+
+  microsoft.insights/workbooks:
+    activity_operation: MICROSOFT.INSIGHTS/WORKBOOKS/WRITE
+    reason: none
+    basis: No resource logs. A workbook is a saved query layout, not a system.
+
+  microsoft.portal/dashboards:
+    activity_operation: MICROSOFT.PORTAL/DASHBOARDS/WRITE
+    reason: none
+    basis: No resource logs. A dashboard is a saved layout.
+
+  microsoft.alertsmanagement/smartdetectoralertrules:
+    activity_operation: MICROSOFT.ALERTSMANAGEMENT/SMARTDETECTORALERTRULES/WRITE
+    reason: none
+    basis: >-
+      No resource logs. The rule's own create/modify/delete is an ARM operation
+      in AzureActivity — which is worth detecting, and is detected there.
+
+  microsoft.devtestlab/schedules:
+    activity_operation: MICROSOFT.DEVTESTLAB/SCHEDULES/WRITE
+    reason: none
+    basis: >-
+      No resource logs. An auto-shutdown schedule's changes are ARM operations.
+
+  microsoft.resources/deployments:
+    activity_operation: MICROSOFT.RESOURCES/DEPLOYMENTS/WRITE
+    reason: none
+    basis: >-
+      No resource logs. A deployment IS an AzureActivity record; a detection on
+      deployments reads that table.
+
+  microsoft.insights/actiongroups:
+    activity_operation: MICROSOFT.INSIGHTS/ACTIONGROUPS/WRITE
+    reason: none
+    basis: >-
+      No resource logs. Where an alert is routed matters — an actor silencing a
+      notification path is T1562 — and that change is an ARM operation.
+
+  microsoft.compute/sshpublickeys:
+    activity_operation: MICROSOFT.COMPUTE/SSHPUBLICKEYS/WRITE
+    reason: none
+    basis: No resource logs. Key create and delete are ARM operations.
+
+  microsoft.operationsmanagement/solutions:
+    summary: >-
+      No resource logs, and the mechanism itself is retired on 30 September 2026 in favour of diagnostic settings.
+    activity_operation: MICROSOFT.OPERATIONSMANAGEMENT/SOLUTIONS/WRITE
+    reason: none
+    basis: >-
+      No resource logs, and legacy: this is the Log Analytics solutions
+      mechanism Microsoft retires on 30 September 2026 in favour of diagnostic
+      settings. Not worth cataloguing a surface with a stated end date.
+
+  # --- Azure Monitor's own resource types ------------------------------------
+  #
+  # These were reporting as "not in the catalog", which is true and useless: the
+  # monitoring plumbing is exactly what an actor tampers with to go blind, and
+  # a report that shrugs at it is the wrong shape. Each verified against its own
+  # supported-logs page.
+
+  microsoft.insights/datacollectionendpoints:
+    summary: >-
+      No resource logs. Deleting one silences every data collection rule pointed at it.
+    activity_operation: MICROSOFT.INSIGHTS/DATACOLLECTIONENDPOINTS/WRITE
+    reason: none
+    basis: >-
+      No resource logs. A DCE is an ingestion address; its own create and delete
+      are ARM operations, and deleting one silences every DCR pointed at it.
+
+  microsoft.insights/datacollectionrules:
+    summary: >-
+      One category, LogErrors: collection and transformation failures. Never who narrowed the rule.
+    activity_operation: MICROSOFT.INSIGHTS/DATACOLLECTIONRULES/WRITE
+    reason: operational-only
+    logs: [DCRLogErrors]
+    basis: >-
+      One category, LogErrors, recording errors during DCR-based collection and
+      transformation. It says collection failed, never who changed the rule — so
+      a DCR narrowed to drop security events shows up as an ARM write, not here.
+
+  microsoft.network/networkwatchers:
+    summary: >-
+      No resource logs, on the watcher or its flowLogs. NSG flow logs go to a storage account, not to Azure Monitor.
+    activity_operation: MICROSOFT.NETWORK/NETWORKWATCHERS/WRITE
+    reason: none
+    basis: >-
+      No resource logs, on the watcher or on its flowLogs sub-resource. NSG flow
+      logs are written to a storage account rather than emitted as resource logs,
+      so what is detectable here is the ARM operation that disables one.
+
+  microsoft.app/jobs:
+    summary: >-
+      No resource logs of its own — a job's output is emitted by the managed environment that hosts it.
+    activity_operation: MICROSOFT.APP/JOBS/WRITE
+    reason: none
+    basis: >-
+      No resource logs of its own. A Container Apps job's console and system
+      output is emitted by the managed environment that hosts it, not by the job.
+
+  microsoft.web/connections:
+    summary: >-
+      No resource logs. The connection holds a credential; what it does appears in the Logic App's run history.
+    activity_operation: MICROSOFT.WEB/CONNECTIONS/WRITE
+    reason: none
+    basis: >-
+      No resource logs. An API connection holds the credential a Logic App uses;
+      what it then does appears in the workflow's own run history, and the
+      connection's create or re-auth is an ARM operation.
+
+  microsoft.insights/components:
+    summary: >-
+      Application Insights telemetry: requests, traces, exceptions, page views. About the application, not the tenant.
+    activity_operation: MICROSOFT.INSIGHTS/COMPONENTS/WRITE
+    reason: operational-only
+    logs: [AppAvailabilityResults, AppBrowserTimings, AppDependencies, AppEvents,
+           AppExceptions, AppMetrics, AppPageViews, AppPerformanceCounters,
+           AppRequests, AppSystemEvents, AppTraces, OTelResources]
+    basis: >-
+      Twelve categories, all Application Insights telemetry about how an
+      application behaves — requests, traces, exceptions, page views, dependency
+      calls. Rich, and about the application rather than the tenant: no Azure
+      principal, no ARM operation. An app that logs its own auth failures to
+      AppTraces would be detection-relevant, but that is a property of that
+      application, not of the resource type.

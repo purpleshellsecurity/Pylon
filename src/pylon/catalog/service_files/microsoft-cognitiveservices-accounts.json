@@ -1,0 +1,26 @@
+{
+ "resource_type": "Microsoft.CognitiveServices/accounts",
+ "service_name": "Azure AI services (Cognitive Services)",
+ "logging_docs": {
+  "monitor_page": null,
+  "dedicated_logging_page": "https://learn.microsoft.com/en-us/azure/ai-services/diagnostic-logging",
+  "monitoring_data_reference": null,
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-cognitiveservices-accounts-logs"
+ },
+ "tables": {},
+ "routing": "AzureDiagnostics",
+ "azure_diagnostics_categories": [
+  "Audit Logs",
+  "Azure OpenAI Request Usage",
+  "Managed Network Events",
+  "Request and Response Logs",
+  "Trace Logs"
+ ],
+ "resource_log_categories": [
+  "Audit",
+  "AzureOpenAIRequestUsage",
+  "ManagedNetworkEvent",
+  "RequestResponse",
+  "Trace"
+ ]
+}

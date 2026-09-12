@@ -1,0 +1,63 @@
+{
+ "resource_type": "Microsoft.ContainerInstance/containerGroups",
+ "service_name": "Azure Container Instances",
+ "logging_docs": {
+  "monitor_page": "https://learn.microsoft.com/en-us/azure/container-instances/monitor-azure-container-instances",
+  "dedicated_logging_page": "https://learn.microsoft.com/en-us/azure/container-instances/container-instances-log-analytics",
+  "monitoring_data_reference": "https://learn.microsoft.com/en-us/azure/container-instances/monitor-azure-container-instances-reference",
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-containerinstance-containergroups-logs"
+ },
+ "tables": {
+  "ContainerEvent": {
+   "schema_mode": "resource-specific",
+   "operations_status": "n/a \u2014 no OperationName column in this table's schema; it carries no action field (metrics/telemetry table; columns below are the verified allowlist)",
+   "columns": {
+    "_BilledSize": "real",
+    "ContainerGroup": "string",
+    "ContainerGroupInstanceID": "string",
+    "ContainerID": "string",
+    "ContainerName": "string",
+    "Count": "int",
+    "_IsBillable": "string",
+    "Location": "string",
+    "Message": "string",
+    "OSType": "string",
+    "Reason": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string"
+   },
+   "diagnostic_category": "ContainerEvent"
+  },
+  "ContainerInstanceLog": {
+   "schema_mode": "resource-specific",
+   "operations_status": "n/a \u2014 no OperationName column in this table's schema; it carries no action field (metrics/telemetry table; columns below are the verified allowlist)",
+   "columns": {
+    "_BilledSize": "real",
+    "ContainerGroup": "string",
+    "ContainerID": "string",
+    "ContainerImage": "string",
+    "ContainerName": "string",
+    "_IsBillable": "string",
+    "Location": "string",
+    "Message": "string",
+    "OSType": "string",
+    "_ResourceId": "string",
+    "Source": "string",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string"
+   },
+   "diagnostic_category": "ContainerInstanceLog"
+  }
+ },
+ "resource_log_categories": [
+  "ContainerEvent",
+  "ContainerInstanceLog"
+ ]
+}

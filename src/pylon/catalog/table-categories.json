@@ -1,0 +1,2872 @@
+{
+ "meta": {
+  "source": "https://raw.githubusercontent.com/MicrosoftDocs/azure-monitor-docs/main/articles/azure-monitor/reference/tables-category.md",
+  "harvested": "2026-08-29",
+  "tables": 861,
+  "categories": [
+   "Applications",
+   "Audit",
+   "Azure Monitor",
+   "Azure Resources",
+   "Azure Virtual Desktop",
+   "Containers",
+   "Desktop Analytics",
+   "IT & Management Tools",
+   "Network",
+   "Security",
+   "Virtual Machines",
+   "Workloads"
+  ]
+ },
+ "tables": {
+  "AACAudit": [
+   "Audit"
+  ],
+  "AACHttpRequest": [
+   "Azure Resources"
+  ],
+  "AADAgentRiskEvents": [
+   "Audit",
+   "Security"
+  ],
+  "AADB2CRequestLogs": [
+   "Audit",
+   "Security"
+  ],
+  "AADCustomSecurityAttributeAuditLogs": [
+   "Audit",
+   "Security"
+  ],
+  "AADDomainServicesAccountLogon": [
+   "Azure Resources",
+   "Security"
+  ],
+  "AADDomainServicesAccountManagement": [
+   "Azure Resources",
+   "Security"
+  ],
+  "AADDomainServicesDirectoryServiceAccess": [
+   "Azure Resources",
+   "Security"
+  ],
+  "AADDomainServicesLogonLogoff": [
+   "Azure Resources",
+   "Security"
+  ],
+  "AADDomainServicesPolicyChange": [
+   "Azure Resources",
+   "Security"
+  ],
+  "AADDomainServicesPrivilegeUse": [
+   "Azure Resources",
+   "Security"
+  ],
+  "AADDomainServicesSystemSecurity": [
+   "Azure Resources",
+   "Security"
+  ],
+  "AADGraphActivityLogs": [
+   "Audit",
+   "Security"
+  ],
+  "AADManagedIdentitySignInLogs": [
+   "Audit",
+   "Security"
+  ],
+  "AADNonInteractiveUserSignInLogs": [
+   "Audit",
+   "Security"
+  ],
+  "AADProvisioningLogs": [
+   "Audit",
+   "Security"
+  ],
+  "AADRiskyAgents": [
+   "Audit",
+   "Security"
+  ],
+  "AADRiskyServicePrincipals": [
+   "Audit",
+   "Security"
+  ],
+  "AADRiskyUsers": [
+   "Audit",
+   "Security"
+  ],
+  "AADServicePrincipalRiskEvents": [
+   "Audit",
+   "Security"
+  ],
+  "AADServicePrincipalSignInLogs": [
+   "Audit",
+   "Security"
+  ],
+  "AADUserRiskEvents": [
+   "Audit",
+   "Security"
+  ],
+  "ABAPAuditLog": [
+   "Security"
+  ],
+  "ABAPAuthorizationDetails": [
+   "Security"
+  ],
+  "ABAPChangeDocsLog": [
+   "Security"
+  ],
+  "ABAPTableDataLog": [
+   "Security"
+  ],
+  "ABAPUserDetails": [
+   "Security"
+  ],
+  "ABSBotRequests": [
+   "Azure Resources"
+  ],
+  "ACICollaborationAudit": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "ACLTransactionLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "ACLUserDefinedLogs": [
+   "Applications",
+   "Audit",
+   "Azure Resources"
+  ],
+  "ACRConnectedClientList": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "ACREntraAuthenticationAuditLog": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "ACSAdvancedMessagingOperations": [
+   "Azure Resources"
+  ],
+  "ACSAuthIncomingOperations": [
+   "Azure Resources"
+  ],
+  "ACSBillingUsage": [
+   "Azure Resources"
+  ],
+  "ACSCallAutomationIncomingOperations": [
+   "Azure Resources"
+  ],
+  "ACSCallAutomationMediaSummary": [
+   "Azure Resources"
+  ],
+  "ACSCallAutomationStreamingUsage": [
+   "Azure Resources"
+  ],
+  "ACSCallClientMediaStatsTimeSeries": [
+   "Azure Resources"
+  ],
+  "ACSCallClientOperations": [
+   "Azure Resources"
+  ],
+  "ACSCallClientServiceRequestAndOutcome": [
+   "Azure Resources"
+  ],
+  "ACSCallClosedCaptionsSummary": [
+   "Azure Resources"
+  ],
+  "ACSCallDiagnostics": [
+   "Azure Resources"
+  ],
+  "ACSCallDiagnosticsUpdates": [
+   "Azure Resources"
+  ],
+  "ACSCallRecordingIncomingOperations": [
+   "Azure Resources"
+  ],
+  "ACSCallRecordingSummary": [
+   "Azure Resources"
+  ],
+  "ACSCallSummary": [
+   "Azure Resources"
+  ],
+  "ACSCallSummaryUpdates": [
+   "Azure Resources"
+  ],
+  "ACSCallSurvey": [
+   "Azure Resources"
+  ],
+  "ACSCallingMetrics": [
+   "Azure Resources"
+  ],
+  "ACSChatIncomingOperations": [
+   "Azure Resources"
+  ],
+  "ACSEmailSendMailOperational": [
+   "Azure Resources"
+  ],
+  "ACSEmailStatusUpdateOperational": [
+   "Azure Resources"
+  ],
+  "ACSEmailUserEngagementOperational": [
+   "Azure Resources"
+  ],
+  "ACSJobRouterIncomingOperations": [
+   "Azure Resources"
+  ],
+  "ACSOptOutManagementOperations": [
+   "Azure Resources"
+  ],
+  "ACSRoomsIncomingOperations": [
+   "Azure Resources"
+  ],
+  "ACSSMSIncomingOperations": [
+   "Azure Resources"
+  ],
+  "ADAssessmentRecommendation": [
+   "Workloads"
+  ],
+  "ADFActivityRun": [
+   "Azure Resources"
+  ],
+  "ADFPipelineRun": [
+   "Azure Resources"
+  ],
+  "ADFSSignInLogs": [
+   "Audit",
+   "Security"
+  ],
+  "ADFSandboxActivityRun": [
+   "Azure Resources"
+  ],
+  "ADFSandboxPipelineRun": [
+   "Azure Resources"
+  ],
+  "ADFTriggerRun": [
+   "Azure Resources"
+  ],
+  "ADReplicationResult": [
+   "Workloads"
+  ],
+  "ADSecurityAssessmentRecommendation": [
+   "Workloads"
+  ],
+  "ADTDataHistoryOperation": [
+   "Azure Resources"
+  ],
+  "ADTDigitalTwinsOperation": [
+   "Azure Resources"
+  ],
+  "ADTEventRoutesOperation": [
+   "Azure Resources"
+  ],
+  "ADTModelsOperation": [
+   "Azure Resources"
+  ],
+  "ADTQueryOperation": [
+   "Azure Resources"
+  ],
+  "ADXJournal": [
+   "Azure Resources"
+  ],
+  "ADXTableDetails": [
+   "Azure Resources"
+  ],
+  "AEWAssignmentBlobLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AEWAuditLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AEWComputePipelinesLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AEWExperimentAssignmentSummary": [
+   "Applications"
+  ],
+  "AEWExperimentScorecardMetricPairs": [
+   "Applications"
+  ],
+  "AEWExperimentScorecards": [
+   "Applications"
+  ],
+  "AFSAuditLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AGCAccessLogs": [
+   "Azure Resources",
+   "Network"
+  ],
+  "AGCFirewallLogs": [
+   "Audit",
+   "Azure Resources",
+   "Network"
+  ],
+  "AGSGrafanaLoginEvents": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AGSGrafanaUsageInsightsEvents": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AGSUpdateEvents": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AGWAccessLogs": [
+   "Audit",
+   "Azure Resources",
+   "Network"
+  ],
+  "AGWFirewallLogs": [
+   "Audit",
+   "Azure Resources",
+   "Network"
+  ],
+  "AGWPerformanceLogs": [
+   "Audit",
+   "Azure Resources",
+   "Network"
+  ],
+  "AHCIDiagnosticLogs": [
+   "Azure Resources"
+  ],
+  "AHDSDeidAuditLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AHDSDicomAuditLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AHDSDicomDiagnosticLogs": [
+   "Azure Resources"
+  ],
+  "AHDSMedTechDiagnosticLogs": [
+   "Azure Resources"
+  ],
+  "AKSAudit": [
+   "Audit",
+   "Azure Resources",
+   "Containers"
+  ],
+  "AKSAuditAdmin": [
+   "Audit",
+   "Azure Resources",
+   "Containers"
+  ],
+  "AKSControlPlane": [
+   "Azure Resources",
+   "Containers"
+  ],
+  "ALBHealthEvent": [
+   "Azure Monitor",
+   "Azure Resources"
+  ],
+  "AMAHealth": [
+   "IT & Management Tools",
+   "Virtual Machines"
+  ],
+  "AMSKeyDeliveryRequests": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AMSLiveEventOperations": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AMSMediaAccountHealth": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AMSStreamingEndpointRequests": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AMWMetricsUsageDetails": [
+   "Azure Monitor",
+   "Azure Resources"
+  ],
+  "ANFTopClientReadIOPS": [
+   "Azure Resources"
+  ],
+  "ANFTopClientWriteIOPS": [
+   "Azure Resources"
+  ],
+  "ANFTopFileReadIOPS": [
+   "Azure Resources"
+  ],
+  "ANFTopFileWriteIOPS": [
+   "Azure Resources"
+  ],
+  "AOIDatabaseQuery": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AOIStorage": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "ASCAuditLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "ASCDeviceEvents": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "ASRJobs": [
+   "Audit"
+  ],
+  "ASRReplicatedItems": [
+   "Audit"
+  ],
+  "ASRv2HealthEvents": [
+   "Audit"
+  ],
+  "ASRv2JobEvents": [
+   "Audit"
+  ],
+  "ASRv2ProtectedItems": [
+   "Audit"
+  ],
+  "ASRv2ReplicationExtensions": [
+   "Audit"
+  ],
+  "ASRv2ReplicationPolicies": [
+   "Audit"
+  ],
+  "ASRv2ReplicationVaults": [
+   "Audit"
+  ],
+  "ASimAgentEventLogs": [
+   "Security"
+  ],
+  "ASimAlertEventLogs": [
+   "Security"
+  ],
+  "ASimAssetEntityLogs": [
+   "Security"
+  ],
+  "ASimAuditEventLogs": [
+   "Security"
+  ],
+  "ASimAuthenticationEventLogs": [
+   "Security"
+  ],
+  "ASimDhcpEventLogs": [
+   "Security"
+  ],
+  "ASimDnsActivityLogs": [
+   "Security"
+  ],
+  "ASimFileEventLogs": [
+   "Security"
+  ],
+  "ASimNetworkSessionLogs": [
+   "Security"
+  ],
+  "ASimProcessEventLogs": [
+   "Security"
+  ],
+  "ASimRegistryEventLogs": [
+   "Security"
+  ],
+  "ASimUserManagementActivityLogs": [
+   "Security"
+  ],
+  "ASimWebSessionLogs": [
+   "Security"
+  ],
+  "ATCExpressRouteCircuitIpfix": [
+   "Azure Resources"
+  ],
+  "ATCMicrosoftPeeringMetadata": [
+   "Azure Resources"
+  ],
+  "ATCPrivatePeeringMetadata": [
+   "Azure Resources"
+  ],
+  "AVNMConnectivityConfigurationChange": [
+   "Audit",
+   "Azure Resources",
+   "Network"
+  ],
+  "AVNMIPAMPoolAllocationChange": [
+   "Audit",
+   "Azure Resources",
+   "Network"
+  ],
+  "AVNMNetworkGroupMembershipChange": [
+   "Audit",
+   "Azure Resources",
+   "Network"
+  ],
+  "AVNMRuleCollectionChange": [
+   "Audit",
+   "Azure Resources",
+   "Network"
+  ],
+  "AWSALBAccessLogs": [
+   "Security"
+  ],
+  "AWSCloudTrail": [
+   "Security"
+  ],
+  "AWSCloudWatch": [
+   "Security"
+  ],
+  "AWSEKSLogs": [
+   "Security"
+  ],
+  "AWSGuardDuty": [
+   "Security"
+  ],
+  "AWSNLBAccessLogs": [
+   "Security"
+  ],
+  "AWSNetworkFirewallAlert": [
+   "Security"
+  ],
+  "AWSNetworkFirewallFlow": [
+   "Security"
+  ],
+  "AWSNetworkFirewallTls": [
+   "Security"
+  ],
+  "AWSRoute53Resolver": [
+   "Security"
+  ],
+  "AWSS3ServerAccess": [
+   "Security"
+  ],
+  "AWSSecurityHubFindings": [
+   "Security"
+  ],
+  "AWSVPCFlow": [
+   "Security"
+  ],
+  "AWSWAF": [
+   "Security"
+  ],
+  "AZFWApplicationRule": [
+   "Security"
+  ],
+  "AZFWApplicationRuleAggregation": [
+   "Security"
+  ],
+  "AZFWDnsFlowTrace": [
+   "Security"
+  ],
+  "AZFWDnsQuery": [
+   "Security"
+  ],
+  "AZFWFatFlow": [
+   "Security"
+  ],
+  "AZFWFlowTrace": [
+   "Azure Resources"
+  ],
+  "AZFWIdpsSignature": [
+   "Security"
+  ],
+  "AZFWInternalFqdnResolutionFailure": [
+   "Security"
+  ],
+  "AZFWNatRule": [
+   "Security"
+  ],
+  "AZFWNatRuleAggregation": [
+   "Security"
+  ],
+  "AZFWNetworkRule": [
+   "Security"
+  ],
+  "AZFWNetworkRuleAggregation": [
+   "Security"
+  ],
+  "AZFWThreatIntel": [
+   "Security"
+  ],
+  "AZKVAuditLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AZKVPolicyEvaluationDetailsLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AZMSApplicationMetricLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AZMSArchiveLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AZMSAutoscaleLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AZMSCustomerManagedKeyUserLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AZMSDiagnosticErrorLogs": [
+   "Audit"
+  ],
+  "AZMSHybridConnectionsEvents": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AZMSKafkaCoordinatorLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AZMSKafkaUserErrorLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AZMSOperationalLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AZMSRunTimeAuditLogs": [
+   "Audit"
+  ],
+  "AZMSVnetConnectionEvents": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AddonAzureBackupAlerts": [
+   "Azure Resources",
+   "IT & Management Tools"
+  ],
+  "AddonAzureBackupJobs": [
+   "Azure Resources",
+   "IT & Management Tools"
+  ],
+  "AddonAzureBackupPolicy": [
+   "Azure Resources",
+   "IT & Management Tools"
+  ],
+  "AddonAzureBackupProtectedInstance": [
+   "Azure Resources",
+   "IT & Management Tools"
+  ],
+  "AddonAzureBackupStorage": [
+   "Azure Resources",
+   "IT & Management Tools"
+  ],
+  "AegDataPlaneRequests": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AegDeliveryFailureLogs": [
+   "Azure Resources"
+  ],
+  "AegPublishFailureLogs": [
+   "Azure Resources"
+  ],
+  "AgentsInfo": [
+   "Security"
+  ],
+  "AggregatedSecurityAlert": [
+   "Security"
+  ],
+  "AgriFoodApplicationAuditLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AgriFoodFarmManagementLogs": [
+   "Azure Resources"
+  ],
+  "AgriFoodFarmOperationLogs": [
+   "Azure Resources"
+  ],
+  "AgriFoodInsightLogs": [
+   "Azure Resources"
+  ],
+  "AgriFoodJobProcessedLogs": [
+   "Azure Resources"
+  ],
+  "AgriFoodModelInferenceLogs": [
+   "Azure Resources"
+  ],
+  "AgriFoodProviderAuthLogs": [
+   "Azure Resources"
+  ],
+  "AgriFoodSatelliteLogs": [
+   "Azure Resources"
+  ],
+  "AgriFoodSensorManagementLogs": [
+   "Azure Resources"
+  ],
+  "AgriFoodWeatherLogs": [
+   "Azure Resources"
+  ],
+  "Alert": [
+   "Azure Monitor"
+  ],
+  "AlertEvidence": [
+   "Security"
+  ],
+  "AlertHistory": [
+   "Azure Monitor"
+  ],
+  "AlertInfo": [
+   "Security"
+  ],
+  "AmlComputeClusterEvent": [
+   "Azure Resources"
+  ],
+  "AmlComputeClusterNodeEvent": [
+   "Azure Resources"
+  ],
+  "AmlComputeCpuGpuUtilization": [
+   "Azure Resources"
+  ],
+  "AmlComputeInstanceEvent": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AmlComputeJobEvent": [
+   "Azure Resources"
+  ],
+  "AmlDataLabelEvent": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AmlDataSetEvent": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AmlDataStoreEvent": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AmlDeploymentEvent": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AmlEnvironmentEvent": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AmlInferencingEvent": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AmlModelsEvent": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AmlOnlineEndpointConsoleLog": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AmlOnlineEndpointEventLog": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AmlOnlineEndpointTrafficLog": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AmlPipelineEvent": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AmlRegistryReadEventsLog": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AmlRegistryWriteEventsLog": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AmlRunEvent": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AmlRunStatusChangedEvent": [
+   "Azure Resources"
+  ],
+  "Anomalies": [
+   "Security"
+  ],
+  "ApiManagementGatewayLogs": [
+   "Azure Resources"
+  ],
+  "ApiManagementWebSocketConnectionLogs": [
+   "Azure Resources"
+  ],
+  "AppAvailabilityResults": [
+   "Applications"
+  ],
+  "AppBrowserTimings": [
+   "Applications"
+  ],
+  "AppDependencies": [
+   "Applications"
+  ],
+  "AppEnvSessionConsoleLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AppEnvSessionLifecycleLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AppEnvSessionPoolEventLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AppEnvSpringAppConsoleLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AppEvents": [
+   "Applications"
+  ],
+  "AppExceptions": [
+   "Applications"
+  ],
+  "AppGenAIContent": [
+   "Applications"
+  ],
+  "AppMetrics": [
+   "Applications"
+  ],
+  "AppPageViews": [
+   "Applications"
+  ],
+  "AppPerformanceCounters": [
+   "Applications"
+  ],
+  "AppPlatformContainerEventLogs": [
+   "Azure Resources"
+  ],
+  "AppPlatformIngressLogs": [
+   "Azure Resources"
+  ],
+  "AppPlatformLogsforSpring": [
+   "Azure Resources"
+  ],
+  "AppPlatformSystemLogs": [
+   "Azure Resources"
+  ],
+  "AppRequests": [
+   "Applications"
+  ],
+  "AppServiceAntivirusScanAuditLogs": [
+   "Azure Resources"
+  ],
+  "AppServiceAppLogs": [
+   "Azure Resources"
+  ],
+  "AppServiceAuditLogs": [
+   "Azure Resources"
+  ],
+  "AppServiceAuthenticationLogs": [
+   "Azure Resources"
+  ],
+  "AppServiceConsoleLogs": [
+   "Applications",
+   "Azure Resources"
+  ],
+  "AppServiceFileAuditLogs": [
+   "Azure Resources"
+  ],
+  "AppServiceHTTPLogs": [
+   "Azure Resources"
+  ],
+  "AppServicePlatformLogs": [
+   "Azure Resources"
+  ],
+  "AppServiceServerlessSecurityPluginData": [
+   "Security"
+  ],
+  "AppSystemEvents": [
+   "Applications"
+  ],
+  "AppTraces": [
+   "Applications"
+  ],
+  "ArcK8sAudit": [
+   "Audit",
+   "Azure Resources",
+   "Containers"
+  ],
+  "ArcK8sAuditAdmin": [
+   "Audit",
+   "Azure Resources",
+   "Containers"
+  ],
+  "ArcK8sControlPlane": [
+   "Azure Resources",
+   "Containers"
+  ],
+  "AuditLogs": [
+   "Azure Resources",
+   "Security"
+  ],
+  "AutoscaleEvaluationsLog": [
+   "Azure Monitor",
+   "Azure Resources",
+   "Virtual Machines"
+  ],
+  "AutoscaleScaleActionsLog": [
+   "Azure Monitor",
+   "Azure Resources",
+   "Virtual Machines"
+  ],
+  "AzureActivity": [
+   "Audit",
+   "Azure Resources",
+   "Security"
+  ],
+  "AzureAssessmentRecommendation": [
+   "Workloads"
+  ],
+  "AzureAttestationDiagnostics": [
+   "Azure Resources"
+  ],
+  "AzureBackupOperations": [
+   "Audit"
+  ],
+  "AzureDiagnostics": [
+   "Azure Resources",
+   "Network",
+   "Security"
+  ],
+  "AzureLoadTestingOperation": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "AzureMetrics": [
+   "Azure Monitor",
+   "Azure Resources"
+  ],
+  "AzureMetricsV2": [
+   "Azure Monitor",
+   "Azure Resources"
+  ],
+  "AzureMonitorPipelineLogErrors": [
+   "Azure Resources"
+  ],
+  "AzureSQLAutomaticTuning": [
+   "Workloads"
+  ],
+  "AzureSQLBlocks": [
+   "Workloads"
+  ],
+  "AzureSQLDatabaseWaitStatistics": [
+   "Workloads"
+  ],
+  "AzureSQLDeadlocks": [
+   "Workloads"
+  ],
+  "AzureSQLErrors": [
+   "Workloads"
+  ],
+  "AzureSQLQueryStoreRuntimeStatistics": [
+   "Workloads"
+  ],
+  "AzureSQLQueryStoreWaitStatistics": [
+   "Workloads"
+  ],
+  "AzureSQLResourceUsageStats": [
+   "Workloads"
+  ],
+  "AzureSQLTimeouts": [
+   "Workloads"
+  ],
+  "BehaviorAnalytics": [
+   "Security"
+  ],
+  "BehaviorEntities": [
+   "Security"
+  ],
+  "BehaviorInfo": [
+   "Security"
+  ],
+  "BlockchainApplicationLog": [
+   "Azure Resources"
+  ],
+  "BlockchainProxyLog": [
+   "Azure Resources"
+  ],
+  "CCFApplicationLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "CDBCassandraRequests": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "CDBControlPlaneRequests": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "CDBDataPlaneRequests": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "CDBDataPlaneRequests15M": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "CDBDataPlaneRequests5M": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "CDBGremlinRequests": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "CDBMongoRequests": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "CDBPartitionKeyRUConsumption": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "CDBPartitionKeyStatistics": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "CDBQueryRuntimeStatistics": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "CDBTableApiRequests": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "CIEventsAudit": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "CIEventsOperational": [
+   "Azure Resources"
+  ],
+  "CampaignInfo": [
+   "Security"
+  ],
+  "CassandraAudit": [
+   "Audit"
+  ],
+  "ChaosStudioExperimentEventLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "CloudAppEvents": [
+   "Security"
+  ],
+  "CloudAuditEvents": [
+   "Security"
+  ],
+  "CloudDnsEvents": [
+   "Security"
+  ],
+  "CloudHsmHardwareOperationAuditLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "CloudHsmServiceOperationAuditLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "CloudProcessEvents": [
+   "Security"
+  ],
+  "CloudStorageAggregatedEvents": [
+   "Security"
+  ],
+  "CommonSecurityLog": [
+   "Security"
+  ],
+  "CommunicationComplianceActivity": [
+   "Audit",
+   "Security"
+  ],
+  "ComputerGroup": [
+   "Azure Monitor",
+   "IT & Management Tools",
+   "Virtual Machines"
+  ],
+  "ConfidentialWatchlist": [
+   "Security"
+  ],
+  "ConfigurationChange": [
+   "IT & Management Tools"
+  ],
+  "ConfigurationData": [
+   "IT & Management Tools"
+  ],
+  "ContainerAppConsoleLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "ContainerAppHTTPLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "ContainerAppSystemLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "ContainerEvent": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "ContainerImageInventory": [
+   "Containers"
+  ],
+  "ContainerInstanceLog": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "ContainerInventory": [
+   "Containers"
+  ],
+  "ContainerLog": [
+   "Applications",
+   "Containers"
+  ],
+  "ContainerLogV2": [
+   "Containers"
+  ],
+  "ContainerNetworkLogs": [
+   "Containers"
+  ],
+  "ContainerNodeInventory": [
+   "Containers"
+  ],
+  "ContainerRegistryLoginEvents": [
+   "Containers"
+  ],
+  "ContainerRegistryRepositoryEvents": [
+   "Containers"
+  ],
+  "ContainerServiceLog": [
+   "Containers"
+  ],
+  "CopilotActivity": [
+   "Audit",
+   "Security"
+  ],
+  "CoreAzureBackup": [
+   "Azure Resources",
+   "IT & Management Tools"
+  ],
+  "CrowdStrikeAlerts": [
+   "Security"
+  ],
+  "CrowdStrikeAuditEvents": [
+   "Security"
+  ],
+  "CrowdStrikeCases": [
+   "Security"
+  ],
+  "CrowdStrikeDetections": [
+   "Security"
+  ],
+  "CrowdStrikeHosts": [
+   "Security"
+  ],
+  "CrowdStrikeIncidents": [
+   "Security"
+  ],
+  "CrowdStrikeVulnerabilities": [
+   "Security"
+  ],
+  "DCRLogErrors": [
+   "Azure Resources"
+  ],
+  "DHAppReliability": [
+   "Desktop Analytics"
+  ],
+  "DHDriverReliability": [
+   "Desktop Analytics"
+  ],
+  "DHLogonFailures": [
+   "Desktop Analytics"
+  ],
+  "DHLogonMetrics": [
+   "Desktop Analytics"
+  ],
+  "DHOSCrashData": [
+   "Desktop Analytics"
+  ],
+  "DHOSReliability": [
+   "Desktop Analytics"
+  ],
+  "DHWipAppLearning": [
+   "Desktop Analytics"
+  ],
+  "DNSQueryLogs": [
+   "Azure Resources"
+  ],
+  "DSMDataClassificationLogs": [
+   "Azure Resources",
+   "Security"
+  ],
+  "DSMDataLabelingLogs": [
+   "Azure Resources",
+   "Security"
+  ],
+  "DataSetOutput": [
+   "Azure Resources",
+   "Virtual Machines"
+  ],
+  "DataSetRuns": [
+   "Azure Resources",
+   "Virtual Machines"
+  ],
+  "DataTransferOperations": [
+   "Azure Resources"
+  ],
+  "DatabricksAccounts": [
+   "Azure Resources"
+  ],
+  "DatabricksApps": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksBrickStoreHttpGateway": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksBudgetPolicyCentral": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksCapsule8Dataplane": [
+   "Azure Resources"
+  ],
+  "DatabricksClamAVScan": [
+   "Azure Resources"
+  ],
+  "DatabricksCloudStorageMetadata": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksClusterLibraries": [
+   "Azure Resources"
+  ],
+  "DatabricksClusterPolicies": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksClusters": [
+   "Azure Resources"
+  ],
+  "DatabricksDBFS": [
+   "Azure Resources"
+  ],
+  "DatabricksDashboards": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksDataMonitoring": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksDataRooms": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksDatabricksSQL": [
+   "Azure Resources"
+  ],
+  "DatabricksDeltaPipelines": [
+   "Azure Resources"
+  ],
+  "DatabricksFeatureStore": [
+   "Azure Resources"
+  ],
+  "DatabricksFiles": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksFilesystem": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksGenie": [
+   "Azure Resources"
+  ],
+  "DatabricksGitCredentials": [
+   "Azure Resources"
+  ],
+  "DatabricksGlobalInitScripts": [
+   "Azure Resources"
+  ],
+  "DatabricksGroups": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksIAMRole": [
+   "Azure Resources"
+  ],
+  "DatabricksIngestion": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksInstancePools": [
+   "Azure Resources"
+  ],
+  "DatabricksJobs": [
+   "Azure Resources"
+  ],
+  "DatabricksLakeviewConfig": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksLineageTracking": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksMLflowAcledArtifact": [
+   "Azure Resources"
+  ],
+  "DatabricksMLflowExperiment": [
+   "Azure Resources"
+  ],
+  "DatabricksMarketplaceConsumer": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksMarketplaceProvider": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksModelRegistry": [
+   "Azure Resources"
+  ],
+  "DatabricksNotebook": [
+   "Azure Resources"
+  ],
+  "DatabricksOnlineTables": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksPartnerHub": [
+   "Azure Resources"
+  ],
+  "DatabricksPredictiveOptimization": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksRBAC": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksRFA": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksRemoteHistoryService": [
+   "Azure Resources"
+  ],
+  "DatabricksRepos": [
+   "Azure Resources"
+  ],
+  "DatabricksSQLPermissions": [
+   "Azure Resources"
+  ],
+  "DatabricksSSH": [
+   "Azure Resources"
+  ],
+  "DatabricksSecrets": [
+   "Azure Resources"
+  ],
+  "DatabricksServerlessRealTimeInference": [
+   "Azure Resources"
+  ],
+  "DatabricksTables": [
+   "Azure Resources"
+  ],
+  "DatabricksUnityCatalog": [
+   "Azure Resources"
+  ],
+  "DatabricksVectorSearch": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksWebTerminal": [
+   "Azure Resources"
+  ],
+  "DatabricksWebhookNotifications": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DatabricksWorkspace": [
+   "Azure Resources"
+  ],
+  "DatabricksWorkspaceFiles": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DataverseActivity": [
+   "Audit",
+   "Security"
+  ],
+  "DevCenterAgentHealthLogs": [
+   "Azure Resources"
+  ],
+  "DevCenterBillingEventLogs": [
+   "Azure Resources"
+  ],
+  "DevCenterConnectionLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DevCenterDiagnosticLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DevCenterResourceOperationLogs": [
+   "Azure Resources"
+  ],
+  "DevOpsOperationsAudit": [
+   "Audit"
+  ],
+  "DeviceAppCrash": [
+   "Workloads"
+  ],
+  "DeviceAppLaunch": [
+   "Workloads"
+  ],
+  "DeviceBehaviorEntities": [
+   "Security"
+  ],
+  "DeviceBehaviorInfo": [
+   "Security"
+  ],
+  "DeviceCalendar": [
+   "Workloads"
+  ],
+  "DeviceCleanup": [
+   "Workloads"
+  ],
+  "DeviceConnectSession": [
+   "Workloads"
+  ],
+  "DeviceCustomFileEvents": [
+   "Security"
+  ],
+  "DeviceCustomImageLoadEvents": [
+   "Security"
+  ],
+  "DeviceCustomNetworkEvents": [
+   "Security"
+  ],
+  "DeviceCustomProcessEvents": [
+   "Security"
+  ],
+  "DeviceCustomRegistryEvents": [
+   "Security"
+  ],
+  "DeviceCustomScriptEvents": [
+   "Security"
+  ],
+  "DeviceEtw": [
+   "Workloads"
+  ],
+  "DeviceEvents": [
+   "Security"
+  ],
+  "DeviceFileCertificateInfo": [
+   "Security"
+  ],
+  "DeviceFileEvents": [
+   "Security"
+  ],
+  "DeviceHardwareHealth": [
+   "Workloads"
+  ],
+  "DeviceHealth": [
+   "Workloads"
+  ],
+  "DeviceHeartbeat": [
+   "Workloads"
+  ],
+  "DeviceImageLoadEvents": [
+   "Security"
+  ],
+  "DeviceInfo": [
+   "Security"
+  ],
+  "DeviceLogonEvents": [
+   "Security"
+  ],
+  "DeviceNetworkEvents": [
+   "Security"
+  ],
+  "DeviceNetworkInfo": [
+   "Security"
+  ],
+  "DeviceProcessEvents": [
+   "Security"
+  ],
+  "DeviceRegistryEvents": [
+   "Security"
+  ],
+  "DeviceSkypeHeartbeat": [
+   "Workloads"
+  ],
+  "DeviceSkypeSignIn": [
+   "Workloads"
+  ],
+  "DeviceTvmSecureConfigurationAssessment": [
+   "Security"
+  ],
+  "DeviceTvmSecureConfigurationAssessmentKB": [
+   "Security"
+  ],
+  "DeviceTvmSoftwareInventory": [
+   "Security"
+  ],
+  "DeviceTvmSoftwareVulnerabilities": [
+   "Security"
+  ],
+  "DeviceTvmSoftwareVulnerabilitiesKB": [
+   "Security"
+  ],
+  "DiscoveryBookshelfAuditLogs": [
+   "Audit"
+  ],
+  "DiscoverySupercomputerAuditLogs": [
+   "Audit"
+  ],
+  "DiscoveryWorkspaceAuditLogs": [
+   "Audit"
+  ],
+  "DisruptionAndResponseEvents": [
+   "Security"
+  ],
+  "DnsAuditEvents": [
+   "Security"
+  ],
+  "DnsEvents": [
+   "Network"
+  ],
+  "DnsInventory": [
+   "Network"
+  ],
+  "DurableTaskSchedulerLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "DynamicEventCollection": [
+   "Security"
+  ],
+  "EGNFailedHttpDataPlaneOperations": [
+   "Azure Resources"
+  ],
+  "EGNFailedMqttConnections": [
+   "Azure Resources"
+  ],
+  "EGNFailedMqttPublishedMessages": [
+   "Azure Resources"
+  ],
+  "EGNFailedMqttSubscriptions": [
+   "Azure Resources"
+  ],
+  "EGNMqttDisconnections": [
+   "Azure Resources"
+  ],
+  "EGNSuccessfulHttpDataPlaneOperations": [
+   "Azure Resources"
+  ],
+  "EGNSuccessfulMqttConnections": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "ETWEvent": [
+   "Virtual Machines"
+  ],
+  "EdgeActionConsoleLog": [
+   "Audit"
+  ],
+  "EdgeActionServiceLog": [
+   "Audit"
+  ],
+  "EmailAttachmentInfo": [
+   "Security"
+  ],
+  "EmailEvents": [
+   "Security"
+  ],
+  "EmailPostDeliveryEvents": [
+   "Security"
+  ],
+  "EmailUrlInfo": [
+   "Security"
+  ],
+  "EnrichedMicrosoft365AuditLogs": [
+   "IT & Management Tools",
+   "Network",
+   "Security"
+  ],
+  "Event": [
+   "Security",
+   "Virtual Machines"
+  ],
+  "ExchangeAssessmentRecommendation": [
+   "Workloads"
+  ],
+  "ExchangeOnlineAssessmentRecommendation": [
+   "Workloads"
+  ],
+  "FailedIngestion": [
+   "Azure Resources"
+  ],
+  "FileMaliciousContentInfo": [
+   "Security"
+  ],
+  "FunctionAppLogs": [
+   "Applications",
+   "Azure Resources"
+  ],
+  "GCPApigee": [
+   "Security"
+  ],
+  "GCPAuditLogs": [
+   "Security"
+  ],
+  "GCPCDN": [
+   "Security"
+  ],
+  "GCPCloudRun": [
+   "Security"
+  ],
+  "GCPCloudSQL": [
+   "Security"
+  ],
+  "GCPComputeEngine": [
+   "Security"
+  ],
+  "GCPDNS": [
+   "Security"
+  ],
+  "GCPFirewallLogs": [
+   "Security"
+  ],
+  "GCPIAM": [
+   "Security"
+  ],
+  "GCPIDS": [
+   "Security"
+  ],
+  "GCPLoadBalancer": [
+   "Security"
+  ],
+  "GCPMonitoring": [
+   "Security"
+  ],
+  "GCPNAT": [
+   "Security"
+  ],
+  "GCPNATAudit": [
+   "Security"
+  ],
+  "GCPResourceManager": [
+   "Security"
+  ],
+  "GCPVPCFlow": [
+   "Security"
+  ],
+  "GKEAPIServer": [
+   "Security"
+  ],
+  "GKEApplication": [
+   "Security"
+  ],
+  "GKEAudit": [
+   "Security"
+  ],
+  "GKEControllerManager": [
+   "Security"
+  ],
+  "GKEHPADecision": [
+   "Security"
+  ],
+  "GKEScheduler": [
+   "Security"
+  ],
+  "GoogleCloudSCC": [
+   "Security"
+  ],
+  "GoogleWorkspaceReports": [
+   "Security"
+  ],
+  "GraphNotificationsActivityLogs": [
+   "IT & Management Tools",
+   "Network",
+   "Security"
+  ],
+  "HDInsightAmbariClusterAlerts": [
+   "Azure Resources"
+  ],
+  "HDInsightAmbariSystemMetrics": [
+   "Azure Resources"
+  ],
+  "HDInsightGatewayAuditLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "HDInsightHBaseLogs": [
+   "Azure Resources"
+  ],
+  "HDInsightHBaseMetrics": [
+   "Azure Resources"
+  ],
+  "HDInsightHadoopAndYarnLogs": [
+   "Azure Resources"
+  ],
+  "HDInsightHadoopAndYarnMetrics": [
+   "Azure Resources"
+  ],
+  "HDInsightHiveAndLLAPLogs": [
+   "Azure Resources"
+  ],
+  "HDInsightHiveAndLLAPMetrics": [
+   "Azure Resources"
+  ],
+  "HDInsightHiveQueryAppStats": [
+   "Azure Resources"
+  ],
+  "HDInsightHiveTezAppStats": [
+   "Azure Resources"
+  ],
+  "HDInsightJupyterNotebookEvents": [
+   "Azure Resources"
+  ],
+  "HDInsightKafkaLogs": [
+   "Azure Resources"
+  ],
+  "HDInsightKafkaMetrics": [
+   "Azure Resources"
+  ],
+  "HDInsightOozieLogs": [
+   "Azure Resources"
+  ],
+  "HDInsightRangerAuditLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "HDInsightSecurityLogs": [
+   "Azure Resources",
+   "Security"
+  ],
+  "HDInsightSparkApplicationEvents": [
+   "Azure Resources"
+  ],
+  "HDInsightSparkBlockManagerEvents": [
+   "Azure Resources"
+  ],
+  "HDInsightSparkEnvironmentEvents": [
+   "Azure Resources"
+  ],
+  "HDInsightSparkExecutorEvents": [
+   "Azure Resources"
+  ],
+  "HDInsightSparkExtraEvents": [
+   "Azure Resources"
+  ],
+  "HDInsightSparkJobEvents": [
+   "Azure Resources"
+  ],
+  "HDInsightSparkLogs": [
+   "Azure Resources"
+  ],
+  "HDInsightSparkSQLExecutionEvents": [
+   "Azure Resources"
+  ],
+  "HDInsightSparkStageEvents": [
+   "Azure Resources"
+  ],
+  "HDInsightSparkStageTaskAccumulables": [
+   "Azure Resources"
+  ],
+  "HDInsightSparkTaskEvents": [
+   "Azure Resources"
+  ],
+  "HDInsightStormLogs": [
+   "Azure Resources"
+  ],
+  "HDInsightStormMetrics": [
+   "Azure Resources"
+  ],
+  "HDInsightStormTopologyMetrics": [
+   "Azure Resources"
+  ],
+  "Heartbeat": [
+   "Containers",
+   "IT & Management Tools",
+   "Virtual Machines"
+  ],
+  "HuntingBookmark": [
+   "Security"
+  ],
+  "IdentityAccountInfo": [
+   "Security"
+  ],
+  "IdentityDirectoryEvents": [
+   "Security"
+  ],
+  "IdentityEvents": [
+   "Security"
+  ],
+  "IdentityLogonEvents": [
+   "Security"
+  ],
+  "IdentityQueryEvents": [
+   "Security"
+  ],
+  "IlumioInsights": [
+   "Security"
+  ],
+  "InsightsMetrics": [
+   "Azure Resources",
+   "Containers",
+   "Virtual Machines"
+  ],
+  "IntuneAuditLogs": [
+   "IT & Management Tools"
+  ],
+  "IntuneDeviceComplianceOrg": [
+   "IT & Management Tools"
+  ],
+  "IntuneDevices": [
+   "IT & Management Tools"
+  ],
+  "IntuneOperationalLogs": [
+   "IT & Management Tools"
+  ],
+  "KubeEvents": [
+   "Containers"
+  ],
+  "KubeMonAgentEvents": [
+   "Containers"
+  ],
+  "KubeNodeInventory": [
+   "Containers"
+  ],
+  "KubePVInventory": [
+   "Containers"
+  ],
+  "KubePodInventory": [
+   "Containers"
+  ],
+  "KubeServices": [
+   "Containers"
+  ],
+  "LAJobLogs": [
+   "Azure Resources"
+  ],
+  "LAQueryLogs": [
+   "Audit"
+  ],
+  "LASummaryLogs": [
+   "Azure Resources"
+  ],
+  "LIATrackingEvents": [
+   "Azure Resources"
+  ],
+  "LedgerTransactionLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "LedgerUserDefinedLogs": [
+   "Applications",
+   "Audit",
+   "Azure Resources"
+  ],
+  "LinuxAuditLog": [
+   "Security"
+  ],
+  "LogicAppWorkflowRuntime": [
+   "Azure Resources"
+  ],
+  "MAApplication": [
+   "Desktop Analytics"
+  ],
+  "MAApplicationHealth": [
+   "Desktop Analytics"
+  ],
+  "MAApplicationHealthAlternativeVersions": [
+   "Desktop Analytics"
+  ],
+  "MAApplicationHealthIssues": [
+   "Desktop Analytics"
+  ],
+  "MAApplicationInstance": [
+   "Desktop Analytics"
+  ],
+  "MAApplicationInstanceReadiness": [
+   "Desktop Analytics"
+  ],
+  "MAApplicationReadiness": [
+   "Desktop Analytics"
+  ],
+  "MADeploymentPlan": [
+   "Desktop Analytics"
+  ],
+  "MADevice": [
+   "Desktop Analytics"
+  ],
+  "MADeviceNRT": [
+   "Desktop Analytics"
+  ],
+  "MADeviceNotEnrolled": [
+   "Desktop Analytics"
+  ],
+  "MADeviceReadiness": [
+   "Desktop Analytics"
+  ],
+  "MADriverInstanceReadiness": [
+   "Desktop Analytics"
+  ],
+  "MADriverReadiness": [
+   "Desktop Analytics"
+  ],
+  "MAOfficeAddin": [
+   "Desktop Analytics"
+  ],
+  "MAOfficeAddinHealthEventNRT": [
+   "Desktop Analytics"
+  ],
+  "MAOfficeAddinInstance": [
+   "Desktop Analytics"
+  ],
+  "MAOfficeAddinReadiness": [
+   "Desktop Analytics"
+  ],
+  "MAOfficeAppInstance": [
+   "Desktop Analytics"
+  ],
+  "MAOfficeAppReadiness": [
+   "Desktop Analytics"
+  ],
+  "MAOfficeBuildInfo": [
+   "Desktop Analytics"
+  ],
+  "MAOfficeCurrencyAssessment": [
+   "Desktop Analytics"
+  ],
+  "MAOfficeSuiteInstance": [
+   "Desktop Analytics"
+  ],
+  "MAProposedPilotDevices": [
+   "Desktop Analytics"
+  ],
+  "MAWindowsBuildInfo": [
+   "Desktop Analytics"
+  ],
+  "MAWindowsCurrencyAssessment": [
+   "Desktop Analytics"
+  ],
+  "MAWindowsCurrencyAssessmentDailyCounts": [
+   "Desktop Analytics"
+  ],
+  "MAWindowsDeploymentStatus": [
+   "Desktop Analytics"
+  ],
+  "MCCEventLogs": [
+   "Azure Resources"
+  ],
+  "MCVPAuditLogs": [
+   "Azure Resources"
+  ],
+  "MCVPOperationLogs": [
+   "Azure Resources"
+  ],
+  "MDCDetectionDNSEvents": [
+   "Security"
+  ],
+  "MDCDetectionFimEvents": [
+   "Security"
+  ],
+  "MDCDetectionGatingValidationEvents": [
+   "Security"
+  ],
+  "MDCDetectionK8SApiEvents": [
+   "Security"
+  ],
+  "MDCDetectionProcessV2Events": [
+   "Security"
+  ],
+  "MDCFileIntegrityMonitoringEvents": [
+   "Security"
+  ],
+  "MDPResourceLog": [
+   "Azure Resources"
+  ],
+  "MNFDeviceUpdates": [
+   "Network"
+  ],
+  "MNFSystemSessionHistoryUpdates": [
+   "Network"
+  ],
+  "MNFSystemStateMessageUpdates": [
+   "Network"
+  ],
+  "MPCAuditLogs": [
+   "Audit"
+  ],
+  "MPCIngestionLogs": [
+   "Audit"
+  ],
+  "McasShadowItReporting": [
+   "Security"
+  ],
+  "MeshControlPlane": [
+   "Azure Resources",
+   "Containers"
+  ],
+  "MessageEvents": [
+   "Security"
+  ],
+  "MessagePostDeliveryEvents": [
+   "Security"
+  ],
+  "MessageUrlInfo": [
+   "Security"
+  ],
+  "MicrosoftAzureBastionAuditLogs": [
+   "Azure Resources"
+  ],
+  "MicrosoftDataShareReceivedSnapshotLog": [
+   "Azure Resources"
+  ],
+  "MicrosoftDataShareSentSnapshotLog": [
+   "Azure Resources"
+  ],
+  "MicrosoftGraphActivityLogs": [
+   "Audit",
+   "Security"
+  ],
+  "MicrosoftGraphPolicyLogs": [
+   "Audit",
+   "Security"
+  ],
+  "MicrosoftHealthcareApisAuditLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "MicrosoftPurviewInformationProtection": [
+   "Audit",
+   "Security"
+  ],
+  "MicrosoftServicePrincipalSignInLogs": [
+   "Audit",
+   "Security"
+  ],
+  "MySqlAuditLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "MySqlSlowLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "NCBMBreakGlassAuditLogs": [
+   "Azure Resources",
+   "Security"
+  ],
+  "NCBMSecurityDefenderLogs": [
+   "Azure Resources",
+   "Security"
+  ],
+  "NCBMSecurityLogs": [
+   "Azure Resources",
+   "Security"
+  ],
+  "NCBMSystemLogs": [
+   "Azure Resources"
+  ],
+  "NCCIDRACLogs": [
+   "Azure Resources"
+  ],
+  "NCCKubernetesAPIAuditLogs": [
+   "Azure Resources"
+  ],
+  "NCCKubernetesLogs": [
+   "Azure Resources"
+  ],
+  "NCCPlatformOperationsLogs": [
+   "Azure Resources"
+  ],
+  "NCCVMOrchestrationLogs": [
+   "Azure Resources"
+  ],
+  "NCMClusterOperationsLogs": [
+   "Azure Resources"
+  ],
+  "NCSStorageAlerts": [
+   "Azure Resources"
+  ],
+  "NCSStorageAudits": [
+   "Azure Resources"
+  ],
+  "NCSStorageLogs": [
+   "Azure Resources"
+  ],
+  "NGXOperationLogs": [
+   "Azure Resources"
+  ],
+  "NGXSecurityLogs": [
+   "Azure Resources"
+  ],
+  "NSPAccessLogs": [
+   "Audit",
+   "Azure Resources",
+   "Network",
+   "Security"
+  ],
+  "NTAInsights": [
+   "Network"
+  ],
+  "NTAIpDetails": [
+   "Network"
+  ],
+  "NTANetAnalytics": [
+   "Network"
+  ],
+  "NTANspRuleRecommendation": [
+   "Network"
+  ],
+  "NTARuleRecommendation": [
+   "Network"
+  ],
+  "NTATopologyDetails": [
+   "Network"
+  ],
+  "NWConnectionMonitorDNSResult": [
+   "Network"
+  ],
+  "NWConnectionMonitorPathResult": [
+   "Network"
+  ],
+  "NWConnectionMonitorTestResult": [
+   "Network"
+  ],
+  "NetworkAccessAlerts": [
+   "IT & Management Tools",
+   "Network",
+   "Security"
+  ],
+  "NetworkAccessConnectionEvents": [
+   "IT & Management Tools",
+   "Network",
+   "Security"
+  ],
+  "NetworkAccessGenerativeAIInsights": [
+   "IT & Management Tools",
+   "Network",
+   "Security"
+  ],
+  "NetworkAccessTraffic": [
+   "IT & Management Tools",
+   "Network",
+   "Security"
+  ],
+  "NetworkMonitoring": [
+   "Network"
+  ],
+  "NetworkSessions": [
+   "Security"
+  ],
+  "NginxUpstreamUpdateLogs": [
+   "Azure Resources"
+  ],
+  "OAuthAppInfo": [
+   "Security"
+  ],
+  "OEPAirFlowTask": [
+   "Azure Resources"
+  ],
+  "OEPAuditLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "OEPDataplaneLogs": [
+   "Azure Resources"
+  ],
+  "OEPElasticOperator": [
+   "Azure Resources"
+  ],
+  "OEPElasticsearch": [
+   "Azure Resources"
+  ],
+  "OEWAuditLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "OEWExperimentAssignmentSummary": [
+   "Applications"
+  ],
+  "OEWExperimentScorecardMetricPairs": [
+   "Applications"
+  ],
+  "OEWExperimentScorecards": [
+   "Applications"
+  ],
+  "OLPSupplyChainEntityOperations": [
+   "Azure Resources"
+  ],
+  "OLPSupplyChainEvents": [
+   "Azure Resources"
+  ],
+  "OTelEvents": [
+   "Applications"
+  ],
+  "OTelLogs": [
+   "Applications"
+  ],
+  "OTelResources": [
+   "Applications"
+  ],
+  "OTelSpans": [
+   "Applications"
+  ],
+  "OTelTraces": [
+   "Applications"
+  ],
+  "OTelTracesAgent": [
+   "Applications"
+  ],
+  "OfficeActivity": [
+   "Security"
+  ],
+  "OktaSystemLogs": [
+   "Security"
+  ],
+  "Operation": [
+   "Azure Monitor"
+  ],
+  "OracleCloudDatabase": [
+   "Audit"
+  ],
+  "PFTitleAuditLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "PGSQLAutovacuumStats": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "PGSQLDbTransactionsStats": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "PGSQLPgBouncer": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "PGSQLPgStatActivitySessions": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "PGSQLQueryStoreQueryText": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "PGSQLQueryStoreRuntime": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "PGSQLQueryStoreWaits": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "PGSQLServerLogs": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "Perf": [
+   "Azure Monitor",
+   "Containers",
+   "Virtual Machines"
+  ],
+  "PerfInsightsFindings": [
+   "Azure Resources",
+   "Virtual Machines"
+  ],
+  "PerfInsightsImpactedResources": [
+   "Azure Resources",
+   "Virtual Machines"
+  ],
+  "PerfInsightsRun": [
+   "Azure Resources",
+   "Virtual Machines"
+  ],
+  "PowerAppsActivity": [
+   "Audit",
+   "Security"
+  ],
+  "PowerAutomateActivity": [
+   "Audit",
+   "Security"
+  ],
+  "PowerBIActivity": [
+   "Audit",
+   "Security"
+  ],
+  "PowerBIDatasetsTenant": [
+   "Azure Resources"
+  ],
+  "PowerBIDatasetsWorkspace": [
+   "Azure Resources"
+  ],
+  "PowerPlatformAdminActivity": [
+   "Audit",
+   "Security"
+  ],
+  "PowerPlatformConnectorActivity": [
+   "Audit",
+   "Security"
+  ],
+  "PowerPlatformDlpActivity": [
+   "Audit",
+   "Security"
+  ],
+  "PreAuthenticationDiscoveryLogs": [
+   "Audit",
+   "Security"
+  ],
+  "ProjectActivity": [
+   "Security"
+  ],
+  "ProtectionStatus": [
+   "Security"
+  ],
+  "PurviewDataSensitivityLogs": [
+   "Azure Resources",
+   "Security"
+  ],
+  "PurviewScanStatusLogs": [
+   "Azure Resources"
+  ],
+  "PurviewSecurityLogs": [
+   "Azure Resources"
+  ],
+  "QualysKnowledgeBase": [
+   "Security"
+  ],
+  "QuantumProviderAccountDeviceOperationLogs": [
+   "Azure Resources"
+  ],
+  "QuantumProviderAccountJobAuditLogs": [
+   "Audit"
+  ],
+  "QuantumProviderAccountMessageAuditLogs": [
+   "Audit"
+  ],
+  "QuantumProviderAccountQueueAuditLogs": [
+   "Audit"
+  ],
+  "QuantumProviderAccountTargetAuditLogs": [
+   "Audit"
+  ],
+  "QuantumWorkspaceJobAuditLogs": [
+   "Audit"
+  ],
+  "REDConnectionEvents": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "Rapid7InsightVMCloudAssets": [
+   "Security"
+  ],
+  "Rapid7InsightVMCloudVulnerabilities": [
+   "Security"
+  ],
+  "RemoteNetworkHealthLogs": [
+   "IT & Management Tools",
+   "Network",
+   "Security"
+  ],
+  "ResourceManagementPublicAccessLogs": [
+   "Azure Resources"
+  ],
+  "RetinaNetworkFlowLogs": [
+   "Containers"
+  ],
+  "SCCMAssessmentRecommendation": [
+   "Workloads"
+  ],
+  "SCGPoolExecutionLog": [
+   "Audit",
+   "Azure Monitor"
+  ],
+  "SCGPoolRequestLog": [
+   "Audit"
+  ],
+  "SCOMAssessmentRecommendation": [
+   "Workloads"
+  ],
+  "SPAssessmentRecommendation": [
+   "Workloads"
+  ],
+  "SQLAssessmentRecommendation": [
+   "Workloads"
+  ],
+  "SQLSecurityAuditEvents": [
+   "Azure Resources"
+  ],
+  "SVMPoolExecutionLog": [
+   "Audit",
+   "Azure Monitor"
+  ],
+  "SVMPoolRequestLog": [
+   "Audit"
+  ],
+  "SalesforceAuditTrail": [
+   "Security"
+  ],
+  "SalesforceLoginHistory": [
+   "Security"
+  ],
+  "SecurityAlert": [
+   "Security"
+  ],
+  "SecurityAttackPathData": [
+   "Security"
+  ],
+  "SecurityBaseline": [
+   "Security"
+  ],
+  "SecurityBaselineSummary": [
+   "Security"
+  ],
+  "SecurityCaseEvent": [
+   "Audit"
+  ],
+  "SecurityDetection": [
+   "Security"
+  ],
+  "SecurityEvent": [
+   "Security"
+  ],
+  "SecurityIoTRawEvent": [
+   "Security"
+  ],
+  "SecurityRecommendation": [
+   "Security"
+  ],
+  "SentinelAlibabaCloudAPIGatewayLogs": [
+   "Security"
+  ],
+  "SentinelAlibabaCloudVPCFlowLogs": [
+   "Security"
+  ],
+  "SentinelAlibabaCloudWAFLogs": [
+   "Security"
+  ],
+  "SentinelAudit": [
+   "Audit",
+   "Security"
+  ],
+  "SentinelBehaviorEntities": [
+   "Security"
+  ],
+  "SentinelBehaviorInfo": [
+   "Security"
+  ],
+  "SentinelHealth": [
+   "Security"
+  ],
+  "SentinelImpervaWAFCloudV2Logs": [
+   "Security"
+  ],
+  "ServiceFabricOperationalEvent": [
+   "Azure Resources"
+  ],
+  "ServiceFabricReliableActorEvent": [
+   "Azure Resources"
+  ],
+  "ServiceFabricReliableServiceEvent": [
+   "Azure Resources"
+  ],
+  "SfBAssessmentRecommendation": [
+   "Workloads"
+  ],
+  "SfBOnlineAssessmentRecommendation": [
+   "Workloads"
+  ],
+  "SharePointOnlineAssessmentRecommendation": [
+   "Workloads"
+  ],
+  "SignalRServiceDiagnosticLogs": [
+   "Azure Resources"
+  ],
+  "SigninLogs": [
+   "Azure Resources",
+   "Security"
+  ],
+  "SqlVulnerabilityAssessmentResult": [
+   "Workloads"
+  ],
+  "StorageBlobLogs": [
+   "Azure Resources"
+  ],
+  "StorageCacheOperationEvents": [
+   "Azure Resources"
+  ],
+  "StorageCacheUpgradeEvents": [
+   "Azure Resources"
+  ],
+  "StorageCacheWarningEvents": [
+   "Azure Resources"
+  ],
+  "StorageFileLogs": [
+   "Azure Resources"
+  ],
+  "StorageMalwareScanningResults": [
+   "Azure Resources",
+   "Security"
+  ],
+  "StorageMoverAuditLogs": [
+   "Azure Resources"
+  ],
+  "StorageMoverCopyLogsFailed": [
+   "Azure Resources"
+  ],
+  "StorageMoverCopyLogsTransferred": [
+   "Azure Resources"
+  ],
+  "StorageMoverJobRunLogs": [
+   "Azure Resources"
+  ],
+  "StorageQueueLogs": [
+   "Azure Resources"
+  ],
+  "StorageTableLogs": [
+   "Azure Resources"
+  ],
+  "SucceededIngestion": [
+   "Azure Resources"
+  ],
+  "SynapseBigDataPoolApplicationsEnded": [
+   "Azure Resources"
+  ],
+  "SynapseBuiltinSqlPoolRequestsEnded": [
+   "Azure Resources"
+  ],
+  "SynapseDXCommand": [
+   "Azure Resources"
+  ],
+  "SynapseDXFailedIngestion": [
+   "Azure Resources"
+  ],
+  "SynapseDXIngestionBatching": [
+   "Azure Resources"
+  ],
+  "SynapseDXQuery": [
+   "Azure Resources"
+  ],
+  "SynapseDXSucceededIngestion": [
+   "Azure Resources"
+  ],
+  "SynapseDXTableDetails": [
+   "Azure Resources"
+  ],
+  "SynapseDXTableUsageStatistics": [
+   "Azure Resources"
+  ],
+  "SynapseGatewayApiRequests": [
+   "Azure Resources"
+  ],
+  "SynapseIntegrationActivityRuns": [
+   "Azure Resources"
+  ],
+  "SynapseIntegrationPipelineRuns": [
+   "Azure Resources"
+  ],
+  "SynapseIntegrationTriggerRuns": [
+   "Azure Resources"
+  ],
+  "SynapseLinkEvent": [
+   "Azure Resources"
+  ],
+  "SynapseRbacOperations": [
+   "Azure Resources"
+  ],
+  "SynapseScopePoolScopeJobsEnded": [
+   "Azure Resources"
+  ],
+  "SynapseScopePoolScopeJobsStateChange": [
+   "Azure Resources"
+  ],
+  "SynapseSqlPoolDmsWorkers": [
+   "Azure Resources"
+  ],
+  "SynapseSqlPoolExecRequests": [
+   "Azure Resources"
+  ],
+  "SynapseSqlPoolRequestSteps": [
+   "Azure Resources"
+  ],
+  "SynapseSqlPoolSqlRequests": [
+   "Azure Resources"
+  ],
+  "SynapseSqlPoolWaits": [
+   "Azure Resources"
+  ],
+  "Syslog": [
+   "Security",
+   "Virtual Machines"
+  ],
+  "TOUserAudits": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "TOUserDiagnostics": [
+   "Azure Resources"
+  ],
+  "TSIIngress": [
+   "Azure Resources"
+  ],
+  "ThreatIntelExportOperation": [
+   "Security"
+  ],
+  "ThreatIntelIndicators": [
+   "Security"
+  ],
+  "ThreatIntelObjects": [
+   "Security"
+  ],
+  "ThreatIntelligenceIndicator": [
+   "Security"
+  ],
+  "UAApp": [
+   "Desktop Analytics"
+  ],
+  "UAComputer": [
+   "Desktop Analytics"
+  ],
+  "UAComputerRank": [
+   "Desktop Analytics"
+  ],
+  "UADriver": [
+   "Desktop Analytics"
+  ],
+  "UADriverProblemCodes": [
+   "Desktop Analytics"
+  ],
+  "UAFeedback": [
+   "Desktop Analytics"
+  ],
+  "UAIESiteDiscovery": [
+   "Desktop Analytics"
+  ],
+  "UAOfficeAddIn": [
+   "Desktop Analytics"
+  ],
+  "UAProposedActionPlan": [
+   "Desktop Analytics"
+  ],
+  "UASysReqIssue": [
+   "Desktop Analytics"
+  ],
+  "UAUpgradedComputer": [
+   "Desktop Analytics"
+  ],
+  "UCDOAggregatedStatus": [
+   "Desktop Analytics"
+  ],
+  "UCDOStatus": [
+   "Desktop Analytics"
+  ],
+  "Update": [
+   "IT & Management Tools",
+   "Security"
+  ],
+  "UpdateRunProgress": [
+   "IT & Management Tools"
+  ],
+  "UpdateSummary": [
+   "Virtual Machines"
+  ],
+  "UrlClickEvents": [
+   "Security"
+  ],
+  "Usage": [
+   "Azure Monitor"
+  ],
+  "UserAccessAnalytics": [
+   "Security"
+  ],
+  "UserPeerAnalytics": [
+   "Security"
+  ],
+  "VCoreMongoRequests": [
+   "Audit"
+  ],
+  "VIAudit": [
+   "Audit"
+  ],
+  "VIIndexing": [
+   "Azure Resources"
+  ],
+  "VMBoundPort": [
+   "Virtual Machines"
+  ],
+  "VMComputer": [
+   "Virtual Machines"
+  ],
+  "VMConnection": [
+   "Virtual Machines"
+  ],
+  "VMProcess": [
+   "Virtual Machines"
+  ],
+  "W3CIISLog": [
+   "IT & Management Tools",
+   "Virtual Machines"
+  ],
+  "WDAVStatus": [
+   "Desktop Analytics"
+  ],
+  "WDAVThreat": [
+   "Desktop Analytics"
+  ],
+  "WOUserAudits": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "WOUserDiagnostics": [
+   "Azure Resources"
+  ],
+  "WUDOAggregatedStatus": [
+   "Desktop Analytics"
+  ],
+  "WUDOStatus": [
+   "Desktop Analytics"
+  ],
+  "WVDAgentHealthStatus": [
+   "Virtual Machines"
+  ],
+  "WVDAutoscaleEvaluationPooled": [
+   "Azure Virtual Desktop"
+  ],
+  "WVDCheckpoints": [
+   "Azure Virtual Desktop"
+  ],
+  "WVDConnectionGraphicsDataPreview": [
+   "Azure Virtual Desktop"
+  ],
+  "WVDConnectionNetworkData": [
+   "Azure Virtual Desktop"
+  ],
+  "WVDConnections": [
+   "Azure Virtual Desktop"
+  ],
+  "WVDErrors": [
+   "Azure Virtual Desktop"
+  ],
+  "WVDFeeds": [
+   "Azure Virtual Desktop"
+  ],
+  "WVDHostRegistrations": [
+   "Azure Virtual Desktop"
+  ],
+  "WVDManagement": [
+   "Azure Virtual Desktop"
+  ],
+  "WVDMultiLinkAdd": [
+   "Azure Virtual Desktop"
+  ],
+  "WVDSessionHostManagement": [
+   "Azure Virtual Desktop"
+  ],
+  "WaaSDeploymentStatus": [
+   "Desktop Analytics"
+  ],
+  "WaaSInsiderStatus": [
+   "Desktop Analytics"
+  ],
+  "WaaSUpdateStatus": [
+   "Desktop Analytics"
+  ],
+  "Watchlist": [
+   "Security"
+  ],
+  "WebPubSubConnectivity": [
+   "Azure Resources"
+  ],
+  "WebPubSubHttpRequest": [
+   "Azure Resources"
+  ],
+  "WebPubSubMessaging": [
+   "Azure Resources"
+  ],
+  "Windows365AuditLogs": [
+   "Audit"
+  ],
+  "Windows365CheckpointLogs": [
+   "Azure Monitor"
+  ],
+  "Windows365ConnectionErrorLogs": [
+   "Azure Monitor"
+  ],
+  "Windows365ConnectionLogs": [
+   "Azure Monitor"
+  ],
+  "Windows365NetworkLogs": [
+   "Network"
+  ],
+  "WindowsClientAssessmentRecommendation": [
+   "Workloads"
+  ],
+  "WindowsEvent": [
+   "Security"
+  ],
+  "WindowsFirewall": [
+   "Security"
+  ],
+  "WindowsServerAssessmentRecommendation": [
+   "Workloads"
+  ],
+  "WireData": [
+   "Security",
+   "Virtual Machines"
+  ],
+  "WorkloadDiagnosticLogs": [
+   "Azure Monitor",
+   "Workloads"
+  ],
+  "WorkloadMonitoringPerf": [
+   "Workloads"
+  ],
+  "ZTSGraph": [
+   "Azure Resources",
+   "Network",
+   "Security"
+  ],
+  "ZTSJobStatus": [
+   "Audit",
+   "Azure Resources"
+  ],
+  "ZTSMetadata": [
+   "Azure Resources",
+   "Security"
+  ],
+  "ZTSRequest": [
+   "Audit",
+   "Azure Resources",
+   "Network"
+  ]
+ }
+}

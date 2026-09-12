@@ -1,0 +1,18 @@
+{
+ "resource_type": "microsoft.keyvault/managedhsms",
+ "service_name": "Azure Key Vault Managed HSM",
+ "logging_docs": {
+  "monitor_page": "https://learn.microsoft.com/en-us/azure/key-vault/managed-hsm/logging-azure-monitor",
+  "dedicated_logging_page": "https://learn.microsoft.com/en-us/azure/key-vault/managed-hsm/logging",
+  "monitoring_data_reference": "https://learn.microsoft.com/en-us/azure/key-vault/general/monitor-key-vault-reference",
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-keyvault-managedhsms-logs"
+ },
+ "tables": {},
+ "routing": "AzureDiagnostics",
+ "azure_diagnostics_categories": [
+  "AuditEvent"
+ ],
+ "resource_log_categories": [
+  "AuditEvent"
+ ]
+}

@@ -1,0 +1,52 @@
+{
+ "resource_type": "Microsoft.SignalRService/SignalR",
+ "service_name": "Azure SignalR Service",
+ "logging_docs": {
+  "monitor_page": "https://learn.microsoft.com/en-us/azure/azure-signalr/monitor-signalr",
+  "dedicated_logging_page": "https://learn.microsoft.com/en-us/azure/azure-signalr/signalr-howto-diagnostic-logs",
+  "monitoring_data_reference": "https://learn.microsoft.com/en-us/azure/azure-signalr/monitor-signalr-reference",
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-signalrservice-signalr-logs"
+ },
+ "tables": {
+  "SignalRServiceDiagnosticLogs": {
+   "schema_mode": "resource-specific",
+   "operation_field": "OperationName",
+   "operations": [
+    "ConnectionAborted",
+    "ConnectionEnded"
+   ],
+   "columns": {
+    "_BilledSize": "real",
+    "CallerIpAddress": "string",
+    "Collection": "string",
+    "ConnectionId": "string",
+    "ConnectionType": "string",
+    "GroupName": "string",
+    "HubName": "string",
+    "InvocationId": "string",
+    "_IsBillable": "string",
+    "Level": "string",
+    "Location": "string",
+    "Message": "string",
+    "MessageTracingId": "long",
+    "MessageType": "string",
+    "OperationName": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "TransportType": "string",
+    "Type": "string",
+    "UserId": "string"
+   },
+   "diagnostic_category": "AllLogs"
+  }
+ },
+ "api_references": {
+  "operations_source": "https://learn.microsoft.com/en-us/azure/azure-signalr/signalr-howto-diagnostic-logs"
+ },
+ "resource_log_categories": [
+  "AllLogs"
+ ]
+}

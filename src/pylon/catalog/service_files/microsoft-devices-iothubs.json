@@ -1,0 +1,49 @@
+{
+ "resource_type": "Microsoft.Devices/IotHubs",
+ "service_name": "Azure IoT Hub",
+ "logging_docs": {
+  "monitor_page": "https://learn.microsoft.com/en-us/azure/iot-hub/monitor-iot-hub",
+  "dedicated_logging_page": null,
+  "monitoring_data_reference": "https://learn.microsoft.com/en-us/azure/iot-hub/monitor-iot-hub-reference",
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-devices-iothubs-logs"
+ },
+ "tables": {
+  "InsightsMetrics": {
+   "schema_mode": "resource-specific",
+   "operations_status": "n/a \u2014 no OperationName column in this table's schema; it carries no action field (metrics/telemetry table; columns below are the verified allowlist)",
+   "columns": {
+    "AgentId": "string",
+    "_BilledSize": "real",
+    "Computer": "string",
+    "_IsBillable": "string",
+    "Name": "string",
+    "Namespace": "string",
+    "Origin": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "Tags": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string",
+    "Val": "real",
+    "Value": "string"
+   }
+  }
+ },
+ "resource_log_categories": [
+  "C2DCommands",
+  "C2DTwinOperations",
+  "Configurations",
+  "Connections",
+  "D2CTwinOperations",
+  "DeviceIdentityOperations",
+  "DeviceStreams",
+  "DeviceTelemetry",
+  "DirectMethods",
+  "DistributedTracing",
+  "FileUploadOperations",
+  "JobsOperations",
+  "Routes",
+  "TwinQueries"
+ ]
+}

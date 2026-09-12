@@ -1,0 +1,22 @@
+{
+ "resource_type": "Microsoft.Network/networksecuritygroups",
+ "service_name": "Network Security Groups",
+ "logging_docs": {
+  "monitor_page": null,
+  "dedicated_logging_page": "https://learn.microsoft.com/en-us/azure/virtual-network/virtual-network-nsg-manage-log",
+  "monitoring_data_reference": null,
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-network-networksecuritygroups-logs"
+ },
+ "tables": {},
+ "routing": "AzureDiagnostics",
+ "azure_diagnostics_categories": [
+  "NetworkSecurityGroupEvent",
+  "NetworkSecurityGroupRuleCounter",
+  "Network Security Group Rule Flow Event"
+ ],
+ "resource_log_categories": [
+  "NetworkSecurityGroupEvent",
+  "NetworkSecurityGroupFlowEvent",
+  "NetworkSecurityGroupRuleCounter"
+ ]
+}

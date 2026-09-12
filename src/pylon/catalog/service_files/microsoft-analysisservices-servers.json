@@ -1,0 +1,20 @@
+{
+ "resource_type": "Microsoft.AnalysisServices/servers",
+ "service_name": "Azure Analysis Services",
+ "logging_docs": {
+  "monitor_page": "https://learn.microsoft.com/en-us/analysis-services/azure-analysis-services/monitor-analysis-services",
+  "dedicated_logging_page": "https://learn.microsoft.com/en-us/analysis-services/azure-analysis-services/analysis-services-logging",
+  "monitoring_data_reference": "https://learn.microsoft.com/en-us/analysis-services/azure-analysis-services/monitor-analysis-services-reference",
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-analysisservices-servers-logs"
+ },
+ "tables": {},
+ "routing": "AzureDiagnostics",
+ "azure_diagnostics_categories": [
+  "Service",
+  "Engine"
+ ],
+ "resource_log_categories": [
+  "Engine",
+  "Service"
+ ]
+}

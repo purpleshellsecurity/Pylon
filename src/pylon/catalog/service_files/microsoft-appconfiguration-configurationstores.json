@@ -1,0 +1,74 @@
+{
+ "resource_type": "Microsoft.AppConfiguration/configurationStores",
+ "service_name": "Azure App Configuration",
+ "logging_docs": {
+  "monitor_page": "https://learn.microsoft.com/en-us/azure/azure-app-configuration/monitor-app-configuration",
+  "dedicated_logging_page": null,
+  "monitoring_data_reference": null,
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-appconfiguration-configurationstores-logs"
+ },
+ "tables": {
+  "AACAudit": {
+   "schema_mode": "resource-specific",
+   "operations_status": "not enumerated in Azure docs (checked https://learn.microsoft.com/en-us/azure/azure-app-configuration/monitor-app-configuration); columns below are the verified allowlist",
+   "operations_note": "I read the service's own monitoring page (monitor-app-configuration), the Azure Monitor supported-logs reference (microsoft-appconfiguration-configurationstores-logs), and the AACAudit table reference (tables/aacaudit). None of these enumerates a list of OperationName values. The table reference only describes the column: OperationName = 'Name of the audited operation.' The monitor page describes audit logs as capturing data-plane write operations (create, update, delete) plus control-plane CRUD, but provides no enumerated list. The only concrete OperationName strings anywhere are two illustrative values embedded in a sample KQL query on the monitor page: OperationName in (\"set-keyvalue\", \"delete-keyvalue\"). These appear only as example filter values inside a sample query, not as an enumerated/complete list of the table's operation values, so they do not constitute an enumeration.",
+   "columns": {
+    "_BilledSize": "real",
+    "CallerIdentity": "dynamic",
+    "CallerIPAddress": "string",
+    "Category": "string",
+    "CorrelationId": "string",
+    "ETag": "string",
+    "EventCategory": "string",
+    "_IsBillable": "string",
+    "OperationName": "string",
+    "RequestId": "string",
+    "_ResourceId": "string",
+    "ResultType": "string",
+    "SourceSystem": "string",
+    "Status": "string",
+    "_SubscriptionId": "string",
+    "TargetResource": "dynamic",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string"
+   },
+   "diagnostic_category": "Audit"
+  },
+  "AACHttpRequest": {
+   "schema_mode": "resource-specific",
+   "operations_status": "n/a \u2014 no OperationName column in this table's schema; its action field is 'Category' (columns below are the verified allowlist)",
+   "columns": {
+    "AccessKeyId": "string",
+    "_BilledSize": "real",
+    "BytesReceived": "int",
+    "BytesSent": "int",
+    "Category": "string",
+    "ClientIPAddress": "string",
+    "ClientObjectId": "string",
+    "ClientRequestId": "string",
+    "ClientTenantId": "string",
+    "CorrelationId": "string",
+    "DurationMs": "int",
+    "HitCount": "int",
+    "_IsBillable": "string",
+    "Method": "string",
+    "RequestId": "string",
+    "RequestURI": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "StatusCode": "int",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string",
+    "UserAgent": "string"
+   },
+   "diagnostic_category": "HttpRequest"
+  }
+ },
+ "resource_log_categories": [
+  "Audit",
+  "HttpRequest"
+ ]
+}

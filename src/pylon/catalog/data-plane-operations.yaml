@@ -1,0 +1,877 @@
+# Data-plane audit operation vocabularies, keyed by Log Analytics table.
+#
+# These are the audit-log OperationName VALUES (e.g. "SecretGet", "GetBlob") that
+# a data-plane table actually writes — NOT the RBAC action strings
+# (".../secrets/getSecret/action"). Azure publishes no single machine-readable
+# source for these, so this file is HAND-CURATED per service. Descriptions are
+# anchored to the Key Vault / Storage REST APIs and the RBAC data-action
+# descriptions; the security framing (verb / sensitive) is ours.
+#
+# Scope is deliberately bounded: only resource services that emit a dedicated
+# data-plane audit table need an entry (Key Vault, Storage, SQL, Cosmos, App
+# Service, Functions, Event Hub, Service Bus, AKS). To onboard a service, add its
+# table block. These vocabularies change rarely.
+#
+# verb: read | write | delete | list | crypto | admin   (coarse action class)
+# sensitive: true marks exfil/tamper/recon-relevant operations for detection.
+
+tables:
+  AZKVAuditLogs:
+    service: Azure Key Vault
+    field: OperationName
+    operations:
+      # --- secrets ---
+      SecretGet:        {verb: read,   sensitive: true,  desc: "Read a secret's value — the primary secret-exfiltration signal."}
+      SecretList:       {verb: list,   sensitive: true,  desc: "Enumerate secrets in the vault (recon of what's stored)."}
+      SecretSet:        {verb: write,  sensitive: false, desc: "Create or update a secret."}
+      SecretDelete:     {verb: delete, sensitive: true, recovery: SecretRecover,  desc: "Delete a secret (recoverable during soft-delete retention)."}
+      SecretPurge:      {verb: delete, sensitive: true, recovery: none,  desc: "Permanently delete a soft-deleted secret — unrecoverable (destruction)."}
+      SecretRecover:    {verb: write,  sensitive: false, desc: "Recover a soft-deleted secret."}
+      SecretBackup:     {verb: read,   sensitive: true,  desc: "Export a secret to a backup blob (exfil vector)."}
+      SecretRestore:    {verb: write,  sensitive: false, desc: "Restore a secret from a backup blob."}
+      # --- keys ---
+      KeyGet:           {verb: read,   sensitive: true,  desc: "Read key metadata / public key material."}
+      KeyList:          {verb: list,   sensitive: true,  desc: "Enumerate keys in the vault (recon)."}
+      KeyCreate:        {verb: write,  sensitive: false, desc: "Create a new key."}
+      KeyImport:        {verb: write,  sensitive: false, desc: "Import an existing key."}
+      KeyDelete:        {verb: delete, sensitive: true, recovery: KeyRecover,  desc: "Delete a key (recoverable during soft-delete retention)."}
+      KeyPurge:         {verb: delete, sensitive: true, recovery: none,  desc: "Permanently delete a soft-deleted key — unrecoverable (destruction)."}
+      KeyRecover:       {verb: write,  sensitive: false, desc: "Recover a soft-deleted key."}
+      KeyBackup:        {verb: read,   sensitive: true,  desc: "Export a key to a backup blob (exfil vector)."}
+      KeyRestore:       {verb: write,  sensitive: false, desc: "Restore a key from a backup blob."}
+      KeySign:          {verb: crypto, sensitive: true,  desc: "Sign data with a key (abuse of a non-exportable key)."}
+      KeyVerify:        {verb: crypto, sensitive: false, desc: "Verify a signature with a key."}
+      KeyEncrypt:       {verb: crypto, sensitive: false, desc: "Encrypt data with a key."}
+      KeyDecrypt:       {verb: crypto, sensitive: true,  desc: "Decrypt data with a key (access to protected data)."}
+      KeyWrap:          {verb: crypto, sensitive: true,  desc: "Wrap (encrypt) another key with this key."}
+      KeyUnwrap:        {verb: crypto, sensitive: true,  desc: "Unwrap (decrypt) a wrapped key (access to protected key material)."}
+      # --- certificates ---
+      CertificateGet:   {verb: read,   sensitive: true,  desc: "Read a certificate (including private key if exportable)."}
+      CertificateList:  {verb: list,   sensitive: true,  desc: "Enumerate certificates in the vault (recon)."}
+      CertificateCreate: {verb: write,  sensitive: false, desc: "Create a new certificate."}
+      CertificateImport: {verb: write,  sensitive: false, desc: "Import an existing certificate."}
+      CertificateDelete: {verb: delete, sensitive: true, recovery: CertificateRecover,  desc: "Delete a certificate."}
+      # --- auth ---
+      Authentication:   {verb: read,   sensitive: false, desc: "Authentication to the vault data plane."}
+
+      VaultGet:
+        verb: read
+        sensitive: false
+        desc: "Read the vault's own configuration."
+      VaultPut:
+        verb: write
+        sensitive: true
+        desc: "Create or replace the vault, which is how an access policy is rewritten under the legacy permission model."
+      VaultPatch:
+        verb: write
+        sensitive: true
+        desc: "Update the vault in place, the other way an access policy changes."
+      VaultDelete:
+        verb: delete
+        sensitive: true
+        recovery: VaultRecover
+        desc: "Delete the vault."
+      VaultRecover:
+        verb: write
+        sensitive: true
+        desc: "Recover a soft-deleted vault."
+      VaultAccessPolicyChangedEventGridNotification:
+        verb: write
+        sensitive: true
+        desc: "Vault access policy changed. Microsoft logs this whether or not an Event Grid subscription exists, so it is always available as an anchor."
+      SecretUpdate:
+        verb: write
+        sensitive: false
+        desc: "Change a secret's attributes."
+      SecretListVersions:
+        verb: list
+        sensitive: true
+        desc: "Enumerate a secret's versions — reconnaissance before reading an older one."
+      SecretGetDeleted:
+        verb: read
+        sensitive: true
+        desc: "Read a soft-deleted secret."
+      SecretListDeleted:
+        verb: list
+        sensitive: true
+        desc: "Enumerate soft-deleted secrets."
+      SecretNearExpiryEventGridNotification:
+        verb: read
+        sensitive: false
+        desc: "Secret near expiry, published regardless of subscription."
+      SecretExpiredEventGridNotification:
+        verb: read
+        sensitive: false
+        desc: "Secret expired, published regardless of subscription."
+      KeyUpdate:
+        verb: write
+        sensitive: false
+        desc: "Change a key's attributes."
+      KeyListVersions:
+        verb: list
+        sensitive: false
+        desc: "Enumerate a key's versions."
+      KeyGetDeleted:
+        verb: read
+        sensitive: true
+        desc: "Read a soft-deleted key."
+      KeyListDeleted:
+        verb: list
+        sensitive: true
+        desc: "Enumerate soft-deleted keys."
+      KeyRotate:
+        verb: write
+        sensitive: true
+        desc: "Rotate a key on demand."
+      KeyRotateIfDue:
+        verb: write
+        sensitive: false
+        desc: "Scheduled rotation against the key's policy."
+      KeyRotationPolicyGet:
+        verb: read
+        sensitive: false
+        desc: "Read a key's rotation policy."
+      KeyRotationPolicySet:
+        verb: write
+        sensitive: true
+        desc: "Change a key's rotation policy — a way to stop rotation quietly."
+      KeyNearExpiryEventGridNotification:
+        verb: read
+        sensitive: false
+        desc: "Key near expiry, published regardless of subscription."
+      KeyExpiredEventGridNotification:
+        verb: read
+        sensitive: false
+        desc: "Key expired, published regardless of subscription."
+      CertificateUpdate:
+        verb: write
+        sensitive: false
+        desc: "Change a certificate's attributes."
+      CertificateListVersions:
+        verb: list
+        sensitive: false
+        desc: "Enumerate a certificate's versions."
+      CertificatePurge:
+        verb: delete
+        sensitive: true
+        recovery: none
+        desc: "Permanently destroy a soft-deleted certificate."
+      CertificateBackup:
+        verb: read
+        sensitive: true
+        desc: "Export a certificate for restore elsewhere."
+      CertificateRestore:
+        verb: write
+        sensitive: true
+        desc: "Restore a certificate from a backup blob."
+      CertificateRecover:
+        verb: write
+        sensitive: true
+        desc: "Recover a soft-deleted certificate."
+      CertificateGetDeleted:
+        verb: read
+        sensitive: true
+        desc: "Read a soft-deleted certificate."
+      CertificateListDeleted:
+        verb: list
+        sensitive: true
+        desc: "Enumerate soft-deleted certificates."
+      CertificatePolicyGet:
+        verb: read
+        sensitive: false
+        desc: "Read a certificate's issuance policy."
+      CertificatePolicyUpdate:
+        verb: write
+        sensitive: true
+        desc: "Change a certificate's issuance policy."
+      CertificatePolicySet:
+        verb: write
+        sensitive: true
+        desc: "Set a certificate's issuance policy."
+      CertificateContactsGet:
+        verb: read
+        sensitive: false
+        desc: "Read the certificate contact list."
+      CertificateContactsSet:
+        verb: write
+        sensitive: false
+        desc: "Set the certificate contact list."
+      CertificateContactsDelete:
+        verb: delete
+        sensitive: false
+        desc: "Remove the certificate contact list, which suppresses expiry notice."
+      CertificateIssuerGet:
+        verb: read
+        sensitive: false
+        desc: "Read a configured certificate issuer."
+      CertificateIssuerSet:
+        verb: write
+        sensitive: true
+        desc: "Add a certificate issuer — a supply-chain move that mints trusted certs."
+      CertificateIssuerUpdate:
+        verb: write
+        sensitive: true
+        desc: "Change a configured certificate issuer."
+      CertificateIssuerDelete:
+        verb: delete
+        sensitive: true
+        desc: "Remove a configured certificate issuer."
+      CertificateIssuersList:
+        verb: list
+        sensitive: false
+        desc: "Enumerate configured issuers."
+      CertificateEnroll:
+        verb: write
+        sensitive: false
+        desc: "Enroll a certificate with its issuer."
+      CertificateRenew:
+        verb: write
+        sensitive: false
+        desc: "Renew a certificate."
+      CertificatePendingGet:
+        verb: read
+        sensitive: false
+        desc: "Read a pending certificate request."
+      CertificatePendingMerge:
+        verb: write
+        sensitive: true
+        desc: "Merge a signed certificate into a pending request."
+      CertificatePendingUpdate:
+        verb: write
+        sensitive: false
+        desc: "Update a pending certificate request."
+      CertificatePendingDelete:
+        verb: delete
+        sensitive: false
+        desc: "Delete a pending certificate request."
+      CertificateNearExpiryEventGridNotification:
+        verb: read
+        sensitive: false
+        desc: "Certificate near expiry, published regardless of subscription."
+      CertificateExpiredEventGridNotification:
+        verb: read
+        sensitive: false
+        desc: "Certificate expired, published regardless of subscription."
+  StorageBlobLogs:
+    service: Azure Blob Storage
+    field: OperationName
+    operations:
+      # Blob service REST API
+      AbortCopyBlob:
+        {verb: delete, sensitive: false,
+         desc: "Cancel a copy that is still running."}
+      AcquireBlobLease:
+        {verb: write, sensitive: true,
+         desc: "Take a lease on a blob. A lease blocks every other writer, and its
+               duration can be infinite."}
+      AcquireContainerLease:
+        {verb: write, sensitive: true,
+         desc: "Take a lease on a container, which blocks deleting it."}
+      BreakBlobLease:
+        {verb: write, sensitive: false,
+         desc: "End a lease, optionally after a grace period."}
+      BreakContainerLease:
+        {verb: write, sensitive: false,
+         desc: "End a container lease."}
+      ChangeBlobLease:
+        {verb: write, sensitive: true,
+         desc: "Change a lease's ID, which locks out anyone holding the old one."}
+      AppendBlock:
+        {verb: write, sensitive: true,
+         desc: "Append a block to an append blob."}
+      ChangeContainerLease:
+        {verb: write, sensitive: true,
+         desc: "Change a container lease's ID."}
+      ClearPage:
+        {verb: delete, sensitive: true,
+         desc: "Zero a range of a page blob. The data in that range is gone with
+               no delete issued."}
+      CopyBlob:
+        {verb: write, sensitive: true,
+         desc: "Copy a blob. The destination account is named by the caller and
+               does not have to be in the tenant."}
+      CopyBlobSource:
+        {verb: read, sensitive: true,
+         desc: "The source half of a copy, logged separately by the service. It
+               appears only in logging data."}
+      CopyBlobDestination:
+        {verb: write, sensitive: true,
+         desc: "The destination half of a copy, logged separately by the service.
+               It appears only in logging data."}
+      CreateContainer:
+        {verb: write, sensitive: false,
+         desc: "Create a container."}
+      DeleteBlob:
+        {verb: delete, sensitive: true,
+         desc: "Delete a blob."}
+      DeleteContainer:
+        {verb: delete, sensitive: true,
+         desc: "Delete a container and every blob in it."}
+      FindBlobsByTags:
+        {verb: list, sensitive: true,
+         desc: "Search blobs across containers by index tag. Enumeration without
+               needing to know container names."}
+      GetAccountInformation:
+        {verb: read, sensitive: false,
+         desc: "Read the account's SKU and kind."}
+      GetBlob:
+        {verb: read, sensitive: true,
+         desc: "Download a blob. The primary blob exfiltration signal, and the
+               same call that reads a config file holding a connection string."}
+      GetBlobMetadata:
+        {verb: read, sensitive: true,
+         desc: "Read a blob's user-defined metadata."}
+      GetBlobProperties:
+        {verb: read, sensitive: true,
+         desc: "Read a blob's system properties, including its size, type and
+               access tier."}
+      GetBlobServiceStats:
+        {verb: read, sensitive: false,
+         desc: "Read geo-replication status for the Blob service."}
+      GetBlobTags:
+        {verb: read, sensitive: true,
+         desc: "Read a blob's index tags."}
+      GetBlockList:
+        {verb: list, sensitive: true,
+         desc: "List the blocks that make up a block blob, committed and
+               uncommitted."}
+      GetContainerACL:
+        {verb: read, sensitive: true,
+         desc: "Read a container's access policy: its public access level and its
+               stored access policies."}
+      GetContainerMetadata:
+        {verb: read, sensitive: true,
+         desc: "Read a container's user-defined metadata."}
+      GetContainerProperties:
+        {verb: read, sensitive: true,
+         desc: "Read a container's system properties, including its public access
+               level."}
+      GetBlobLeaseInfo:
+        {verb: read, sensitive: false,
+         desc: "Read the current lease state of a blob."}
+      GetPageRanges:
+        {verb: list, sensitive: true,
+         desc: "List which ranges of a page blob hold data. Reveals the shape of a
+               virtual disk."}
+      GetUserDelegationKey:
+        {verb: crypto, sensitive: true,
+         desc: "Obtain the key used to sign a user-delegation shared access
+               signature. The caller can then mint SAS tokens for the account."}
+      IncrementalCopyBlob:
+        {verb: write, sensitive: true,
+         desc: "Copy only the changes since the last snapshot. The continuous form
+               of a copy."}
+      ListBlobs:
+        {verb: list, sensitive: true,
+         desc: "Enumerate the blobs in a container. Reconnaissance of what is
+               stored."}
+      ListContainers:
+        {verb: list, sensitive: true,
+         desc: "Enumerate the containers in the account."}
+      PutBlob:
+        {verb: write, sensitive: true,
+         desc: "Create a blob or overwrite an existing one."}
+      PutBlock:
+        {verb: write, sensitive: true,
+         desc: "Stage a block for a block blob."}
+      PutBlockFromURL:
+        {verb: write, sensitive: true,
+         desc: "Write a block whose content is read from a URL rather than from
+               the request body."}
+      PutBlockList:
+        {verb: write, sensitive: true,
+         desc: "Commit a list of staged blocks, which replaces the blob's
+               contents."}
+      PutPage:
+        {verb: write, sensitive: true,
+         desc: "Write a range of a page blob."}
+      QueryBlobContents:
+        {verb: read, sensitive: true,
+         desc: "Run a SQL query over a blob's contents and return matching rows.
+               Reads data without downloading the whole blob."}
+      RenewBlobLease:
+        {verb: write, sensitive: false,
+         desc: "Extend a lease before it expires."}
+      RenewContainerLease:
+        {verb: write, sensitive: false,
+         desc: "Extend a container lease."}
+      ReleaseBlobLease:
+        {verb: write, sensitive: false,
+         desc: "Release a lease, freeing the blob for other writers."}
+      ReleaseContainerLease:
+        {verb: write, sensitive: false,
+         desc: "Release a container lease."}
+      SetBlobMetadata:
+        {verb: write, sensitive: false,
+         desc: "Set a blob's user-defined metadata."}
+      SetBlobExpiry:
+        {verb: write, sensitive: true,
+         desc: "Set a time at which the blob is deleted automatically."}
+      SetBlobTags:
+        {verb: write, sensitive: false,
+         desc: "Set a blob's index tags."}
+      SetBlobTier:
+        {verb: write, sensitive: true,
+         desc: "Change a blob's access tier. Moving to Archive makes the blob
+               unreadable until it is rehydrated, which takes hours."}
+      SetBlobProperties:
+        {verb: write, sensitive: false,
+         desc: "Set a blob's system properties such as content type and cache
+               control."}
+      SetContainerACL:
+        {verb: write, sensitive: true,
+         desc: "Set a container's public access level and its stored access
+               policies. This is how a container becomes anonymously readable."}
+      SetContainerMetadata:
+        {verb: write, sensitive: false,
+         desc: "Set a container's user-defined metadata."}
+      SnapshotBlob:
+        {verb: write, sensitive: false,
+         desc: "Create a read-only snapshot of a blob."}
+      SetBlobServiceProperties:
+        {verb: write, sensitive: true,
+         desc: "Set the Blob service's properties, which include the Storage
+               Analytics logging and metrics configuration and the CORS rules."}
+      UndeleteBlob:
+        {verb: write, sensitive: false,
+         desc: "Restore a soft-deleted blob."}
+      GetBlobServiceProperties:
+        {verb: read, sensitive: false,
+         desc: "Read the Blob service's properties, including its logging
+               configuration."}
+      BlobPreflightRequest:
+        {verb: read, sensitive: false,
+         desc: "A CORS preflight request from a browser."}
+      # Data Lake Storage Gen2 REST API
+      ListFilesystems:
+        {verb: list, sensitive: true,
+         desc: "Enumerate Data Lake Storage Gen2 filesystems. The hierarchical-
+               namespace name for containers."}
+      CreateFilesystem:
+        {verb: write, sensitive: false,
+         desc: "Create a Data Lake Storage Gen2 filesystem."}
+      DeleteFilesystem:
+        {verb: delete, sensitive: true,
+         desc: "Delete a Data Lake Storage Gen2 filesystem and everything in it."}
+      GetFilesystemProperties:
+        {verb: read, sensitive: true,
+         desc: "Read a Data Lake Storage Gen2 filesystem's properties."}
+      SetFilesystemProperties:
+        {verb: write, sensitive: false,
+         desc: "Set a Data Lake Storage Gen2 filesystem's properties."}
+      ListFilesystemDir:
+        {verb: list, sensitive: true,
+         desc: "Enumerate directories in a Data Lake Storage Gen2 filesystem."}
+      ListFilesystemFile:
+        {verb: list, sensitive: true,
+         desc: "Enumerate files in a Data Lake Storage Gen2 filesystem."}
+      CreatePathFile:
+        {verb: write, sensitive: true,
+         desc: "Create a file through the Data Lake Storage Gen2 endpoint, which
+               truncates an existing one."}
+      CreatePathDir:
+        {verb: write, sensitive: false,
+         desc: "Create a directory through the Data Lake Storage Gen2 endpoint."}
+      DeleteFile:
+        {verb: delete, sensitive: true,
+         desc: "Delete a file through the Data Lake Storage Gen2 endpoint."}
+      DeleteDirectory:
+        {verb: delete, sensitive: true,
+         desc: "Delete a directory and its contents through the Data Lake Storage
+               Gen2 endpoint."}
+      GetFileProperties:
+        {verb: read, sensitive: true,
+         desc: "Read a Data Lake Storage Gen2 file's properties."}
+      SetFileProperties:
+        {verb: write, sensitive: false,
+         desc: "Set a Data Lake Storage Gen2 file's properties."}
+      SetPathAccessControl:
+        {verb: write, sensitive: true,
+         desc: "Set the POSIX access control list on a Data Lake Storage Gen2
+               path."}
+      GetPathAccessControl:
+        {verb: read, sensitive: true,
+         desc: "Read the POSIX access control list on a Data Lake Storage Gen2
+               path."}
+      GetPathStatus:
+        {verb: read, sensitive: true,
+         desc: "Read the status of a Data Lake Storage Gen2 path, which reveals
+               whether it exists and what it is."}
+      AppendFile:
+        {verb: write, sensitive: true,
+         desc: "Append data to a Data Lake Storage Gen2 file."}
+      FlushFile:
+        {verb: write, sensitive: true,
+         desc: "Commit appended data to a Data Lake Storage Gen2 file."}
+      LeaseFile:
+        {verb: write, sensitive: true,
+         desc: "Take a lease on a Data Lake Storage Gen2 file."}
+      ReadFile:
+        {verb: read, sensitive: true,
+         desc: "Read a file through the Data Lake Storage Gen2 endpoint. The same
+               act as GetBlob under the hierarchical namespace API."}
+      RenamePathFile:
+        {verb: write, sensitive: false,
+         desc: "Rename or move a file through the Data Lake Storage Gen2 endpoint."}
+      RenamePathDir:
+        {verb: write, sensitive: false,
+         desc: "Rename or move a directory through the Data Lake Storage Gen2
+               endpoint."}
+  # Operation names verified against the Storage Analytics logged-operations REST
+  # reference (File / Queue / Table service). Only names that appear there.
+  StorageFileLogs:
+    service: Azure Files
+    field: OperationName
+    operations:
+      # File service REST API
+      AbortCopyFile:
+        {verb: delete, sensitive: false,
+         desc: "Cancel a copy that is still running."}
+      AcquireFileLease:
+        {verb: write, sensitive: true,
+         desc: "Take a lease on a file. A lease blocks every other writer and its
+               duration can be infinite."}
+      BreakFileLease:
+        {verb: write, sensitive: false,
+         desc: "End a lease, optionally after a grace period."}
+      ChangeFileLease:
+        {verb: write, sensitive: true,
+         desc: "Change a lease's ID, which locks out anyone holding the old one."}
+      ClearRange:
+        {verb: delete, sensitive: true,
+         desc: "Zero a range of a file. The data in that range is gone with no
+               delete issued."}
+      ListFilesystemDir:
+        {verb: list, sensitive: false,
+         desc: "Enumerate directories in a Data Lake Storage Gen2 filesystem."}
+      CopyFile:
+        {verb: write, sensitive: true,
+         desc: "Copy a file. The source may be any URL the caller supplies,
+               including one outside the tenant."}
+      CopyFileDestination:
+        {verb: write, sensitive: true,
+         desc: "The destination half of a copy, logged separately by the service."}
+      CopyFileSource:
+        {verb: read, sensitive: true,
+         desc: "The source half of a copy, logged separately by the service."}
+      CreateDirectory:
+        {verb: write, sensitive: false,
+         desc: "Create a directory in a share."}
+      GetFileProperties:
+        {verb: read, sensitive: true,
+         desc: "Read a file's system properties."}
+      CreateFile:
+        {verb: write, sensitive: true,
+         desc: "Create a file, which truncates an existing one of the same name."}
+      CreateFileSnapshot:
+        {verb: write, sensitive: false,
+         desc: "Create a snapshot of a file."}
+      CreateShare:
+        {verb: write, sensitive: false,
+         desc: "Create a file share."}
+      DeleteDirectory:
+        {verb: delete, sensitive: true,
+         desc: "Delete a directory."}
+      DeleteFile:
+        {verb: delete, sensitive: true,
+         desc: "Delete a file over REST."}
+      DeleteShare:
+        {verb: delete, sensitive: true,
+         desc: "Delete a share and every file in it."}
+      FilePreflightRequest:
+        {verb: read, sensitive: false,
+         desc: "A CORS preflight request from a browser."}
+      FileSessionConnect:
+        {verb: read, sensitive: false,
+         desc: "An SMB session connecting to the File service."}
+      GetDirectoryMetadata:
+        {verb: read, sensitive: true,
+         desc: "Read a directory's user-defined metadata."}
+      GetDirectoryProperties:
+        {verb: read, sensitive: true,
+         desc: "Read a directory's system properties."}
+      GetEncryptionKey:
+        {verb: read, sensitive: true,
+         desc: "Retrieve an encryption key for the share."}
+      GetFile:
+        {verb: read, sensitive: true,
+         desc: "Download a file over REST. The file-share exfiltration signal, and
+               the same call that reads a script holding a password."}
+      GetFileCopyInformation:
+        {verb: read, sensitive: false,
+         desc: "Read the status of a copy in progress."}
+      GetFileMetadata:
+        {verb: read, sensitive: true,
+         desc: "Read a file's user-defined metadata."}
+      GetFilePermission:
+        {verb: read, sensitive: true,
+         desc: "Read a stored Windows security descriptor by its permission key."}
+      GetFileServiceProperties:
+        {verb: read, sensitive: false,
+         desc: "Read the File service's properties, including its logging
+               configuration."}
+      GetFileShareUniqueId:
+        {verb: read, sensitive: false,
+         desc: "Read the share's internal unique identifier."}
+      GetPostMigrationFileInfo:
+        {verb: read, sensitive: false,
+         desc: "Read file information after a storage migration."}
+      GetShareAcl:
+        {verb: read, sensitive: true,
+         desc: "Read a share's stored access policies, which are what shared
+               access signatures are issued against."}
+      GetShareMetadata:
+        {verb: read, sensitive: true,
+         desc: "Read a share's user-defined metadata."}
+      GetShareProperties:
+        {verb: read, sensitive: true,
+         desc: "Read a share's system properties, including its quota."}
+      GetShareStats:
+        {verb: read, sensitive: false,
+         desc: "Read how much of a share's quota is used."}
+      ListFileRanges:
+        {verb: list, sensitive: true,
+         desc: "List which ranges of a file hold data."}
+      ListFiles:
+        {verb: list, sensitive: true,
+         desc: "Enumerate files and directories in a share over REST."}
+      ListFileSnapshots:
+        {verb: list, sensitive: true,
+         desc: "List a share's snapshots."}
+      ListHandles:
+        {verb: list, sensitive: true,
+         desc: "List the open SMB handles on a share, which reveals who is
+               connected and to what."}
+      ListShares:
+        {verb: list, sensitive: true,
+         desc: "Enumerate the file shares in the account."}
+      PutFilePermission:
+        {verb: write, sensitive: true,
+         desc: "Store a Windows security descriptor and return a permission key,
+               which is then applied to files and directories."}
+      PutRange:
+        {verb: write, sensitive: true,
+         desc: "Write a range of a file over REST."}
+      PutRangeFromURL:
+        {verb: write, sensitive: true,
+         desc: "Write a range whose content is read from a URL rather than from
+               the request body."}
+      ReleaseFileLease:
+        {verb: write, sensitive: false,
+         desc: "Release a lease, freeing the file for other writers."}
+      SetDirectoryMetadata:
+        {verb: write, sensitive: false,
+         desc: "Set a directory's user-defined metadata."}
+      SetFileMetadata:
+        {verb: write, sensitive: false,
+         desc: "Set a file's user-defined metadata."}
+      SetFileProperties:
+        {verb: write, sensitive: false,
+         desc: "Set a file's system properties."}
+      SetFileServiceProperties:
+        {verb: write, sensitive: true,
+         desc: "Set the File service's properties, which include the Storage
+               Analytics logging configuration and the CORS rules."}
+      SetShareAcl:
+        {verb: write, sensitive: true,
+         desc: "Set a share's stored access policies. A policy is what a shared
+               access signature is issued against, so writing one changes who can
+               reach the share."}
+      SetShareMetadata:
+        {verb: write, sensitive: false,
+         desc: "Set a share's user-defined metadata."}
+      SetShareProperties:
+        {verb: write, sensitive: false,
+         desc: "Set a share's properties, such as its quota and access tier."}
+      SnapshotShare:
+        {verb: write, sensitive: false,
+         desc: "Create a snapshot of a share."}
+      # File service SMB API
+      Cancel:
+        {verb: write, sensitive: false,
+         desc: "SMB cancellation of a pending request."}
+      ChangeNotify:
+        {verb: read, sensitive: false,
+         desc: "SMB request to be told when a directory changes."}
+      Close:
+        {verb: write, sensitive: false,
+         desc: "SMB close of a handle."}
+      Create:
+        {verb: write, sensitive: false,
+         desc: "SMB CREATE, which opens a handle to a file or directory and
+               creates it if asked."}
+      Echo:
+        {verb: read, sensitive: false,
+         desc: "SMB keep-alive."}
+      Flush:
+        {verb: write, sensitive: false,
+         desc: "SMB flush of buffered writes to disk."}
+      Ioctl:
+        {verb: write, sensitive: false,
+         desc: "SMB IOCTL, which carries FSCTL codes including server-side copy."}
+      Lock:
+        {verb: write, sensitive: false,
+         desc: "SMB byte-range lock on a file."}
+      Logoff:
+        {verb: write, sensitive: false,
+         desc: "SMB session teardown."}
+      Negotiate:
+        {verb: read, sensitive: false,
+         desc: "SMB protocol version negotiation."}
+      OplockBreak:
+        {verb: write, sensitive: false,
+         desc: "SMB opportunistic lock break."}
+      QueryDirectory:
+        {verb: list, sensitive: true,
+         desc: "SMB directory enumeration. The mounted-share form of listing
+               files."}
+      QueryInfo:
+        {verb: read, sensitive: true,
+         desc: "SMB query of a file or directory's information."}
+      Read:
+        {verb: read, sensitive: true,
+         desc: "SMB read of a file's contents. On a mounted share this is what
+               every file read looks like."}
+      SessionSetup:
+        {verb: read, sensitive: false,
+         desc: "SMB session authentication."}
+      SetInfo:
+        {verb: write, sensitive: true,
+         desc: "SMB SET_INFO. As well as setting attributes, this is how a file is
+               renamed and how it is marked for deletion on close, so it is the
+               SMB delete."}
+      TreeConnect:
+        {verb: read, sensitive: false,
+         desc: "SMB connection to a share."}
+      TreeDisconnect:
+        {verb: write, sensitive: false,
+         desc: "SMB disconnection from a share."}
+      Write:
+        {verb: write, sensitive: true,
+         desc: "SMB write to a file. The overwrite path on a mounted share."}
+  StorageQueueLogs:
+    service: Azure Queue Storage
+    field: OperationName
+    operations:
+      # Queue service REST API
+      ClearMessages:
+        {verb: delete, sensitive: true,
+         desc: "Delete every message in a queue in one call."}
+      CreateQueue:
+        {verb: write, sensitive: false,
+         desc: "Create a queue."}
+      DeleteQueue:
+        {verb: delete, sensitive: true,
+         desc: "Delete a queue and every message in it."}
+      DeleteMessage:
+        {verb: delete, sensitive: true,
+         desc: "Delete a single message after it has been dequeued."}
+      GetQueueMetadata:
+        {verb: read, sensitive: true,
+         desc: "Read a queue's metadata, including its approximate message count."}
+      GetQueue:
+        {verb: read, sensitive: true,
+         desc: "Read a queue's properties."}
+      GetMessage:
+        {verb: read, sensitive: true,
+         desc: "Dequeue a single message."}
+      GetMessageWrite:
+        {verb: read, sensitive: true,
+         desc: "Azure's own name for a Get Message call that returned messages. It
+               appears only in logging data."}
+      GetMessageRead:
+        {verb: read, sensitive: true,
+         desc: "Azure's own name for a Get Message call that returned nothing
+               because the queue was empty. It appears only in logging data."}
+      GetMessages:
+        {verb: read, sensitive: true,
+         desc: "Dequeue messages, which returns their bodies and hides them from
+               other readers."}
+      ListQueues:
+        {verb: list, sensitive: true,
+         desc: "Enumerate the queues in the account."}
+      PeekMessage:
+        {verb: read, sensitive: true,
+         desc: "Peek a single message."}
+      PeekMessages:
+        {verb: read, sensitive: true,
+         desc: "Read message bodies WITHOUT dequeuing them, so the application
+               still receives them and nothing looks wrong."}
+      PutMessage:
+        {verb: write, sensitive: false,
+         desc: "Add a message to a queue."}
+      SetQueueMetadata:
+        {verb: write, sensitive: false,
+         desc: "Set a queue's user-defined metadata."}
+      SetQueueServiceProperties:
+        {verb: write, sensitive: true,
+         desc: "Set the Queue service's properties, which include the Storage
+               Analytics logging configuration and the CORS rules."}
+      GetQueueServiceProperties:
+        {verb: read, sensitive: false,
+         desc: "Read the Queue service's properties, including its logging
+               configuration."}
+      UpdateMessage:
+        {verb: write, sensitive: false,
+         desc: "Change a message's content or its visibility timeout."}
+      QueuePreflightRequest:
+        {verb: read, sensitive: false,
+         desc: "A CORS preflight request from a browser."}
+  StorageTableLogs:
+    service: Azure Table Storage
+    field: OperationName
+    operations:
+      # Table service REST API
+      EntityGroupTransaction:
+        {verb: write, sensitive: true,
+         desc: "Apply up to a hundred writes in one atomic batch. The fast way to
+               rewrite a table."}
+      CreateTable:
+        {verb: write, sensitive: false,
+         desc: "Create a table."}
+      DeleteTable:
+        {verb: delete, sensitive: true,
+         desc: "Delete a table and every row in it."}
+      DeleteEntity:
+        {verb: delete, sensitive: true,
+         desc: "Delete a row."}
+      InsertEntity:
+        {verb: write, sensitive: false,
+         desc: "Add a new row, failing if it already exists."}
+      InsertOrMergeEntity:
+        {verb: write, sensitive: true,
+         desc: "Write a row, merging into it if it already exists."}
+      InsertOrReplaceEntity:
+        {verb: write, sensitive: true,
+         desc: "Write a row, replacing it wholesale if it already exists. The
+               overwrite path for table storage."}
+      QueryEntity:
+        {verb: read, sensitive: true,
+         desc: "Read a single row by its partition and row key."}
+      QueryEntities:
+        {verb: list, sensitive: true,
+         desc: "Query rows from a table. The bulk read, and the table-storage
+               exfiltration signal."}
+      QueryTable:
+        {verb: read, sensitive: true,
+         desc: "Read a single table's definition."}
+      QueryTables:
+        {verb: list, sensitive: true,
+         desc: "Enumerate the tables in the account."}
+      UpdateEntity:
+        {verb: write, sensitive: true,
+         desc: "Replace an existing row's properties."}
+      MergeEntity:
+        {verb: write, sensitive: true,
+         desc: "Merge properties into an existing row."}
+      SetTableServiceProperties:
+        {verb: write, sensitive: true,
+         desc: "Set the Table service's properties, which include the Storage
+               Analytics logging configuration and the CORS rules."}
+      GetTableServiceProperties:
+        {verb: read, sensitive: false,
+         desc: "Read the Table service's properties, including its logging
+               configuration."}
+      TablePreflightRequest:
+        {verb: read, sensitive: false,
+         desc: "A CORS preflight request from a browser."}

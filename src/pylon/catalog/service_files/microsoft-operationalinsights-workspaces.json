@@ -1,0 +1,116 @@
+{
+ "resource_type": "Microsoft.OperationalInsights/workspaces",
+ "service_name": "Azure Monitor Logs (Log Analytics workspace)",
+ "logging_docs": {
+  "monitor_page": "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/monitor-workspace",
+  "dedicated_logging_page": "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/query-audit",
+  "monitoring_data_reference": null,
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-operationalinsights-workspaces-logs"
+ },
+ "tables": {
+  "LAQueryLogs": {
+   "schema_mode": "resource-specific",
+   "diagnostic_category": "Audit",
+   "operation_field": null,
+   "operations_status": "none",
+   "operations_note": "No operation vocabulary exists: the schema records the query text, the caller and the response size, never a verb. Rules on this table match at TABLE resolution only.",
+   "table_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/laquerylogs",
+   "columns": {
+    "TimeGenerated": "datetime",
+    "AADClientId": "string",
+    "AADEmail": "string",
+    "AADObjectId": "string",
+    "AADTenantId": "string",
+    "ConditionalDataAccess": "string",
+    "CorrelationId": "string",
+    "IsBillableQuery": "bool",
+    "IsWorkspaceInFailover": "bool",
+    "QueryText": "string",
+    "QueryThumbprint": "string",
+    "QueryTimeRangeEnd": "datetime",
+    "QueryTimeRangeStart": "datetime",
+    "RecordKind": "string",
+    "RequestClientApp": "string",
+    "RequestContext": "dynamic",
+    "RequestContextFilters": "dynamic",
+    "RequestTarget": "string",
+    "ResponseCode": "int",
+    "ResponseDurationMs": "real",
+    "ResponseRowCount": "int",
+    "ScannedGB": "real",
+    "SourceSystem": "string",
+    "StatsCPUTimeMs": "real",
+    "StatsDataProcessedEnd": "datetime",
+    "StatsDataProcessedStart": "datetime",
+    "StatsRegionCount": "int",
+    "StatsWorkspaceCount": "int",
+    "TenantId": "string",
+    "Type": "string",
+    "WorkspaceRegion": "string",
+    "_BilledSize": "real",
+    "_IsBillable": "string",
+    "_ResourceId": "string",
+    "_SubscriptionId": "string"
+   }
+  },
+  "LAJobLogs": {
+   "schema_mode": "resource-specific",
+   "diagnostic_category": "Jobs",
+   "operation_field": "JobType",
+   "operations_status": "pending",
+   "table_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/lajoblogs",
+   "columns": {
+    "TimeGenerated": "datetime",
+    "CorrelationId": "string",
+    "Destination": "dynamic",
+    "JobId": "string",
+    "JobType": "string",
+    "Message": "string",
+    "ResultsGB": "real",
+    "ResultsRecordCount": "long",
+    "SourceSystem": "string",
+    "SourceTable": "string",
+    "Status": "string",
+    "TenantId": "string",
+    "Type": "string",
+    "_BilledSize": "real",
+    "_IsBillable": "string",
+    "_ResourceId": "string",
+    "_SubscriptionId": "string"
+   }
+  },
+  "LASummaryLogs": {
+   "schema_mode": "resource-specific",
+   "diagnostic_category": "SummaryLogs",
+   "operation_field": null,
+   "operations_status": "none",
+   "table_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/lasummarylogs",
+   "columns": {
+    "TimeGenerated": "datetime",
+    "BinSize": "int",
+    "BinStartTime": "datetime",
+    "Message": "string",
+    "QueryDurationMs": "long",
+    "ResultsRecordCount": "long",
+    "RuleLastModifiedTime": "datetime",
+    "RuleName": "string",
+    "SourceSystem": "string",
+    "Status": "string",
+    "TenantId": "string",
+    "Type": "string",
+    "_BilledSize": "real",
+    "_IsBillable": "string",
+    "_ResourceId": "string",
+    "_SubscriptionId": "string"
+   }
+  }
+ },
+ "api_references": [
+  "https://learn.microsoft.com/en-us/rest/api/loganalytics/workspaces"
+ ],
+ "resource_log_categories": [
+  "Audit",
+  "Jobs",
+  "SummaryLogs"
+ ]
+}

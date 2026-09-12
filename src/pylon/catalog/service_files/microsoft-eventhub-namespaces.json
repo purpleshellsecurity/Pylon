@@ -1,0 +1,256 @@
+{
+ "resource_type": "Microsoft.EventHub/Namespaces",
+ "service_name": "Azure Event Hubs",
+ "logging_docs": {
+  "monitor_page": "https://learn.microsoft.com/en-us/azure/event-hubs/monitor-event-hubs",
+  "dedicated_logging_page": null,
+  "monitoring_data_reference": "https://learn.microsoft.com/en-us/azure/event-hubs/monitor-event-hubs-reference",
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-eventhub-namespaces-logs"
+ },
+ "tables": {
+  "AZMSApplicationMetricLogs": {
+   "schema_mode": "resource-specific",
+   "operation_field": "OperationName",
+   "operations": [
+    "ConsumerLag",
+    "NamespaceActiveConnections",
+    "GetRuntimeInfo",
+    "GetPartitionRuntimeInfo",
+    "IncomingMessages",
+    "IncomingBytes",
+    "OutgoingMessages",
+    "OutgoingBytes",
+    "OffsetCommit",
+    "OffsetFetch"
+   ],
+   "columns": {
+    "ActivityId": "string",
+    "AuthId": "string",
+    "AuthType": "string",
+    "_BilledSize": "real",
+    "EntityName": "string",
+    "EntityType": "string",
+    "_IsBillable": "string",
+    "NamespaceName": "string",
+    "OperationName": "string",
+    "Outcome": "string",
+    "Properties": "dynamic",
+    "Protocol": "string",
+    "Provider": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string",
+    "Value": "int"
+   }
+  },
+  "AZMSArchiveLogs": {
+   "schema_mode": "resource-specific",
+   "operations_status": "n/a \u2014 no OperationName column in this table's schema; it carries no action field (metrics/telemetry table; columns below are the verified allowlist)",
+   "columns": {
+    "ActivityId": "string",
+    "ArchiveStep": "string",
+    "_BilledSize": "real",
+    "DurationMs": "int",
+    "EventhubName": "string",
+    "Failures": "int",
+    "_IsBillable": "string",
+    "Message": "string",
+    "PartitionId": "int",
+    "Provider": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "TaskName": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "TrackingId": "string",
+    "Type": "string"
+   }
+  },
+  "AZMSAutoscaleLogs": {
+   "schema_mode": "resource-specific",
+   "operations_status": "n/a \u2014 no OperationName column in this table's schema; it carries no action field (metrics/telemetry table; columns below are the verified allowlist)",
+   "columns": {
+    "_BilledSize": "real",
+    "_IsBillable": "string",
+    "Message": "string",
+    "Provider": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "TrackingId": "string",
+    "Type": "string"
+   }
+  },
+  "AZMSCustomerManagedKeyUserLogs": {
+   "schema_mode": "resource-specific",
+   "operations_status": "n/a \u2014 no OperationName column in this table's schema; its action field is 'Operation' (columns below are the verified allowlist)",
+   "columns": {
+    "_BilledSize": "real",
+    "Category": "string",
+    "_IsBillable": "string",
+    "Key": "string",
+    "KeyVault": "string",
+    "Message": "string",
+    "Operation": "string",
+    "Provider": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "StatusCode": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string",
+    "Version": "string"
+   }
+  },
+  "AZMSDiagnosticErrorLogs": {
+   "schema_mode": "resource-specific",
+   "operations_status": "n/a \u2014 no OperationName column in this table's schema; it carries no action field (metrics/telemetry table; columns below are the verified allowlist)",
+   "columns": {
+    "ActivityId": "string",
+    "ActivityName": "string",
+    "_BilledSize": "real",
+    "EntityName": "string",
+    "EntityType": "string",
+    "ErrorCount": "int",
+    "ErrorMessage": "string",
+    "_IsBillable": "string",
+    "NamespaceName": "string",
+    "OperationResult": "string",
+    "Provider": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string"
+   }
+  },
+  "AZMSKafkaCoordinatorLogs": {
+   "schema_mode": "resource-specific",
+   "operations_status": "n/a \u2014 no OperationName column in this table's schema; its action field is 'Operation' (columns below are the verified allowlist)",
+   "columns": {
+    "_BilledSize": "real",
+    "ClientId": "string",
+    "_IsBillable": "string",
+    "Message": "string",
+    "NamespaceName": "string",
+    "Operation": "string",
+    "Provider": "string",
+    "RequestId": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string"
+   }
+  },
+  "AZMSKafkaUserErrorLogs": {
+   "schema_mode": "resource-specific",
+   "operations_status": "n/a \u2014 no OperationName column in this table's schema; it carries no action field (metrics/telemetry table; columns below are the verified allowlist)",
+   "columns": {
+    "_BilledSize": "real",
+    "EventhubName": "string",
+    "_IsBillable": "string",
+    "Message": "string",
+    "NamespaceName": "string",
+    "Provider": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "TrackingId": "string",
+    "Type": "string"
+   }
+  },
+  "AZMSOperationalLogs": {
+   "schema_mode": "resource-specific",
+   "operations_status": "n/a \u2014 no OperationName column in this table's schema; it carries no action field (metrics/telemetry table; columns below are the verified allowlist)",
+   "columns": {
+    "ActivityId": "string",
+    "_BilledSize": "real",
+    "Caller": "string",
+    "EventName": "string",
+    "EventProperties": "dynamic",
+    "_IsBillable": "string",
+    "Provider": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "Status": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string"
+   }
+  },
+  "AZMSRunTimeAuditLogs": {
+   "schema_mode": "resource-specific",
+   "operations_status": "n/a \u2014 no OperationName column in this table's schema; it carries no action field (metrics/telemetry table; columns below are the verified allowlist)",
+   "columns": {
+    "ActivityId": "string",
+    "ActivityName": "string",
+    "AuthKey": "string",
+    "AuthType": "string",
+    "_BilledSize": "real",
+    "ClientIp": "string",
+    "Count": "int",
+    "_IsBillable": "string",
+    "NetworkType": "string",
+    "Properties": "dynamic",
+    "Protocol": "string",
+    "Provider": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "Status": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string"
+   }
+  },
+  "AZMSVnetConnectionEvents": {
+   "schema_mode": "resource-specific",
+   "operations_status": "n/a \u2014 no OperationName column in this table's schema; its action field is 'Action' (columns below are the verified allowlist)",
+   "columns": {
+    "Action": "string",
+    "AddressIp": "string",
+    "_BilledSize": "real",
+    "Count": "int",
+    "_IsBillable": "string",
+    "Message": "string",
+    "NamespaceName": "string",
+    "Provider": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string"
+   }
+  }
+ },
+ "api_references": {
+  "operations_source": "https://learn.microsoft.com/en-us/azure/event-hubs/monitor-event-hubs-reference"
+ },
+ "resource_log_categories": [
+  "ApplicationMetricsLogs",
+  "ArchiveLogs",
+  "AutoScaleLogs",
+  "CustomerManagedKeyUserLogs",
+  "DataDRLogs",
+  "DiagnosticErrorLogs",
+  "EventHubVNetConnectionEvent",
+  "KafkaCoordinatorLogs",
+  "KafkaUserErrorLogs",
+  "OperationalLogs",
+  "RuntimeAuditLogs"
+ ]
+}
