@@ -65,6 +65,11 @@ EVENTS: frozenset[str] = frozenset({
     "unit_done",
     # The wall-clock backstop, when the loop-based timeout could not fire.
     "deadline_exceeded",
+    # What the plan gate said about a vector, before a detection was paid for.
+    # Phase 1 used to be told to cover the surface without being told how big it
+    # is, so a two-operation surface produced five vectors. This records each
+    # vector that could not be told apart from its siblings.
+    "plan_gate",
     # Each validation gate's verdict on each ATTEMPT, with the query's hash.
     # The run log used to show two model calls and two workspace queries and
     # nothing about which gate rejected the first attempt or what it produced.

@@ -45,13 +45,41 @@ def _data() -> dict:
         return {}
 
 
+# Entra writes activity names with typographic characters and the reference page
+# transcribes them with ASCII ones. Measured on a live tenant: the directory
+# emits
+#     'Update application \u2013 Certificates and secrets management '
+# -- EN DASH, and a trailing space -- where the catalogue holds
+#     'Update application - Certificates and secrets management'
+# A detection built from the catalogue entry filters with `=~`, which forgives
+# case and nothing else, so it runs and matches zero events forever. That is
+# credential management on an application, which is among the operations most
+# worth seeing.
+#
+# Folding case alone is not enough, and patching the two names we have evidence
+# for would leave the next typographic name to fail the same way.
+_DASHES = str.maketrans({"\u2013": "-", "\u2014": "-", "\u2212": "-",
+                         "\u2018": "'", "\u2019": "'",
+                         "\u201c": '"', "\u201d": '"'})
+
+
+def normalise(activity: str) -> str:
+    """An activity name reduced to what two spellings of it have in common.
+
+    Case, outer whitespace, runs of inner whitespace, and the typographic
+    punctuation Microsoft's own pages and its own logs disagree about.
+    """
+    folded = (activity or "").translate(_DASHES).casefold().strip()
+    return " ".join(folded.split())
+
+
 @lru_cache(maxsize=1)
 def _by_activity() -> dict[str, str]:
-    """activity (lowercased) -> the service that writes it."""
+    """activity (normalised) -> the service that writes it."""
     out: dict[str, str] = {}
     for service, activities in (_data().get("activities") or {}).items():
         for activity in activities:
-            out.setdefault(activity.lower(), service)
+            out.setdefault(normalise(activity), service)
     return out
 
 
@@ -78,13 +106,13 @@ def is_known(activity: str) -> bool:
     False means "not in this snapshot", never "not real" — Entra adds activities
     continuously, so a caller may warn and must not reject.
     """
-    return bool(activity) and activity.strip().lower() in _by_activity()
+    return bool(activity) and normalise(activity) in _by_activity()
 
 
 def category_for(activity: str) -> str:
     """The Category `activity` belongs to, or "" when unknown. Useful for a
     detection's Category filter, which narrows a very broad table."""
-    return _by_activity().get((activity or "").strip().lower(), "")
+    return _by_activity().get(normalise(activity), "")
 
 
 def describe(activity: str) -> str:
@@ -93,7 +121,7 @@ def describe(activity: str) -> str:
     if not category:
         return ""
     for name, description in (_data()["activities"][category]).items():
-        if name.lower() == activity.strip().lower():
+        if normalise(name) == normalise(activity):
             return description
     return ""
 

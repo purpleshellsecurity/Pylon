@@ -37,6 +37,7 @@ across all Azure resources. The management plane log.
 - OperationNameValue must use =~ not == for case-insensitive matching
 - ActivityStatusValue must use =~ not == 
 - Caller and CallerIpAddress are plain strings — no tostring() needed
-- No mv-expand needed — AzureActivity is a flat table
+- No COLUMN here holds an array, so never mv-expand a column. A value parsed
+  out of Properties can be an array and must be expanded: `mv-expand entry = Body.properties.logs`
 - Time filter must be first operator after table name
 - Let-statement queries must end with semicolon

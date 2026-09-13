@@ -32,20 +32,78 @@ def _az_json(args: list[str]):
     return json.loads(p.stdout or "null")
 
 
+# A workspace has three public identifiers and a user reaches for whichever one
+# is in front of them. The portal Overview blade shows the name and, labelled
+# "Workspace ID", the customer guid; `az monitor log-analytics query -w` takes
+# that guid and nothing else, so it is the form most likely to be on the
+# clipboard. Matching on the name alone rejected it with "no workspace named
+# <guid> in reach", which reads as a permissions or tenant problem rather than
+# as the wrong spelling of the right workspace.
+_GUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                   re.IGNORECASE)
+
+_WORKSPACES = ("Resources | where type =~ "
+               "'microsoft.operationalinsights/workspaces'")
+
+
+def lookup(value: str) -> tuple[str, str, str]:
+    """(arm id, name, guid) for a workspace named any of the three ways.
+
+    Accepts the resource name, the full ARM id, or the customer guid. All three
+    resolve through one Resource Graph query so the three forms cannot drift
+    apart, and so the guid is read from the same row as the id rather than by a
+    second call that can fail on its own.
+    """
+    value = (value or "").strip().rstrip("/")
+    if not value:
+        raise SystemExit("--workspace needs a name, a resource id, or a workspace guid")
+
+    if value.lower().startswith("/subscriptions/"):
+        where = f"| where id =~ '{value}'"
+    elif _GUID.match(value):
+        where = f"| where properties.customerId =~ '{value}'"
+    else:
+        where = f"| where name =~ '{value}'"
+
+    proc = azcli.run(
+        ["graph", "query", "-q",
+         f"{_WORKSPACES} {where} "
+         "| project id, name, guid = tostring(properties.customerId)", "-o", "json"],
+        timeout=azcli.CONTROL_TIMEOUT,
+    )
+    payload, error = azcli.loads(proc, default={})
+    if error:
+        # A missing extension is the one first-run failure that stops everyone,
+        # and az's own wording for it does not say what to do. Recognised and
+        # answered here rather than left as a puzzle: `az` calls it a command
+        # not found, which reads like the user typed something wrong.
+        extension = azcli.missing_extension(error)
+        if extension:
+            raise SystemExit(azcli.install_hint(extension))
+        raise SystemExit(f"could not look up workspace {value!r}: {error}")
+
+    hits = (payload or {}).get("data") or []
+    if not hits:
+        raise SystemExit(
+            f"no Log Analytics workspace {value!r} in reach — pass its name, its "
+            "resource id, or the workspace guid the portal calls Workspace ID, "
+            "and check you are logged in to the right tenant")
+    if len(hits) > 1:
+        names = ", ".join(h["id"] for h in hits)
+        raise SystemExit(f"{value!r} is ambiguous, pass the full id: {names}")
+    hit = hits[0]
+    return hit["id"], hit["name"], hit.get("guid") or ""
+
+
 def resolve(workspace: str) -> tuple[str, str, str]:
     """(tenant id, workspace arm id, workspace guid)."""
+    arm, _name, guid = lookup(workspace)
+    if not guid:
+        raise SystemExit(
+            f"workspace {workspace!r} resolved to {arm} but has no workspace guid "
+            "to query — check your read access to it")
     account = _az_json(["account", "show"])
-    hits = _az_json(["graph", "query", "-q",
-                     "Resources | where type =~ "
-                     "'microsoft.operationalinsights/workspaces' "
-                     f"and name =~ '{workspace}' | project id"])["data"]
-    if not hits:
-        raise SystemExit(f"no workspace named {workspace!r} in reach")
-    arm = hits[0]["id"]
-    props = _az_json(["rest", "--method", "get", "--url",
-                      f"https://management.azure.com{arm}"
-                      f"?api-version={apiversions.LOG_ANALYTICS}"])
-    return account["tenantId"], arm, (props.get("properties") or {}).get("customerId", "")
+    return account["tenantId"], arm, guid
 
 
 # KQL duration literals, which is what someone writing a detection already has

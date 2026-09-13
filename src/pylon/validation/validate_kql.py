@@ -64,6 +64,71 @@ _NON_KQL = re.compile(
 _PLACEHOLDER = re.compile(r"\[[A-Za-z][^\[\]\"'\n]{2,60}\]")
 
 
+# An empty collection bound by `let` and then tested. Every predicate over an
+# empty set has a constant answer, so the clause does not filter -- it is a
+# clause the detection's own description promises and the query cannot deliver.
+#
+# Seen twice in shipped detections, both times as an allowlist:
+#     let AllowedSinks = dynamic([]);
+#     | extend allowlistConfigured = array_length(AllowedSinks) > 0
+#     | where crossSubscription or (allowlistConfigured and not(inAllowlist))
+# `allowlistConfigured` is false forever, so the right half of that `or` never
+# runs. The query is valid KQL, the engine accepts it, and it matches real
+# events -- so all three existing gates pass it. Only reading the boolean
+# algebra catches it.
+#
+# Deliberately restricted to `let` bindings. An inline `coalesce(x, dynamic([]))`
+# is a legitimate default and is not this.
+_EMPTY_LET = re.compile(
+    r"\blet\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"
+    r"(?:dynamic\s*\(\s*(?:\[\s*\]|\{\s*\})\s*\)|pack_array\s*\(\s*\))\s*;",
+    re.IGNORECASE)
+
+# Tests whose answer is fixed once the collection is known to be empty, with the
+# value they are fixed at.
+_CONSTANT_OVER_EMPTY: tuple[tuple[str, bool], ...] = (
+    (r"array_length\s*\(\s*{name}\s*\)\s*(?:>\s*0|>=\s*1|!=\s*0)", False),
+    (r"array_length\s*\(\s*{name}\s*\)\s*(?:==\s*0|<=\s*0|<\s*1)", True),
+    (r"array_index_of\s*\(\s*{name}\s*,[^)]*\)\s*(?:!=\s*-1|>=\s*0|>\s*-1)", False),
+    (r"array_index_of\s*\(\s*{name}\s*,[^)]*\)\s*==\s*-1", True),
+    (r"set_has_element\s*\(\s*{name}\s*,", False),
+    (r"\bin~?\s*\(\s*{name}\s*\)", False),
+)
+
+
+def _dead_empty_collections(kql: str) -> list[str]:
+    """Clauses that cannot change what the query returns, because they test an
+    empty collection -- directly, or through a name extended from one."""
+    bare = _blank_strings_and_comments(kql)
+    problems: list[str] = []
+    for binding in _EMPTY_LET.finditer(bare):
+        name = binding.group(1)
+        # Directly, and through one level of `extend alias = <constant test>`,
+        # which is how both real cases were written.
+        constants: dict[str, bool] = {}
+        for pattern, value in _CONSTANT_OVER_EMPTY:
+            rx = re.compile(pattern.format(name=re.escape(name)), re.IGNORECASE)
+            for alias in re.finditer(
+                    r"\bextend\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*([^|\n]+)", bare):
+                if rx.search(alias.group(2)):
+                    constants[alias.group(1)] = value
+            if rx.search(bare):
+                constants.setdefault(name, value)
+
+        used = [alias for alias in constants
+                if re.search(rf"\|\s*where\b[^|]*(?<![A-Za-z0-9_]){re.escape(alias)}"
+                             rf"(?![A-Za-z0-9_])", bare, re.IGNORECASE)]
+        if not used:
+            continue
+        fixed = ", ".join(f"`{a}` is always {str(constants[a]).lower()}" for a in sorted(used))
+        problems.append(
+            f"`{name}` is bound to an empty collection, so {fixed}. That clause "
+            f"cannot change what this query returns, and the detection describes "
+            f"behaviour it therefore does not have. Either fill the list in, or "
+            f"remove the clause and say so.")
+    return problems
+
+
 def _structural_issues(kql: str, *, allow_placeholders: bool = False) -> tuple[list[str], list[str]]:
     """Query-SHAPE checks independent of any table schema: an empty query, a
     guaranteed-empty result (``take 0`` / ``where false``), a non-KQL/SQL payload,
@@ -89,6 +154,7 @@ def _structural_issues(kql: str, *, allow_placeholders: bool = False) -> tuple[l
         errors.append(
             "Query has a contradictory predicate (`where false`) — it can never match."
         )
+    errors.extend(_dead_empty_collections(kql))
     left = [] if allow_placeholders else list(
         dict.fromkeys(m.group(0) for m in _PLACEHOLDER.finditer(kql))
     )
@@ -1028,12 +1094,29 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
             "this table. Use AKSAudit for read/enumeration detections."
         )
 
-    # --- Check 7: mv-expand on flat tables ---
-    if table_name in FLAT_TABLES and re.search(r"\|\s*mv-expand\b", kql, re.IGNORECASE):
-        errors.append(
-            f"{table_name}: mv-expand used on a flat table. {table_name} does not have "
-            f"array fields that require expansion."
-        )
+    # --- Check 7: mv-expand on a flat table's own COLUMNS ---
+    # "Flat" describes the schema, not the data. AzureActivity has no array
+    # column, and it also carries Properties, inside which
+    # requestbody.properties.logs is a real array that a correct detection must
+    # expand -- measured: 16 group-shaped entries and 6 named ones on live
+    # diagnostic-settings writes. AZKVAuditLogs is the same story with Identity.
+    # Banning the operator outright rejected the only correct way to read those,
+    # so the check now looks at what is being expanded: a bare top-level column
+    # of the table is still wrong, and anything derived -- a dotted path into a
+    # parsed payload, a locally extended name, a function result -- is allowed.
+    if table_name in FLAT_TABLES:
+        for operand in re.findall(
+                r"\|\s*mv-expand\s+(?:\w+\s*=\s*)?([^|\n]+)", kql, re.IGNORECASE):
+            target = operand.strip().split()[0].rstrip(",")
+            if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", target):
+                continue          # dotted path, call, or expression: derived
+            if target in (TABLE_SCHEMAS.get(table_name) or ()):
+                errors.append(
+                    f"{table_name}: mv-expand on `{target}`, a column of this flat "
+                    f"table. No column here holds an array, so expanding one either "
+                    f"fails or yields the key/value pairs of a JSON object rather "
+                    f"than the rows you want. Parse first, then expand the path: "
+                    f"`mv-expand entry = Body.properties.logs`.")
 
     # --- Check 8: AzureDiagnostics inline references ---
     if (

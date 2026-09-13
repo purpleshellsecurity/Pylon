@@ -1,0 +1,160 @@
+# How a detection reads the Entra directory audit. Measured against 412 real
+# rows. One object, two consumers: rendered into the prompt, asserted by the
+# eval, so the two cannot drift.
+table: AuditLogs
+plane: identity
+platform: entra
+columns: 30
+
+operation:
+  column: OperationName
+  operator: "=~"
+  why: >-
+    Case-insensitive is mandatory here and so is care with the literal. Two of
+    the 42 operations in this tenant carry a TRAILING SPACE and an EN DASH
+    (U+2013), not a hyphen: "Create application – Certificates and secrets
+    management " and the Update equivalent. A hand-typed name with an ASCII
+    hyphen or without the trailing space matches nothing, silently.
+  # 57 of the 922 catalogued activity names contain a dash, and the catalogue
+  # transcribes it as ASCII while the directory emits EN DASH. Measured: `=~`
+  # against the catalogue spelling of "Update application - Certificates and
+  # secrets management" matches 0 rows, while `has "Certificates and secrets
+  # management"` matches all 44. `=~` forgives case and nothing else.
+  dashed_names:
+    at_risk: 57
+    of: 922
+    rule: >-
+      When the operation name contains a dash, filter with `has` on the
+      distinctive part of the name rather than `=~` on the whole string. The
+      trailing space these names also carry is invisible in a prompt and in a
+      code review, and it breaks an equality match the same way.
+    example: '| where OperationName has "Certificates and secrets management"'
+  no_status_split: >-
+    Unlike AzureActivity there is no Start/Success pair. One operation writes
+    one row carrying both what was asked and what happened. Do not join.
+
+roles:
+  who: see identity recipe -- NOT a column
+  from_where: see identity recipe; the address is inside InitiatedBy
+  what: OperationName
+  activity: ActivityDisplayName
+  outcome: Result
+  outcome_detail: ResultReason
+  target: TargetResources
+  category: Category
+  correlate: CorrelationId
+
+typing:
+  Result: string
+  InitiatedBy: dynamic
+  TargetResources: dynamic
+  AdditionalDetails: dynamic
+  DurationMs: int
+
+# Measured: 371 success, 41 failure, and every one of them LOWERCASE. Comparing
+# against "Success" with `==` matches nothing. AzureActivity capitalises the
+# same concept, so a rule carried across tables is wrong in exactly one of them.
+outcome_values:
+  measured: {success: 371, failure: 41}
+  casing: lowercase
+  compare_with: "=~"
+
+# Present in the schema, never carrying a value here. A filter on one matches
+# nothing and projecting one implies a field that was never there.
+never_populated: [Level, Location, ResourceProvider, ResultSignature, ResultType]
+
+# The principal is not a column. It is a dynamic object with TWO mutually
+# exclusive branches, and which one is present says what kind of actor it was.
+# Measured: 242 rows carry `user` only, 168 carry `app` only, 2 carry both.
+# Reading one branch loses the other kind of actor entirely -- and on this
+# tenant "app" is 41% of the directory's activity.
+identity:
+  column: InitiatedBy
+  branches:
+    user: [id, userPrincipalName, displayName, ipAddress, roles, agentType]
+    app: [appId, servicePrincipalId, servicePrincipalName, displayName, agentType]
+  note: >-
+    `Identity` is a separate flat column and is populated on only 262 of 412
+    rows, so it is not a substitute. The address lives at InitiatedBy.user
+    .ipAddress and has no equivalent under `app`.
+  # The branch can be present and entirely empty. Measured: 49 of 412 rows
+  # carry an `app` branch whose every field -- servicePrincipalId, appId,
+  # servicePrincipalName -- is blank. The directory recorded an app-initiated
+  # change and named no app. That is 12% of this table, concentrated in
+  # GroupManagement, and a `summarize by PrincipalId` collapses all of them into
+  # one empty group that reads as a single very busy actor.
+  unattributed:
+    rows: 49
+    of: 412
+    shape: app branch present, every field empty
+    consequence: >-
+      Classify the actor rather than only naming it, and either exclude the
+      unattributed rows from a per-principal count or show them as their own
+      line. Never let them become a group.
+
+shape:
+  - time filter is the first operator after the table name
+  - no dedupe key is needed; one operation writes one row
+  - resolve the principal across BOTH branches before projecting it
+  - carry ActorType so a row with no user principal is explained, not blank
+
+recipes:
+  attributable_operation: |
+    AuditLogs
+    | where TimeGenerated > ago({window})
+    | where OperationName =~ "{operation}"
+    | where Result =~ "success"
+    | extend Actor = parse_json(tostring(InitiatedBy))
+    | extend ActorType = case(isnotempty(Actor.user.id), "user",
+                              isnotempty(Actor.app.servicePrincipalId), "app",
+                              "unknown")
+    | extend PrincipalId = coalesce(tostring(Actor.user.id),
+                                    tostring(Actor.app.servicePrincipalId))
+    | extend PrincipalName = coalesce(tostring(Actor.user.userPrincipalName),
+                                      tostring(Actor.app.servicePrincipalName))
+    | extend CallerIpAddress = tostring(Actor.user.ipAddress)
+    | project TimeGenerated, OperationName, ActivityDisplayName, Category,
+              Result, ResultReason, ActorType, PrincipalId, PrincipalName,
+              CallerIpAddress, TargetResources, CorrelationId, Id
+  # TargetResources is an array: one row can change several objects.
+  targets_expanded: |
+    AuditLogs
+    | where TimeGenerated > ago({window})
+    | where OperationName =~ "{operation}"
+    | extend Actor = parse_json(tostring(InitiatedBy))
+    | extend PrincipalId = coalesce(tostring(Actor.user.id),
+                                    tostring(Actor.app.servicePrincipalId))
+    | where isnotempty(TargetResources)
+    | mv-expand target = TargetResources
+    | extend TargetName = tostring(target.displayName),
+             TargetType = tostring(target.type),
+             TargetId = tostring(target.id)
+    | project TimeGenerated, OperationName, Result, PrincipalId,
+              TargetType, TargetName, TargetId, CorrelationId, Id
+  volume_by_principal: |
+    AuditLogs
+    | where TimeGenerated > ago({window})
+    | where Category =~ "{category}"
+    | where Result =~ "success"
+    | extend Actor = parse_json(tostring(InitiatedBy))
+    | extend PrincipalId = coalesce(tostring(Actor.user.id),
+                                    tostring(Actor.app.servicePrincipalId))
+    | extend ActorType = case(isnotempty(Actor.user.id), "user",
+                              isnotempty(Actor.app.servicePrincipalId), "app",
+                              "unattributed")
+    // Without this the 49 rows the directory left unattributed become one
+    // group with an empty key, which reads as a single prolific principal.
+    | where ActorType != "unattributed"
+    | summarize operations = count(), kinds = dcount(OperationName),
+                firstSeen = min(TimeGenerated), lastSeen = max(TimeGenerated)
+        by ActorType, PrincipalId
+    | where operations > {threshold}
+
+reference_query: |
+  AuditLogs
+  | where TimeGenerated > ago({window})
+  | extend Actor = parse_json(tostring(InitiatedBy))
+  | extend PrincipalId = coalesce(tostring(Actor.user.id),
+                                  tostring(Actor.app.servicePrincipalId))
+  | project TimeGenerated, OperationName, Category, Result, PrincipalId,
+            TargetResources, CorrelationId, Id

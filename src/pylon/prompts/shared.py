@@ -31,7 +31,8 @@ QUERY_RULES: dict[str, str] = {
 - Caller and CallerIpAddress are plain strings — no tostring() or parse needed
 - Claims is a JSON STRING; parse_json it first. The caller's object ID is under the FULL URI key `http://schemas.microsoft.com/identity/claims/objectidentifier` — there is no `oid` key. `appid` IS a short key. A wrong key name parses without error and silently yields "", so use these spellings exactly.
 - Extract nested data with parse_json(): | extend Detail = parse_json(Properties)
-- No mv-expand needed — AzureActivity is a flat table
+- No COLUMN here holds an array, so never mv-expand a column. A value parsed
+  out of Properties can be an array and must be expanded
 - End let-statement queries with a semicolon
 - EXCLUSION SCAFFOLDING (required): begin the query with `let AllowedActors = _GetWatchlist('ApprovedAutomation') | project SearchKey;` so the org maintains ONE list that both the detection and its Phase 3 playbook read, and add `// let AllowedActors = dynamic([]);  // fallback: no watchlist in this tenant` immediately below it and add `| where Caller !in (AllowedActors)` — empty by default, so the rule ships with a place to suppress known-good principals instead of firing on them on day one
 - NORMALIZE OUTPUT (required): before the final project, map this table's fields to the shared entity schema — `| extend ActorUpn = Caller, ActorId = tostring(parse_json(Claims)["http://schemas.microsoft.com/identity/claims/objectidentifier"]), SrcIp = CallerIpAddress, TargetResource = ResourceId, Operation = OperationNameValue` — then `| project TimeGenerated, ActorUpn, ActorId, SrcIp, TargetResource, Operation` plus any raw columns useful for triage. Leave a field = "" when the table has no such value. This makes entity mapping and cross-table correlation uniform.""",

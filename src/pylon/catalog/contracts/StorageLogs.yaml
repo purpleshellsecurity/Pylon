@@ -1,0 +1,168 @@
+# How a detection reads the Storage data-plane tables. Every fact below was
+# measured against 196 real rows in a lab workspace, not read from a schema
+# page. One object, two consumers: rendered into the prompt, asserted by the
+# eval, so the two cannot drift.
+family: StorageLogs
+plane: data
+platform: azure
+tables: [StorageBlobLogs, StorageQueueLogs, StorageTableLogs, StorageFileLogs]
+schema:
+  shared_columns: 47
+  note: >-
+    StorageQueueLogs and StorageTableLogs are exactly the 47. StorageBlobLogs
+    adds nine blob-only columns. StorageFileLogs adds THIRTEEN and is not a
+    drop-in member -- see file_is_two_protocols. Changing the table name in a
+    detection is safe for blob, queue and table only.
+# StorageFileLogs carries a whole second protocol. Azure Files is reachable over
+# REST and over SMB, and SMB traffic is authenticated by Windows SID rather than
+# by Entra, so the OAuth attribution rule below does NOT apply to it. An SMB
+# operation records RequesterUserName and SmbPrimarySID and leaves
+# RequesterObjectId empty, which reads as unattributed under the OAuth gate when
+# it is in fact attributed by a different mechanism. It also carries its own
+# SmbStatusCode, separate from StatusCode.
+file_is_two_protocols:
+  smb_only_columns: [RequesterUserName, SmbCommandDetail, SmbCommandMajor,
+                     SmbCommandMinor, SmbCreditsConsumed, SmbFileId, SmbMessageID,
+                     SmbPersistentHandleID, SmbPrimarySID, SmbSessionID,
+                     SmbStatusCode, SmbTreeConnectID, SmbVolatileHandleID]
+  smb_principal: coalesce(RequesterUserName, SmbPrimarySID)
+  role_note: >-
+    The three built-in file data roles are SMB roles and do not authorize the
+    REST path, which is why REST operations on a share 403 without Storage File
+    Data Privileged Contributor.
+
+blob_only: [AccessTier, CopyDestinationArmId, DestinationUri, EncryptionKeyTypeOfBlob,
+            RehydratePriority, RequestRegion, SourceAccessTier, SourceUri,
+            TrafficClassification]
+
+operation:
+  column: OperationName
+  operator: "=="
+  why: >-
+    These tables carry the operation in OperationName and the values are
+    stable-cased, unlike AzureActivity where OperationName is a display name.
+  no_nested_json: >-
+    The row is flat. There is no Properties blob and nothing to parse_json.
+    Everything a detection needs is already a column.
+
+# Which column carries each role. Nothing here is shared with AzureActivity
+# except TimeGenerated and CorrelationId.
+roles:
+  who: RequesterObjectId
+  who_upn: RequesterUpn
+  who_app: RequesterAppId
+  from_where: CallerIpAddress
+  what: OperationName
+  outcome: StatusCode
+  outcome_text: StatusText
+  # StatusCode holds "200", "201", "404" and is typed STRING, not int. Comparing
+  # it numerically is a semantic error and the query does not run:
+  #   Cannot compare values of types string and long
+  # Cast it. Verified against the live schema, where DurationMs is real and
+  # RequestHeaderSize is long, so the typing is genuinely inconsistent and
+  # cannot be guessed from the values.
+  outcome_cast: toint(StatusCode)
+
+# Machine-readable so the conformance check can see it, not only the model.
+# A fact recorded as prose reaches the prompt and not the test, which is the
+# drift this whole object exists to prevent.
+typing:
+  StatusCode: string      # holds "200"/"404"; numeric comparison does not run
+  RequestHeaderSize: long
+  ResponseHeaderSize: long
+  DurationMs: real
+  target: ObjectKey
+  scope: [AccountName, _ResourceId]
+
+# THE rule for this family. Measured: 38 of 38 OAuth rows carry a principal,
+# and 158 of 158 rows of every other auth type carry none.
+attribution:
+  gate: AuthenticationType == "OAuth"
+  measured:
+    OAuth: {rows: 38, principal: always}
+    TrustedAccess: {rows: 130, principal: never}
+    SAS: {rows: 15, principal: never}
+    AnonymousPreflight: {rows: 13, principal: never}
+  consequence: >-
+    A detection that projects RequesterObjectId without filtering on
+    AuthenticationType returns mostly empty attribution and still looks like it
+    works. Azure's own services write as TrustedAccess and tooling writes as
+    SAS; neither names a principal. State the auth type in the output or filter
+    on it.
+
+# Category is a coarse grouping and it does not mean what the verb suggests.
+categories:
+  values: [StorageRead, StorageWrite, StorageDelete]
+  enabled_by: the `audit` category group covers all three
+  trap: >-
+    GetMessage on a queue is categorised StorageWrite, not StorageRead, because
+    dequeuing mutates message visibility. A detection filtering Category on
+    StorageRead to catch queue reads misses it. Filter on OperationName, and
+    use Category only to describe.
+
+# Projecting these wastes a column and implies a value that is never there.
+never_populated: [AccessTier, CopyDestinationArmId, DestinationUri, OperationCount,
+                  ReferrerHeader, RehydratePriority, RequestRegion, SasExpiryStatus,
+                  SourceUri, TrafficClassification]
+
+# Observed in this tenant. Not the closed vocabulary -- the catalogue holds that
+# -- but every name here is confirmed to appear.
+observed_operations:
+  StorageBlobLogs:
+    StorageWrite:  [CreateContainer, PutBlob, SetContainerACL, SetContainerMetadata]
+    StorageRead:   [GetBlob, GetBlobProperties, GetContainerACL, ListContainers]
+    StorageDelete: [DeleteContainer]
+  StorageQueueLogs:
+    StorageWrite:  [CreateQueue, PutMessage, GetMessage]
+    StorageRead:   [ListQueues, PeekMessages, GetQueueMetadata]
+    StorageDelete: [DeleteQueue, DeleteMessage]
+  StorageTableLogs:
+    StorageWrite:  [CreateTable, InsertEntity]
+    StorageRead:   [QueryTables, QueryEntities]
+    StorageDelete: [DeleteTable, DeleteEntity]
+  StorageFileLogs:
+    StorageWrite:  [CreateShare, CreateFile, PutRange]
+    StorageRead:   [ListFiles, GetShareProperties, GetDirectoryProperties]
+    StorageDelete: [DeleteFile, DeleteShare]
+    note: >-
+      These are the REST-path operations, emitted with an Entra principal. SMB
+      traffic on the same table records RequesterUserName and SmbPrimarySID
+      instead; see file_is_two_protocols.
+
+shape:
+  - time filter is the first operator after the table name
+  - no dedupe key is needed; unlike AzureActivity one operation writes one row
+  - project ObjectKey so the row names what was touched, not only who touched it
+  - carry AuthenticationType into the output so empty attribution is explained
+
+recipes:
+  attributable_operation: |
+    {table}
+    | where TimeGenerated > ago({window})
+    | where OperationName == "{operation}"
+    | where AuthenticationType == "OAuth"       // else no principal is recorded
+    | where toint(StatusCode) < 300     // StatusCode is a STRING column
+    | project TimeGenerated, OperationName, Category, AccountName, ObjectKey,
+              RequesterObjectId, RequesterUpn, RequesterAppId,
+              CallerIpAddress, StatusCode, StatusText, CorrelationId
+  # Counting by principal needs the same gate, or every non-OAuth row collapses
+  # into one empty group that looks like a single busy actor.
+  volume_by_principal: |
+    {table}
+    | where TimeGenerated > ago({window})
+    | where AuthenticationType == "OAuth"
+    | where OperationName == "{operation}"
+    // `first` and `last` cannot be used as column aliases here; the parser
+    // rejects the query at the name. firstSeen/lastSeen are safe.
+    | summarize operations = count(), objects = dcount(ObjectKey),
+                firstSeen = min(TimeGenerated), lastSeen = max(TimeGenerated)
+        by RequesterObjectId, RequesterUpn, CallerIpAddress
+    | where operations > {threshold}
+
+reference_query: |
+  {table}
+  | where TimeGenerated > ago({window})
+  | where Category == "{category}"
+  | project TimeGenerated, OperationName, Category, AuthenticationType,
+            AccountName, ObjectKey, RequesterObjectId, RequesterUpn,
+            CallerIpAddress, StatusCode, StatusText, CorrelationId

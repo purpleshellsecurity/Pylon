@@ -26,6 +26,7 @@ from datetime import datetime, timezone
 
 from . import apiversions
 from . import azcli
+from . import validate
 from . import console
 from . import coverage
 from . import crosscheck
@@ -290,51 +291,18 @@ def to_row(verdict: dict, tags: dict | None = None,
 
 
 def resolve_workspace(value: str) -> tuple[str, str, str]:
-    """(arm id, name) for a workspace given either form.
+    """(arm id, name, guid) for a workspace given any of its three names.
 
     Taken as a parameter rather than discovered: a tenant can hold several
     Sentinel workspaces -- this one holds three -- and which of them is THE
     SIEM is a fact about the engagement, not something a scan can infer.
-    """
-    def guid_of(arm_id: str) -> str:
-        pr = azcli.run(
-            ["rest", "--method", "get",
-             "--url", f"https://management.azure.com{arm_id}"
-             f"?api-version={apiversions.LOG_ANALYTICS}",
-             "-o", "json"], timeout=azcli.CONTROL_TIMEOUT)
-        payload, error = azcli.loads(pr, default={})
-        if error:
-            # The guid is used to query the workspace and its absence is
-            # already handled downstream as "could not read". A failure here
-            # must not take the whole scan with it.
-            return ""
-        return ((payload or {}).get("properties") or {}).get("customerId", "")
 
-    if value.lower().startswith("/subscriptions/"):
-        return value, value.rstrip("/").split("/")[-1], guid_of(value)
-    proc = azcli.run(
-        ["graph", "query", "-q",
-         "Resources | where type =~ 'microsoft.operationalinsights/workspaces' "
-         f"and name =~ '{value}' | project id, name", "-o", "json"],
-        timeout=azcli.CONTROL_TIMEOUT,
-    )
-    payload, error = azcli.loads(proc, default={})
-    if error:
-        # A missing extension is the one first-run failure that stops everyone,
-        # and az's own wording for it does not say what to do. Recognised and
-        # answered here rather than left as a puzzle: `az` calls it a command
-        # not found, which reads like the user typed something wrong.
-        extension = azcli.missing_extension(error)
-        if extension:
-            raise SystemExit(azcli.install_hint(extension))
-        raise SystemExit(f"could not look up workspace {value!r}: {error}")
-    hits = (payload or {}).get("data") or []
-    if not hits:
-        raise SystemExit(f"no Log Analytics workspace named {value!r} in reach")
-    if len(hits) > 1:
-        names = ", ".join(h["id"] for h in hits)
-        raise SystemExit(f"{value!r} is ambiguous, pass the full id: {names}")
-    return hits[0]["id"], hits[0]["name"], guid_of(hits[0]["id"])
+    The lookup itself lives in `validate` so that every command taking
+    `--workspace` accepts the same spellings. It used to be written twice, and
+    the two copies took the name, the resource id and the customer guid between
+    them rather than each taking all three.
+    """
+    return validate.lookup(value)
 
 
 LEG_WIDTH = 42

@@ -19,11 +19,25 @@ def test_flags_operationname_filter_on_azureactivity():
     assert any("OperationNameValue" in e for e in result.errors)
 
 
-def test_flags_mv_expand_on_flat_tables():
+def test_flags_mv_expand_on_a_flat_table_s_own_column():
     kql = "AzureActivity\n| where TimeGenerated > ago(1h)\n| mv-expand Properties"
     result = validate_kql(kql, "AzureActivity")
     assert not result.valid
     assert any("mv-expand" in e and "flat table" in e for e in result.errors)
+
+
+def test_allows_mv_expand_of_a_path_parsed_out_of_a_flat_table():
+    """The ban used to cover the operator outright, which rejected the only
+    correct way to read an array out of a request body. AzureActivity has no
+    array COLUMN, and Properties.requestbody.properties.logs is a real array --
+    measured on live diagnostic-settings writes, where reading only the named
+    `category` entries and not the `categoryGroup` ones misses most of them."""
+    kql = ("AzureActivity\n| where TimeGenerated > ago(1h)\n"
+           "| extend Body = parse_json(tostring(parse_json(Properties).requestbody))\n"
+           "| mv-expand entry = Body.properties.logs\n"
+           "| project TimeGenerated, entry")
+    result = validate_kql(kql, "AzureActivity")
+    assert not any("mv-expand" in e for e in result.errors), result.errors
 
 
 def test_flags_tostring_on_plain_string_fields():

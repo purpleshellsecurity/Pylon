@@ -1,0 +1,120 @@
+# How a detection reads the Key Vault data plane. Measured against 90 real rows.
+# One object, two consumers: rendered into the prompt, asserted by the eval.
+table: AZKVAuditLogs
+plane: data
+platform: azure
+columns: 48
+
+operation:
+  column: OperationName
+  operator: "=="
+  why: values are stable-cased here, unlike AuditLogs which needs =~
+  no_status_split: >-
+    Unlike AzureActivity there is no Start/Success pair. One operation writes
+    one row carrying both what was asked and what happened. Do not join.
+
+roles:
+  who: see identity recipe -- NOT a column
+  from_where: CallerIpAddress
+  what: OperationName
+  outcome: ResultType
+  outcome_code: HttpStatusCode
+  target: Id
+  client: ClientInfo
+  scope: [_ResourceId]
+
+# Same concept as the storage family, opposite typing. Do not carry a cast
+# across tables.
+typing:
+  HttpStatusCode: int          # storage calls the same thing StatusCode, string
+  DurationMs: int
+  Identity: dynamic
+  Properties: dynamic
+  ResultType: string           # "Success"; compare as a string, never numerically
+
+# KQL column names are CASE SENSITIVE and this family disagrees with itself.
+casing_traps:
+  Tlsversion: >-
+    Lowercase s here. StorageBlobLogs spells the same concept TlsVersion with a
+    capital V. Writing the storage spelling against this table resolves to
+    nothing and the query still runs.
+
+# The principal is not a column. It is a claim bag inside a dynamic column, and
+# the object id arrives under one of TWO keys depending on token format.
+# Measured: oid on 41 rows, the schema URI on 49, mutually exclusive, 90 total.
+# Reading either alone silently loses about half the events.
+identity:
+  column: Identity
+  path: parse_json(tostring(Identity)).claim
+  object_id_keys:
+    - oid
+    - http://schemas.microsoft.com/identity/claims/objectidentifier
+  app_id_key: appid
+  bracket_notation_required: >-
+    The long key contains dots and slashes, so Claims.http://... does not parse.
+    It must be Claims["http://..."].
+
+# Populated only for the operation that touches that object type. Projecting
+# SecretProperties on a VaultGet yields empty and implies the field was absent
+# rather than inapplicable.
+conditional_columns:
+  SecretProperties: 5/90 rows, secret operations only
+  VaultProperties: 49/90 rows, VaultGet only
+  IsRbacAuthorized: 41/90 rows
+  AppliedAssignmentId: 25/90 rows
+
+never_populated: [AddressAuthorizationType, Algorithm, CertificateIssuerProperties,
+                  CertificatePolicyProperties, CertificateProperties,
+                  CertificateRequestProperties, EnablePurgeProtection,
+                  HsmPoolResourceId, IsAccessPolicyMatch, IsAddressAuthorized,
+                  KeyProperties, Nsp, SourceSystem, StorageAccountProperties,
+                  StorageSasDefinitionProperties, SubnetId, TrustedService]
+
+observed_operations: [VaultGet, SecretSet, SecretGet, SecretList, SecretDelete,
+                      SecretPurge, SecretGetDeleted]
+
+ground_truth_warning: >-
+  All 90 rows are ResultType "Success". A detection filtering on failure has no
+  events to grade against in this tenant, which is an unproven verdict rather
+  than a broken query.
+
+shape:
+  - time filter is the first operator after the table name
+  - no dedupe key is needed; one operation writes one row
+  - resolve the principal before projecting it, or the output names nobody
+
+recipes:
+  attributable_operation: |
+    AZKVAuditLogs
+    | where TimeGenerated > ago({window})
+    | where OperationName == "{operation}"
+    | extend Claims = parse_json(tostring(Identity)).claim
+    | extend PrincipalId = coalesce(
+          tostring(Claims["oid"]),
+          tostring(Claims["http://schemas.microsoft.com/identity/claims/objectidentifier"]))
+    | extend AppId = tostring(Claims["appid"])
+    | project TimeGenerated, OperationName, ResultType, HttpStatusCode,
+              PrincipalId, AppId, CallerIpAddress, ClientInfo, Id,
+              CorrelationId, _ResourceId
+  volume_by_principal: |
+    AZKVAuditLogs
+    | where TimeGenerated > ago({window})
+    | where OperationName in ({operations})
+    | extend Claims = parse_json(tostring(Identity)).claim
+    | extend PrincipalId = coalesce(
+          tostring(Claims["oid"]),
+          tostring(Claims["http://schemas.microsoft.com/identity/claims/objectidentifier"]))
+    | summarize operations = count(), objects = dcount(Id),
+                firstSeen = min(TimeGenerated), lastSeen = max(TimeGenerated)
+        by PrincipalId, CallerIpAddress
+    | where operations > {threshold}
+
+reference_query: |
+  AZKVAuditLogs
+  | where TimeGenerated > ago({window})
+  | extend Claims = parse_json(tostring(Identity)).claim
+  | extend PrincipalId = coalesce(
+        tostring(Claims["oid"]),
+        tostring(Claims["http://schemas.microsoft.com/identity/claims/objectidentifier"]))
+  | project TimeGenerated, OperationName, ResultType, HttpStatusCode,
+            PrincipalId, CallerIpAddress, Id, CorrelationId

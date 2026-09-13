@@ -321,9 +321,28 @@ def build(report: dict) -> str:
   <p class="lead__2">{second}</p>
 </section>"""
 
+    # One card per vector, joined to its detection BY NAME -- and a model that
+    # renames the vector breaks that join silently. It happened: three
+    # detections rendered with their rationale and alert condition and no query
+    # and no verdict, while report.json held both. The engine now stamps
+    # `vector_name` so the key is Pylon's rather than the model's, and this is
+    # the second line of defence, because a page that drops a query it was
+    # given is worse than a page that admits it has an extra one.
     body = "".join(
         _one(v, by_name.get(v.get("name")), names, bases) for v in vectors
     )
+    claimed = {v.get("name") for v in vectors}
+    orphans = [d for d in detections
+               if d.get("detection", {}).get("vector_name") not in claimed]
+    for orphan in orphans:
+        name = orphan.get("detection", {}).get("vector_name") or ""
+        body += _one({"name": name, "log_table": table,
+                      "operation": orphan.get("operation", ""),
+                      "mitre_technique": orphan.get("detection", {})
+                      .get("mitre_technique", ""),
+                      "priority": orphan.get("priority", ""),
+                      "rationale": orphan.get("rationale", "")},
+                     orphan, names, bases)
     return page(
         "Detections",
         [("platform", report.get("platform", "?")),

@@ -65,6 +65,20 @@ class AttackVector(Strict):
     )
     log_table: str = Field(description="Sentinel table the detection queries")
     alert_condition: str = Field(description="One-line alert condition")
+    # Prose cannot be checked. A run enumerated five vectors for a surface with
+    # two operations, subdividing one of them four ways by request-body fields,
+    # and one of the four asked for a state the API does not produce. Reading
+    # the field names back out of the prose condition was tried and is not
+    # possible -- "remains", "configured" and "sink" are indistinguishable from
+    # field names to anything but a reader. So the plan states them.
+    distinguishing_fields: list[str] = Field(
+        default_factory=list,
+        description="ONLY when another vector in this plan uses the same "
+        "operation: the exact request-body field names that tell this vector "
+        "apart from those, e.g. [\"logs\", \"retentionPolicy\"]. Field names "
+        "as they appear in the log, not prose. Leave empty when this vector is "
+        "the only one using its operation.",
+    )
     rationale: str = Field(
         description="Two sentences: what the operation does and why it is "
         "security-relevant. Facts only — no statistics, no APT attribution."
@@ -100,6 +114,11 @@ class ThreatAnalysis(Strict):
     provenance: Provenance | None = None
     executive_summary: str
     attack_vectors: list[AttackVector]
+    # What the plan gate said about this plan. Written by Pylon after Phase 1,
+    # never by the model, and defaulted so a plan saved before the field still
+    # loads. Warnings rather than deletions: the gate measures one tenant, so a
+    # field nobody has triggered is unmeasured, not unreal.
+    plan_warnings: list[str] = Field(default_factory=list)
     # "verified" once the MITRE CTI bundle has screened the technique IDs;
     # "unavailable" when the bundle couldn't be fetched (verification did not run —
     # fabricated IDs may have slipped through). Recorded so it's never silent.

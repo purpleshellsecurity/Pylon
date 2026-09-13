@@ -120,7 +120,11 @@ def stub_model(monkeypatch):
 
 
 def _args(**kw):
-    base = dict(target="", source="", pick="", out=None, max_cost=1.0, max_tokens=0)
+    # No tenant here by design, so the table-confirmation gate is answered
+    # the way a user with an undeployed service answers it. The gate
+    # itself is covered in test_a_run_confirms_the_tenant_first.
+    base = dict(target="", source="", pick="", out=None, max_cost=1.0,
+                max_tokens=0, unconfirmed_tables=True)
     return argparse.Namespace(**{**base, **kw})
 
 

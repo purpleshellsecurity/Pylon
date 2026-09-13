@@ -475,6 +475,29 @@ def _design_plan(args: argparse.Namespace) -> int:
     return _design_detections(args)
 
 
+def _unconfirmed(have: frozenset[str] | None, tables: list[str]) -> str:
+    """Why this run must not proceed, or "" when the tables are confirmed.
+
+    Two different failures with one remedy. No scan at all, and a scan that
+    looked and found none of this target's tables holding data. The second is
+    the one worth stopping for: a detection over a table with no rows cannot be
+    graded, so the run would cost money to produce work nothing can check.
+    """
+    if have is None:
+        return ("refusing to build: no scan confirms these tables exist.\n"
+                "  run `pylon analyze` first, or pass --unconfirmed-tables to "
+                "build anyway")
+    missing = [t for t in tables if t not in have]
+    if len(missing) == len(tables):
+        return ("refusing to build: the scan found no data in "
+                f"{', '.join(missing)}.\n"
+                "  a detection over an empty table cannot be graded. Enable the "
+                "diagnostic\n"
+                "  setting and rescan, or pass --unconfirmed-tables to build "
+                "anyway")
+    return ""
+
+
 def _design_detections(args: argparse.Namespace) -> int:
     """Phases 1 and 2: threat analysis, then a detection per attack vector."""
     engine = _engine()
@@ -531,6 +554,12 @@ def _design_detections(args: argparse.Namespace) -> int:
     from . import deployed as provisioned_tables
     have, why = provisioned_tables.from_analysis()
     print(f"  {'tables':<14}{why}", file=sys.stderr)
+    building = getattr(args, "pick", "") != "none"
+    if building and not getattr(args, "unconfirmed_tables", False):
+        refusal = _unconfirmed(have, list(target.tables) or ["AuditLogs"])
+        if refusal:
+            print(f"\n{refusal}", file=sys.stderr)
+            return 2
 
     # Which surfaces this run reads, and which it cannot, said BEFORE the money
     # is spent. The refusals are the half that matters: a run against
@@ -1517,6 +1546,7 @@ def _sweep_stage(stage: str, target: str, out: Path,
         # verify stage, one stage too late to correct anything.
         ns.workspace = args.workspace or ""
         ns.verify_window = args.window
+        ns.unconfirmed_tables = getattr(args, "unconfirmed_tables", False)
         code = _design_detections(ns)
     elif stage == "playbooks":
         ns.source, ns.pick = str(out), "all"
@@ -2250,6 +2280,17 @@ def build_parser() -> argparse.ArgumentParser:
                          "which is not the same as working")
     dd.add_argument("--verify-window", default="", metavar="DURATION",
                     help="how far back --workspace grades (default: 30d)")
+    # A run without a scan writes detections naming tables nobody confirmed
+    # exist. It used to warn and carry on, and every detection it produced
+    # carried "No scan was run" where its table basis should be -- which is the
+    # tool spending money to answer a question it has already said it cannot
+    # check. Confirming the tenant comes first; this is the escape hatch for
+    # writing detections for a service that is not deployed yet, which is a
+    # real thing to want and must be asked for rather than defaulted into.
+    dd.add_argument("--unconfirmed-tables", action="store_true",
+                    help="build even though no scan confirms the tables hold "
+                         "data. For a service you have not deployed yet; the "
+                         "output says the table was never confirmed")
     dd.set_defaults(func=_design_detections)
 
     dp = dn.add_parser("playbooks", help="IR playbooks for detections already generated")
@@ -2305,6 +2346,9 @@ def build_parser() -> argparse.ArgumentParser:
                           "BETWEEN stages, so a sweep can overshoot by at most "
                           "one stage -- a model call already in flight cannot "
                           "be un-spent")
+    dsw.add_argument("--unconfirmed-tables", action="store_true",
+                     help="build targets whose tables no scan confirms hold "
+                          "data. Without it a sweep skips them and says so")
     dsw.add_argument("--force", action="store_true",
                      help="redo stages whose output is already on disk")
     dsw.set_defaults(func=_design_sweep)

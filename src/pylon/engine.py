@@ -36,7 +36,7 @@ from dataclasses import dataclass
 
 from agent_framework import Agent, RunContext, step, workflow
 
-from . import column_values, mitre, operation_grounding, pivot, progress
+from . import column_values, contracts, mitre, operation_grounding, pivot, progress
 from . import verification
 from .attack_paths import normalize_tags, tag_seed_context
 from . import deployed
@@ -185,6 +185,24 @@ def make_checkpoint_storage(path):
     from agent_framework import FileCheckpointStorage
 
     return FileCheckpointStorage(str(path), allowed_checkpoint_types=CHECKPOINT_ALLOWED_TYPES)
+
+
+def operation_vocabulary_for(request: "EngineRequest", table: str) -> tuple[str, ...]:
+    """Every operation this table records for the target, or () when unknown.
+
+    Empty is not "none exist" -- it is "nobody has catalogued this surface" --
+    and `plan_problems` treats it that way, checking nothing rather than
+    rejecting everything.
+    """
+    from .services import operation_vocabulary
+
+    resource = request.resource if _is_resource_mode(request) else ""
+    if not resource:
+        return ()
+    try:
+        return tuple(operation_vocabulary(resource, table))
+    except Exception:          # an uncatalogued surface is not a run failure
+        return ()
 
 
 def _is_resource_mode(request: "EngineRequest") -> bool:
@@ -554,6 +572,36 @@ async def fetch_grounding(log_table: str) -> str:
     return f"\n\n<live_documentation>\n{context}\n</live_documentation>" if context else ""
 
 
+def _surface_size(request: "EngineRequest") -> str:
+    """The operations this target actually records, named for Phase 1.
+
+    The prompt tells Phase 1 to cover the surface and not sample it, which is
+    right for a vault with 78 operations and is an instruction to invent on a
+    surface with two. It was never shown which it was dealing with: the
+    vocabulary is consulted in Phase 2, per vector, long after the count is
+    decided. A run against Microsoft.Insights/diagnosticSettings enumerated five
+    vectors for Write and Delete.
+
+    So the list goes in, and "cover the surface" becomes bounded by a list
+    rather than by how thorough the model feels.
+    """
+    tables = tuple(request.surfaces or ()) or ((request.service,) if request.service else ())
+    lines: list[str] = []
+    for table in tables:
+        vocabulary = operation_vocabulary_for(request, table)
+        if not vocabulary:
+            continue
+        lines.append(f"{table} records exactly these {len(vocabulary)} operations "
+                     f"for this target:")
+        lines += [f"  {op}" for op in sorted(vocabulary)]
+    if not lines:
+        return ""
+    return ("\n".join(lines) + "\n\nThat list is the whole surface. Do not "
+            "enumerate a vector for anything absent from it, and do not split one "
+            "operation into several vectors unless you can name the request-body "
+            "fields that tell them apart -- put those in distinguishing_fields.\n\n")
+
+
 @step
 @in_phase("run_threat_phase")
 async def run_threat_phase(request: EngineRequest, grounding: str) -> ThreatAnalysis:
@@ -586,7 +634,8 @@ async def run_threat_phase(request: EngineRequest, grounding: str) -> ThreatAnal
         _run_with_retry(
             agent,
             f"Target: {subject}\n"
-            "Execute the task completely. Be thorough and production-ready.",
+            + _surface_size(request)
+            + "Execute the task completely. Be thorough and production-ready.",
             options={"response_format": ThreatAnalysis},
         ),
         "enumerating attack vectors",
@@ -597,6 +646,12 @@ async def run_threat_phase(request: EngineRequest, grounding: str) -> ThreatAnal
     # "AuditLogs" and `design detections --from` refused it. Pylon knows what it
     # was asked for; it should not read that back out of a model's answer.
     analysis.target = request.target_key or subject
+    # Cleared for the same reason `target` is stamped: this field is Pylon's
+    # answer about the plan, not the model's. Left writable, the model filled it
+    # with its own KQL advice -- true advice, in the field where the plan gate's
+    # findings go, which would have read as Pylon having measured something it
+    # had not yet looked at.
+    analysis.plan_warnings = []
     # Stamped here, beside the target, for the same reason: both are facts about
     # the RUN that the model has no business supplying or rewriting.
     analysis.provenance = stamp("design plan")
@@ -697,6 +752,32 @@ async def run_detection_phase(
     # read like a failed design.
     if not analysis.attack_vectors:
         return []
+
+    # The plan gate. Phase 1 is told to cover the surface and, until now, was
+    # never shown how big it is -- so on a two-operation surface the only way to
+    # be exhaustive was to invent, and it did: five vectors for Write and
+    # Delete, four of them subdividing Write by request-body fields. One asked
+    # for a write with every destination empty, which cannot happen, because
+    # workspaceId is present on 31 of 31 observed writes and the other three
+    # destinations are never present at all.
+    #
+    # A warning, not a refusal. This measures a sample of one tenant, so a field
+    # nobody has triggered yet is unmeasured rather than unreal, and refusing
+    # would delete correct work for a surface that is merely quiet. It is loud,
+    # it names the count behind the claim, and it reaches report.json.
+    for table in {_expected_for_vector(request, v) for v in analysis.attack_vectors}:
+        here = [(i, v) for i, v in enumerate(analysis.attack_vectors)
+                if _expected_for_vector(request, v) == table]
+        found = contracts.plan_problems(
+            [v for _i, v in here], table,
+            vocabulary=operation_vocabulary_for(request, table))
+        for position, (index, vector) in enumerate(here):
+            for problem in found.get(position, []):
+                log.warning("plan: %s — %s", vector.name, problem,
+                            extra={"event": "plan_gate", "vector": vector.name,
+                                   "operation": vector.operation, "table": table})
+                analysis.plan_warnings.append(f"{vector.name}: {problem}")
+
     _t0 = time.monotonic()
     log.info("writing detections", extra={"event": "phase_start", "phase": "run_detection_phase"})
     agent = Agent(
@@ -848,6 +929,22 @@ async def run_detection_phase(
         result = _validate(kql, table)
         _gate("static", vector, kql, result.valid,
               errors=result.errors[:3], table=table)
+
+        # The contract gate. It runs beside the static one and before anything
+        # is paid for, because what it catches is cheap to find and expensive to
+        # miss: a column that is present and always empty, a string column
+        # compared numerically, a principal projected from rows that do not
+        # carry one. All three shipped past the other three gates, because a
+        # well-formed query the engine accepts can still read the table wrong.
+        breaches = contracts.conforms(kql, table)
+        _gate("contract", vector, kql, not breaches,
+              breaches=breaches[:3], table=table,
+              had_contract=table in contracts.tables())
+        if breaches:
+            result = merge_results(result, ValidationResult(
+                valid=False,
+                errors=[f"this contradicts what {table} actually contains: {b}"
+                        for b in breaches]))
         offline = OfflineCheck(
             ran=False,
             error="" if offline_on else "no kustainer endpoint configured")
@@ -984,6 +1081,16 @@ async def run_detection_phase(
                 agent, prompt, options={"response_format": Detection}
             )
             detection: Detection = response.value
+            # Stamped, not asked for. `vector_name` is the join key the report
+            # uses to put a detection back beside the vector it was built for,
+            # and the model sometimes renames the vector -- narrowing "sink
+            # redirected to a non-approved destination" to "redirected
+            # cross-subscription" after being told the allowlist half was dead.
+            # That rename is a good answer and a broken key: the lookup missed,
+            # and three detections rendered with no query and no verdict at all
+            # while report.json held both. Pylon knows which vector it asked
+            # for; it must not read that back out of the answer.
+            detection.vector_name = vector.name
             result, offline, graded = await _checked(
                 detection.kql, expected, vector.operation, vector.name)
             retried = False
@@ -998,6 +1105,7 @@ async def run_detection_phase(
                     options={"response_format": Detection},
                 )
                 detection = response.value
+                detection.vector_name = vector.name
                 result, offline, graded = await _checked(
                     detection.kql, expected, vector.operation, vector.name)
 

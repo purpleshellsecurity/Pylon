@@ -90,7 +90,9 @@ _KQL_RULES: dict[str, str] = {
 - KQL: filter ActivityStatusValue =~ "Success" for successful operations — not Result
 - KQL: Caller and CallerIpAddress are plain strings — no tostring() parsing needed
 - KQL: use parse_json() to extract nested fields from Properties and Authorization blobs
-- KQL: no mv-expand needed — AzureActivity is a flat table
+- KQL: no COLUMN holds an array, so never mv-expand a column — but a value
+  parsed out of Properties can be one, and `properties.logs` on a diagnostic
+  settings write is exactly that
 - KQL: time filter must be the FIRST operator after the table name
 - KQL: end let-statement queries with a semicolon
 - KQL: `Authorization` has exactly three keys — `scope`, `action`, `evidence`.
@@ -231,10 +233,25 @@ _GENERIC_TABLE_RULES = (
 
 
 def table_rules(table: str) -> str:
-    """The platform-specific KQL rule bullets for a table, or generic rules when
-    the table has no dedicated rule set."""
+    """The KQL rules for a table: its contract first, then the platform bullets.
+
+    The bullets are shared three ways across seven tables, so they cannot name a
+    column -- Key Vault calls the identity `Identity` and blob storage calls it
+    `RequesterObjectId`, and a rule set covering both can only gesture. The
+    contract is per table and measured, so it goes FIRST and the platform rules
+    remain as the general advice they always were.
+
+    Both halves reach the model through this one function, and the contract half
+    is the same object `contracts.conforms()` checks the answer against.
+    """
+    from .. import contracts
     key = _TABLE_RULES_KEY.get(table)
-    return _KQL_RULES[key] if key else _GENERIC_TABLE_RULES
+    platform = _KQL_RULES[key] if key else _GENERIC_TABLE_RULES
+    measured = contracts.render(table)
+    if not measured:
+        return platform
+    return (f"Measured against real events in this table -- every line below was "
+            f"confirmed by running it:\n{measured}\n\nGeneral rules:\n{platform}")
 
 
 def is_grounded_table(table: str) -> bool:

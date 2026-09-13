@@ -42,7 +42,7 @@ def _written(tmp_path) -> argparse.Namespace:
     (tmp_path / "plan.json").write_text(_PLAN.model_dump_json())
     return argparse.Namespace(
         target="", source=str(tmp_path), pick="", out=None,
-        max_cost=1.0, max_tokens=0)
+        max_cost=1.0, max_tokens=0, unconfirmed_tables=True)
 
 
 def test_the_selection_is_applied_before_the_fan_out():

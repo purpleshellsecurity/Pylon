@@ -33,7 +33,10 @@ def _run(monkeypatch, target: str):
 
     monkeypatch.setattr(cli, "_engine", lambda: _Stub)
     monkeypatch.setattr(deployed, "from_analysis", lambda: (None, "not checked"))
-    args = argparse.Namespace(target=target, max_cost=1.0, max_tokens=0, out=None)
+    # This asserts what reaches the engine, not whether the tenant was
+    # scanned, so the confirmation gate is answered explicitly.
+    args = argparse.Namespace(target=target, max_cost=1.0, max_tokens=0,
+                              out=None, unconfirmed_tables=True)
     with pytest.raises(SystemExit):
         cli._design_detections(args)
     return built["request"]

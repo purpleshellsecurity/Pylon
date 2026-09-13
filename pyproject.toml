@@ -62,6 +62,7 @@ pylon = [
     "catalog/*.json",
     "catalog/mitre_index.json",
     "catalog/*.yaml",
+    "catalog/contracts/*.yaml",
     "catalog/*.gz",
     "catalog/*.md",
     "catalog/service_files/*.json",
