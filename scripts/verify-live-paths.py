@@ -27,7 +27,6 @@ writes nothing, to the workspace or to disk.
 
 from __future__ import annotations
 
-import os
 import sys
 import traceback
 

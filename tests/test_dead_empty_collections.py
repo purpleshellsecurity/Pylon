@@ -131,7 +131,7 @@ def test_both_directions_are_covered():
     """`in` matches nothing and `!in` matches everything. Both are wrong and
     neither fails, so the message has to cover the pair."""
     for op in ("in", "!in"):
-        kql = (f"let A = _GetWatchlist('Approved') | project SearchKey;\n"
+        kql = ("let A = _GetWatchlist('Approved') | project SearchKey;\n"
                + _q(f"| where Caller {op} (A)"))
         assert _unverified_watchlists(kql), f"{op} not caught"
 

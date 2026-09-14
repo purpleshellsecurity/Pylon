@@ -23,7 +23,6 @@ that fails on that, rather than on a name appearing somewhere in the package.
 """
 
 import json
-import pathlib
 
 import pytest
 

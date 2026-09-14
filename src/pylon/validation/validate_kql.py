@@ -395,7 +395,6 @@ def _operation_literals(kql: str, table: str) -> list[str]:
     from ..services import operation_column
 
     column = operation_column(table)
-    src = _blank_strings_and_comments(kql)
     out: list[str] = []
     # Values live in the ORIGINAL text; the blanked copy only locates the clause.
     for m in re.finditer(
@@ -626,17 +625,20 @@ def _without_comments(kql: str) -> str:
             quote = kql[i + 1]
             end = kql.find(quote, i + 2)
             end = n if end < 0 else end + 1
-            out.append(kql[i:end]); i = end
+            out.append(kql[i:end])
+            i = end
         elif ch in "\"'":
             j = i + 1
             while j < n and kql[j] != ch:
                 j += 2 if kql[j] == "\\" else 1
-            out.append(kql[i:min(j + 1, n)]); i = min(j + 1, n)
+            out.append(kql[i:min(j + 1, n)])
+            i = min(j + 1, n)
         elif ch == "/" and i + 1 < n and kql[i + 1] == "/":
             j = kql.find("\n", i)
             i = n if j < 0 else j
         else:
-            out.append(ch); i += 1
+            out.append(ch)
+            i += 1
     return "".join(out)
 
 

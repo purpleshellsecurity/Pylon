@@ -101,7 +101,7 @@ def intended(identifier: str) -> str:
     best = ""
     for alias, role in ALIASES.items():
         if alias in flat and len(alias) > len(best):
-            best, match = alias, role
+            best = alias
     return ALIASES[best] if best else ""
 
 

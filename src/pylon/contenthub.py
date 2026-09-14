@@ -404,7 +404,7 @@ def build(workspace_arm_id: str, live_tables: set[str],
             other = ", ".join(f"{n} {k.lower()}" for k, n in
                               sorted(ships.get(cid, collections.Counter()).items())
                               if k != "AnalyticsRule")
-            evidence = (f"it ships no analytics rules at all"
+            evidence = ("it ships no analytics rules at all"
                         + (f", only {other}" if other else ""))
         else:
             alignment = "unmatched"

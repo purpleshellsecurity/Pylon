@@ -24,7 +24,6 @@ import sys
 import time
 from datetime import datetime, timezone
 
-from . import apiversions
 from . import azcli
 from . import validate
 from . import console

@@ -11,8 +11,6 @@ Nothing said which build wrote any of it. Two SecretPurge detections were
 compared and the only way to tell them apart was which directory they sat in.
 """
 
-import json
-import os
 
 import pytest
 

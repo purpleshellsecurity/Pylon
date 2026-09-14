@@ -51,6 +51,9 @@ _ROOT = "pylon"
 EVENTS: frozenset[str] = frozenset({
     # The invocation itself.
     "command",
+    # The invocation ending badly. Emitted once, from the top of `main`, so a
+    # crash leaves a structured record beside the trace the user is pointed at.
+    "crash",
     # Engine phases and the model calls inside them.
     "phase_start",
     "fanout",
@@ -192,6 +195,39 @@ class _RunId(logging.Filter):
         return True
 
 
+KEEP_RUNS = int(os.environ.get("PYLON_LOG_KEEP", "50"))
+
+
+def _prune(directory: Path, keep: int | None = None) -> list[Path]:
+    """Delete all but the newest `keep` run logs. Returns what was removed.
+
+    One file per run, at DEBUG, with nothing ever removing them. A design run's
+    log is not small, and on a machine that runs Pylon daily the directory only
+    grows.
+
+    Sorted by NAME, not mtime: the names are `run-YYYYmmdd-HHMMSS.jsonl`, which
+    sorts chronologically and does not move when a file is copied or restored
+    from a backup. Only that exact shape is considered, so a file someone parked
+    in the directory by hand is never deleted by us.
+
+    Failure is silent by design. This runs at startup on the way to doing the
+    thing the user actually asked for, and a locked or read-only file is not a
+    reason to refuse to run.
+    """
+    keep = KEEP_RUNS if keep is None else keep
+    if keep <= 0:
+        return []
+    runs = sorted(directory.glob("run-*.jsonl"))
+    removed = []
+    for old_run in runs[:-keep] if len(runs) > keep else []:
+        try:
+            old_run.unlink()
+            removed.append(old_run)
+        except OSError:
+            continue
+    return removed
+
+
 def configure(level: str | None = None, jsonl: Path | None = None) -> Path | None:
     """Install the handlers. Idempotent — safe to call from any entry point.
 
@@ -238,6 +274,10 @@ def configure(level: str | None = None, jsonl: Path | None = None) -> Path | Non
         fh.setLevel(logging.DEBUG)  # the file always gets everything
         root.addHandler(fh)
         _jsonl_path = target
+        # One file per run at DEBUG, kept forever, was unbounded growth on an
+        # analyst's laptop. Pruned AFTER this run's handler is installed, so the
+        # file about to be written is never a deletion candidate.
+        _prune(target.parent)
     except OSError as exc:
         # An unwritable log directory must not kill a paid run. Say so once, on
         # the channel that still works, and carry on.

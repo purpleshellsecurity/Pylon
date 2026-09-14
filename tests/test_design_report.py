@@ -175,5 +175,5 @@ def test_the_run_is_reported_never_rewritten(show):
                 log_table="AZKVAuditLogs", mitre_technique="unmapped")
     out = show(_result([_det("unmapped", "Certificate listing")],
                        analysis=NS(attack_vectors=[vector])))
-    detection_line = next(l for l in out.splitlines() if "ok " in l)
+    detection_line = next(line for line in out.splitlines() if "ok " in line)
     assert "unmapped" in detection_line

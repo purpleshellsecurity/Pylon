@@ -20,7 +20,6 @@ import re
 from importlib import resources
 
 from .constants import (
-    GRAPH_ACTIVITY_TABLE,
     LEGACY_GRAPH_TABLE,
     PHASES,
     PLATFORMS,
@@ -31,7 +30,6 @@ from .constants import (
     canonical_service,
     is_known_service,
     normalise_platform,
-    table_for_target,
 )
 from .shared import (
     ACTOR_IDENTITY_RULE,

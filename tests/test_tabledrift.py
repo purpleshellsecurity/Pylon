@@ -425,7 +425,7 @@ def test_storage_sub_services_are_actually_probed():
         key = f"microsoft.storage/storageaccounts/{service}services"
         assert key in TABLE_MAP, f"{key} is a map row"
         assert probes.get(key), f"{key} was never probed"
-    assert probes[f"microsoft.storage/storageaccounts/blobservices"] == [
+    assert probes["microsoft.storage/storageaccounts/blobservices"] == [
         "/x/st1/blobServices/default"]
 
 

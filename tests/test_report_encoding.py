@@ -17,7 +17,7 @@ import re
 
 import pytest
 
-from pylon import report, reportkit
+from pylon import report
 
 RG = "/subscriptions/S/resourceGroups/RG/providers"
 STORAGE = "microsoft.storage/storageaccounts"

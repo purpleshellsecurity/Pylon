@@ -105,7 +105,7 @@ def test_a_correct_pairing_is_silent():
 def test_an_unknown_guid_is_a_warning_not_an_error():
     """A custom role definition is real and tenant-specific, and this catalogue
     holds only built-ins. Erroring would refuse correct detections."""
-    found = issues(f'let OwnerRoleId = "11111111-2222-3333-4444-555555555555";\nT')
+    found = issues('let OwnerRoleId = "11111111-2222-3333-4444-555555555555";\nT')
     assert len(found) == 1 and found[0].startswith("WARNING: ")
     assert "custom role" in found[0]
 

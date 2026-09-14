@@ -508,6 +508,7 @@ Everything here has a default that works. These change it.
 | `PYLON_MAX_CONCURRENCY` | see `engine.py` | Detections generated at once. |
 | `PYLON_MAX_RETRIES` | see `engine.py` | Retries per model call. |
 | `PYLON_LOG_LEVEL` / `PYLON_LOG_FILE` | `INFO` | Console level, and where the structured run log is written. |
+| `PYLON_LOG_KEEP` | `50` | How many run logs to keep in `.pylon/logs/`. Older ones are deleted at startup; `0` disables pruning. |
 | `PYLON_RUN_ID` | generated | Force a run id, to join artifacts across commands. |
 | `PYLON_CONFIG` | `~/.pylon` | Where `pylon config` stores its settings. |
 

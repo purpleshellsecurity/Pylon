@@ -37,7 +37,9 @@ def fresh(monkeypatch, tmp_path):
 
 
 def _lines(path):
-    return [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
+    return [json.loads(line)
+            for line in path.read_text(encoding="utf-8").splitlines()
+            if line.strip()]
 
 
 def test_a_record_from_a_child_logger_is_stamped(fresh):

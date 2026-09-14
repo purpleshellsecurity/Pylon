@@ -155,7 +155,7 @@ def test_the_contract_gate_is_reachable_from_the_engine():
     and the gate text it emits, which is what makes the call site real."""
     import inspect
 
-    from pylon import contracts, engine
+    from pylon import engine
 
     source = inspect.getsource(engine)
     assert "contracts.conforms(" in source, (

@@ -13,14 +13,11 @@ offline verdict and verification all sit in its own argument -- and read none of
 it.
 """
 
-import json
 
-import pytest
 
 from pylon import report_design
 from pylon.cli import _kql_header
-from pylon.models import (Detection, DetectionVerification, OfflineCheck,
-                          ValidatedDetection)
+from pylon.models import (Detection, DetectionVerification, ValidatedDetection)
 
 
 def _detection(**over) -> dict:

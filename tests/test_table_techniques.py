@@ -148,7 +148,8 @@ def test_a_partitioned_table_covers_every_operation_it_can_log(table):
     # the conditional access activities: the case Microsoft documents and the
     # case a live tenant was measured writing. Comparing exactly would report the
     # measured spellings as names Entra never writes, which is backwards.
-    lower = lambda names: {n.lower() for n in names}
+    def lower(names):
+        return {n.lower() for n in names}
     mapped = lower(op for c in block["techniques"] for op in (c.get("operations") or []))
     rejected = lower(block["rejected"])
     harvested = lower(_vocabulary(table))

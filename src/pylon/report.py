@@ -1247,7 +1247,6 @@ def build(a: dict, plans: list[dict] | None,
             {'<br>' + e(str(d['mitigation'])) if d.get('mitigation') and d['mitigation'] not in ('{}', 'None') else ''}</td>
       </tr>""" for d in devs)
 
-        quiet = [n for n in streams if not streams[n]["rows_24h"]]
         healthy_n = sum(1 for d in devs if d.get("sensor") == "Active")
 
         ep_block = f"""

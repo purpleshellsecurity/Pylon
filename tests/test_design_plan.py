@@ -12,7 +12,6 @@ so two plans can be diffed instead of two bills.
 
 import argparse
 import io
-import json
 from contextlib import redirect_stderr
 
 import pytest

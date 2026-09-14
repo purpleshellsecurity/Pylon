@@ -15,7 +15,9 @@ written.
 
 Usage: WORKSPACE=<customer id> python scripts/verify-playbook-kql.py
 """
-import json, re, subprocess, sys
+import re
+import subprocess
+import sys
 sys.path.insert(0, "src")
 from types import SimpleNamespace
 from pylon.playbook import PlaybookFill, document_template, render

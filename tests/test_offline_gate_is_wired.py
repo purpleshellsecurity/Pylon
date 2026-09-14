@@ -19,7 +19,6 @@ absent engine is silent rather than fatal, and that a refusal never reads as a
 clean bill.
 """
 
-import asyncio
 
 import pytest
 

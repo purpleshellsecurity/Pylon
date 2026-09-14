@@ -41,10 +41,10 @@ they are shared. This is the data seam, and the two should not be mixed again.
 from __future__ import annotations
 
 import pathlib
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from functools import lru_cache
 
-from ..catalog import NO_DATA_PLANE, LogSurface, log_surfaces, resolve_resource
+from ..catalog import NO_DATA_PLANE, LogSurface, log_surfaces
 from ..catalog.overlay import RESOURCE_OVERLAY
 
 
@@ -295,8 +295,6 @@ def targets() -> dict[str, Target]:
     run including them would put six tables in the prompt and be able to check an
     operation name on none of them. It runs control plane only.
     """
-    from ..catalog import NO_DATA_PLANE
-    from ..catalog.overlay import RESOURCE_OVERLAY
 
     kept: dict[str, tuple] = {}
     refused: dict[str, tuple] = {}

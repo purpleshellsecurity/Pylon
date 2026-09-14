@@ -18,7 +18,6 @@ would be gating the cheap half on the expensive half.
 
 import argparse
 
-import pytest
 
 from pylon import cli
 

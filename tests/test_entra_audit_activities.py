@@ -16,7 +16,6 @@ import pytest
 from pylon.entra_audit_activities import (
     activities_for,
     categories,
-    category_for,
     describe,
     is_known,
     category_for,

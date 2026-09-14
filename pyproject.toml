@@ -94,3 +94,43 @@ testpaths = ["tests"]
 markers = [
     "real_chat_client: hits a live model provider; skipped unless explicitly selected",
 ]
+# A DEPRECATION IS A BREAKING CHANGE WITH A COUNTDOWN. The suite emitted 18
+# warnings nobody read, among them `re.split(pattern, string, 1)` -- positional
+# `maxsplit`, deprecated in 3.13 and a TypeError in a later Python. The file
+# that would have broken is the one enforcing that the free commands import
+# without the model SDK, which is what makes the free/paid split true.
+#
+# Erroring turns "a line nobody reads" into "CI fails the day Python deprecates
+# something" -- a year of notice for the cost of one setting.
+#
+# Scoped to DeprecationWarning and FutureWarning. ResourceWarning is deliberately
+# left as a warning: it fires when the garbage collector happens to run, so
+# erroring on it makes the suite flaky rather than strict.
+filterwarnings = [
+    "error::DeprecationWarning",
+    "error::FutureWarning",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+# Ruff's own defaults and nothing more. The review's advice was "add it, fix
+# what it finds at defaults, stop there" -- a wider selection on a finished
+# 29k-line codebase is a multi-week detour that fixes no bug.
+#
+# It earned its place immediately: F821 found `tuning._severity`, which
+# referenced three names that do not exist in its scope. It raised NameError on
+# every call, nothing called it, and 3,165 tests were green. It was a stale
+# duplicate of `knowledge.mapped_tiers`, which works.
+select = ["E4", "E7", "E9", "F"]
+
+[tool.ruff.lint.per-file-ignores]
+# A test may configure the environment -- delete an env var, install a
+# monkeypatch -- before importing the module under test. That is the point of
+# the import being late, not an oversight.
+"tests/*" = ["E402"]
+# One-off dev scripts, not shipped behaviour. `a = 1; b = 2` in a harvest
+# script is not worth a diff.
+"scripts/*" = ["E402", "E702", "E741"]

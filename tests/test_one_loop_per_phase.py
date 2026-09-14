@@ -23,12 +23,16 @@ def _runs_inside_a_loop(tree: ast.AST) -> list[int]:
 
     class Walk(ast.NodeVisitor):
         def visit_For(self, node):
-            stack.append(node); self.generic_visit(node); stack.pop()
+            stack.append(node)
+            self.generic_visit(node)
+            stack.pop()
 
         visit_AsyncFor = visit_For
 
         def visit_While(self, node):
-            stack.append(node); self.generic_visit(node); stack.pop()
+            stack.append(node)
+            self.generic_visit(node)
+            stack.pop()
 
         def visit_FunctionDef(self, node):
             # A function defined inside a loop body still runs once per

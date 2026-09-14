@@ -16,7 +16,6 @@ Tuesday" and "published by MITRE" are not the same claim and a reader has to be
 able to tell which they are being given.
 """
 
-import pytest
 
 from pylon import knowledge as k
 

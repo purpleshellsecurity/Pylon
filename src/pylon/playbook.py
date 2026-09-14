@@ -194,7 +194,8 @@ def operation_lists(table: str) -> tuple[str, str]:
             reads.append(name)
         elif verb in ("write", "delete"):
             writes.append(name)
-    fmt = lambda names: ", ".join(f'"{n}"' for n in sorted(names))
+    def fmt(names):
+        return ", ".join(f'"{n}"' for n in sorted(names))
     return fmt(reads), fmt(writes)
 
 
@@ -970,7 +971,7 @@ def prevention(table: str, technique: str = "", containment_role: str = "",
     so on the grounds that preventing enumeration breaks the service -- so the
     policy table is skipped rather than padded when the list comes back empty.
     """
-    from . import contracts, knowledge
+    from . import knowledge
 
     out: list[str] = []
     tid = technique.split()[0].strip() if technique else ""

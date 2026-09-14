@@ -352,14 +352,13 @@ def bar(segments) -> str:
     than drawn as slivers that imply a presence they do not have.
     """
     live = [(lab, n, cls) for lab, n, cls in segments if n]
-    total = sum(n for _, n, _ in live) or 1
     cells = "".join(
         f'<span class="seg seg--{cls}" style="flex:{n}" '
         f'title="{e(lab)}: {n}"></span>' for lab, n, cls in live)
     keys = "".join(
         f'<li><span class="dot dot--{cls}"></span>'
         f'<span class="k-n">{n}</span> {e(lab)}</li>' for lab, n, cls in live)
-    return (f'<div class="bar" role="img" aria-label="'
+    return ('<div class="bar" role="img" aria-label="'
             + e(", ".join(f"{n} {lab}" for lab, n, _ in live))
             + f'">{cells}</div><ul class="key">{keys}</ul>')
 

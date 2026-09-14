@@ -5,8 +5,6 @@ against a real tenant. Everything below is what that produced. Three of the four
 were introduced the day before by work meant to make the tool more honest.
 """
 
-import json
-import re
 
 import pytest
 
@@ -527,9 +525,10 @@ def test_the_release_ships_the_licence():
     archived = script.read_text(encoding="utf-8")
     line = archived[archived.index("git archive HEAD"):]
     line = line[:line.index("| tar")]
-    assert "LICENSE" in line, (
-        "make-release.sh does not archive LICENSE, so the public repo ships "
-        "without one")
+    for required in ("LICENSE", "SECURITY.md", "CHANGELOG.md"):
+        assert required in line, (
+            f"make-release.sh does not archive {required}, so the public repo "
+            f"ships without it")
 
     licence = root / "LICENSE"
     assert licence.is_file(), "there is no LICENSE to ship"

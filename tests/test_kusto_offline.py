@@ -67,7 +67,6 @@ def test_schema_for_table_from_hardcoded():
 
 import pytest
 
-from pylon.kusto_offline import schema_for_table
 
 
 @pytest.mark.parametrize("table,column", [
@@ -101,7 +100,7 @@ def test_azureactivity_knows_the_column_that_warned_on_a_live_run():
 # written, the gate failed precisely the queries that followed the house rule and
 # passed the ones that ignored it, reporting only "Request is invalid".
 
-from pylon.kusto_offline import build_check_script, substitute_sentinel_functions
+from pylon.kusto_offline import substitute_sentinel_functions
 
 _SCAFFOLD = "let AllowedActors = _GetWatchlist('ApprovedAutomation') | project SearchKey;"
 

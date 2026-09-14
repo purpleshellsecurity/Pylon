@@ -19,7 +19,6 @@ names out of an English alert condition cannot distinguish "sink" and "remains"
 from a field name, so the plan declares them instead.
 """
 
-import pytest
 
 from pylon import contracts
 from pylon.engine import EngineRequest, _surface_size, operation_vocabulary_for

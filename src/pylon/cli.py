@@ -35,7 +35,6 @@ import argparse
 import json
 import os
 import platform
-import re
 import sys
 import textwrap
 import time
@@ -637,7 +636,6 @@ def _design_detections(args: argparse.Namespace) -> int:
     # single table. Everything else goes through resource mode, which the engine
     # has always had: one request naming the resource type, with its surfaces
     # resolved here so the run cannot widen past what the gate allowed.
-    from .services import ENTRA_KEY
     if not target.resource_type:
         request = engine.EngineRequest(
             verify_workspace=getattr(args, "workspace", "") or "",
@@ -1727,8 +1725,8 @@ def _surfaces(kql: str, column: str) -> bool:
     """
     import re as _re
 
-    projections = [l for l in kql.splitlines()
-                   if _re.match(r"\s*\|\s*project\b", l)]
+    projections = [line for line in kql.splitlines()
+                   if _re.match(r"\s*\|\s*project\b", line)]
     if not projections:
         return column in kql
     return column in projections[-1]
@@ -2577,6 +2575,25 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _spend_note() -> None:
+    """What this run has spent, when anything has been. Printed on interrupt and
+    on crash, because both leave the reader wondering whether they were billed.
+
+    Silent when nothing was spent: a free verb saying "$0.00" is noise, and a
+    meter that is not running has no answer rather than a zero.
+    """
+    try:
+        from .usage import current_meter, estimate_cost
+
+        m = current_meter()
+        spent = estimate_cost(m.input_tokens, m.output_tokens)
+    except Exception:  # noqa: BLE001 - a cost note must not mask the real error
+        return
+    if spent:
+        partial = " (partial: some calls reported no usage)" if m.cost_is_partial else ""
+        print(f"  Spent on this run: ${spent:.2f}{partial}", file=sys.stderr)
+
+
 def main() -> int:
     args = build_parser().parse_args()
     # The one call that makes the engine's progress visible. Without it the
@@ -2605,7 +2622,38 @@ def main() -> int:
     # that came from the file from one that was already in the environment.
     if args.command != "config":
         config.apply()
-    return args.func(args)
+
+    # EVERYTHING THE VERB DOES, WRAPPED. An unexpected exception used to reach
+    # the terminal as a raw traceback -- for a tool whose job is advertising a
+    # consultancy, a wasted first impression rather than merely a rough edge.
+    #
+    # The log path is already in hand here, and `configure()`'s own docstring
+    # says "a log nobody can find is barely better than no log" -- it was
+    # returned and then never shown at the one moment a reader needs it.
+    try:
+        return args.func(args)
+    except KeyboardInterrupt:
+        # 130 is the shell's convention for SIGINT. `design` costs money, so say
+        # what was spent and where the work is rather than exiting silently:
+        # a run interrupted mid-phase has a checkpoint, and a reader who does
+        # not know that pays twice.
+        print("\n\nInterrupted.", file=sys.stderr)
+        _spend_note()
+        if jsonl:
+            print(f"Log: {jsonl}", file=sys.stderr)
+        return 130
+    except Exception:  # noqa: BLE001 - the top of the program; nothing above it
+        _cli_log.exception("unhandled error",
+                           extra={"event": "crash",
+                                  "command": getattr(args, "command", "")})
+        print("\nPylon hit a bug.\n", file=sys.stderr)
+        if jsonl:
+            print(f"  The full trace is in {jsonl}", file=sys.stderr)
+        _spend_note()
+        print("  Please report it: "
+              "https://github.com/purpleshellsecurity/Pylon/issues\n",
+              file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

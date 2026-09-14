@@ -31,8 +31,6 @@ rather than picking one.
 
 from __future__ import annotations
 
-import json
-from importlib import resources
 
 from .reportkit import e, page, plural
 
@@ -288,7 +286,6 @@ def build(report: dict) -> str:
     measured = [v for v in graded if v]
     defects = sum(1 for v in measured if v in ("dead", "over", "error"))
     ungraded = sum(1 for v in measured if v == "no-ground-truth")
-    firing = sum(1 for v in measured if v in ("exact", "under", "aggregates"))
     warned = sum(1 for d in detections if d.get("warnings"))
 
     if defects:

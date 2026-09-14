@@ -146,8 +146,8 @@ def test_the_free_commands_need_nothing_from_the_paid_extra():
     `uv run` inside a synced checkout exercises.
     """
     project = _pyproject()["project"]
-    base = {re.split(r"[<>=!\[ ]", d, 1)[0].lower() for d in project["dependencies"]}
-    extra = {re.split(r"[<>=!\[ ]", d, 1)[0].lower()
+    base = {re.split(r"[<>=!\[ ]", d, maxsplit=1)[0].lower() for d in project["dependencies"]}
+    extra = {re.split(r"[<>=!\[ ]", d, maxsplit=1)[0].lower()
              for d in project["optional-dependencies"]["design"]}
 
     assert "pyyaml" in base, (
@@ -168,9 +168,9 @@ def test_every_module_a_free_command_reaches_is_importable_without_the_extra():
     `design` extra and not in the base dependencies.
     """
     project = _pyproject()["project"]
-    base = {re.split(r"[<>=!\[ ]", d, 1)[0].lower().replace("-", "_")
+    base = {re.split(r"[<>=!\[ ]", d, maxsplit=1)[0].lower().replace("-", "_")
             for d in project["dependencies"]}
-    paid = {re.split(r"[<>=!\[ ]", d, 1)[0].lower().replace("-", "_")
+    paid = {re.split(r"[<>=!\[ ]", d, maxsplit=1)[0].lower().replace("-", "_")
             for d in project["optional-dependencies"]["design"]} - base
     # Distribution names are not always import names.
     paid_imports = {"pyyaml": "yaml", "agent_framework_core": "agent_framework",

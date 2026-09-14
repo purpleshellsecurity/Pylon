@@ -123,31 +123,6 @@ def _levers(table: str, service: str = "") -> list[str]:
     return out
 
 
-def _severity(table: str, *, category: str = "", resource_type: str = "") -> dict:
-    """{tier: how many mapped techniques sit there}.
-
-    ATT&CK's own tactics decide this, not an opinion about what is worth waking
-    somebody for. `early` means discovery or reconnaissance and caps priority at
-    medium; `late` means impact, exfiltration or credential access.
-    """
-    from . import knowledge
-
-    block = _technique_map().get(table) or {}
-    scope = _activities(category) if table == "AuditLogs" else set()
-    tiers: Counter = Counter()
-    for entry in (block.get("techniques") or []):
-        ops = entry.get("operations") or []
-        if table == "AuditLogs" and scope and not any(o in scope for o in ops):
-            continue
-        if resource_type and table == "AzureActivity":
-            if not any(str(o).lower().startswith(resource_type.lower()) for o in ops):
-                continue
-        if not ops:
-            continue
-        tiers[knowledge.about(table, ops[0]).tier or "unmapped"] += 1
-    return dict(tiers)
-
-
 def _baseline(table: str, *, category: str = "", resource_type: str = "") -> str:
     """The contract's own reference query, scoped to this target.
 
@@ -270,7 +245,6 @@ def contracts_all() -> list[dict]:
 def render(row: dict) -> str:
     """One tuning contract as markdown."""
     out = [f"## {row['target']}", ""]
-    tables = ", ".join(f"`{t}`" for t in row["tables"])
     line = f"**Log table** — `{row['primary_table']}`"
     if row["category"]:
         line += f", `Category =~ \"{row['category']}\"`"

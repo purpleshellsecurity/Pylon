@@ -162,12 +162,12 @@ def render(table: str) -> str:
             if column.endswith("_note"):
                 out.append(f"  {str(note).strip()}")
         if section.get("redacted"):
-            out.append(f"  REDACTED, always the literal \"{{scrubbed}}\": "
+            out.append("  REDACTED, always the literal \"{scrubbed}\": "
                        + ", ".join(section["redacted"]))
         if section.get("resource_id_note"):
             out.append(f"  {str(section['resource_id_note']).strip()}")
         if section.get("columns"):
-            out.append(f"  the only columns this service sends: "
+            out.append("  the only columns this service sends: "
                        + ", ".join(map(str, section["columns"])))
 
     recipes = c.get("recipes") or {}

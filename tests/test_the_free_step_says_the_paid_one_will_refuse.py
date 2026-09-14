@@ -12,9 +12,7 @@ you have not deployed is a normal thing to do, and gating it would be wrong; the
 money is spent at step 4, so that is where the stop belongs. What was missing is
 that the free steps let a success imply the next step would work.
 """
-import argparse
 
-import pytest
 
 from pylon import cli
 

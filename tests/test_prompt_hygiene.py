@@ -5,7 +5,6 @@ wrong detection before anyone notices, and no other test reads these files for
 meaning. These assert the properties that were deliberately put there.
 """
 
-import re
 
 import pytest
 
