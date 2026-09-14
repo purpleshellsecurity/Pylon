@@ -12,11 +12,31 @@ concurrency:
 
 jobs:
   tests:
-    name: Tests
-    # The suite needs no Azure tenant and no model provider, so it runs
-    # anywhere. Nothing here costs money or touches a workspace.
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
+    name: Tests (${{ matrix.os }}, py${{ matrix.python-version }})
+    # Hosted, not the self-hosted Mac. That machine also runs the other Pylon
+    # repo's runner and its PATH opens with that repo's virtualenv (see the
+    # note in scan.yml), and a laptop that is asleep is a CI system that is
+    # not running. The suite needs no Azure and no model provider, so nothing
+    # about it wants a specific machine.
+    #
+    # EVERY VERSION AND OS THE PROJECT CLAIMS. This job tested 3.13 on Ubuntu
+    # alone while `requires-python` said >=3.11 and the README gave install
+    # steps for Windows, Ubuntu/Debian, RHEL/Fedora and macOS. cli.py did not
+    # compile on 3.11 at all -- a backslash inside an f-string expression,
+    # which PEP 701 did not permit until 3.12 -- so every command including the
+    # free ones failed to import on the lowest version promised, and CI stayed
+    # green because it never looked. A matrix is the fix; the three lines were
+    # the symptom.
+    #
+    # Windows matters most of the three: most Sentinel operators are on it, and
+    # this tool writes .kql files, HTML reports and a .pylon/ log directory.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.11", "3.12", "3.13"]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
 
     steps:
       - name: Check out repository
@@ -25,14 +45,81 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.13"
+          python-version: ${{ matrix.python-version }}
 
       - name: Install
         # `design` is installed even though no test calls a model: conftest.py
         # imports pylon.engine, which imports agent_framework at module scope,
-        # so without the extra ZERO tests collect. Deferring that import is the
+        # so without the extra ZERO tests collect. Same workaround, and same
+        # reason, as the install step in scan.yml. Deferring that import is the
         # real fix and is a code change, not a CI one.
         run: uv sync --extra dev --extra design
 
       - name: Run the tests
         run: uv run pytest -q
+
+  install:
+    name: Install as documented (${{ matrix.os }})
+    # THE PATH THE README TELLS PEOPLE TO USE, which nothing tested. The tests
+    # job runs `uv sync`, which works from the source tree; the README says
+    # `uv tool install`, which builds a wheel. Different code paths, and the
+    # difference is `[tool.setuptools.package-data]` -- eleven hand-maintained
+    # globs covering catalogues, contracts, attack data, golden fixtures and
+    # prompt assets. This repo's own comment on them:
+    #
+    #   The catalogues are the product, not incidental data. A wheel without
+    #   them generates from memory, which is the failure the grounding exists
+    #   to prevent.
+    #
+    # Nothing checked that. A stale glob would ship a wheel that installs, runs,
+    # and grounds against nothing.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install the way the README says
+        run: uv tool install ".[design,anthropic]"
+
+      - name: It starts
+        run: pylon --version
+
+      - name: It reads its packaged catalogues
+        # `design list` is the right smoke test: it costs nothing, needs no
+        # Azure and no model, and it can only answer by reading the packaged
+        # YAML. A wheel missing them fails here rather than in front of a user.
+        run: pylon design list
+
+      - name: The catalogues are really there, not silently empty
+        # `design list` printing a header and no targets would still exit 0.
+        shell: bash
+        run: |
+          pylon design list > targets.txt
+          grep -q "Microsoft.Storage/storageAccounts/blobServices" targets.txt
+          grep -q "Microsoft.KeyVault/vaults" targets.txt
+          test "$(grep -c 'Microsoft\.' targets.txt)" -ge 10
+
+  lint:
+    name: Lint
+    # `uvx ruff check` runs in about a second and would have caught the 3.12
+    # f-string as a syntax error on every targeted Python without needing the
+    # matrix. It also found `tuning._severity`, which referenced three names
+    # that do not exist in its scope: NameError on every call, called by
+    # nothing, and green across 3,165 tests.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uvx ruff check .
