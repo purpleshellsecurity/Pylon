@@ -26,7 +26,7 @@ def _read_anywhere() -> set[str]:
     for path in SRC.rglob("*.py"):
         if path.name == "config.py":
             continue
-        found |= set(re.findall(r"PYLON_[A-Z_]+", path.read_text()))
+        found |= set(re.findall(r"PYLON_[A-Z_]+", path.read_text(encoding="utf-8")))
     return found
 
 

@@ -25,7 +25,9 @@ class _Pipe(io.StringIO):
 def _clean_env(monkeypatch):
     monkeypatch.delenv("NO_COLOR", raising=False)
     monkeypatch.delenv("TERM", raising=False)
-    monkeypatch.setattr(console.os, "name", "posix")
+    # NOT `console.os.name`: that is the real os module, and setting it
+    # process-wide makes pathlib hand out PosixPath on Windows.
+    monkeypatch.setattr(console, "_on_windows", lambda: False)
 
 
 def test_a_terminal_gets_colour():
@@ -70,18 +72,29 @@ def test_windows_asks_the_console_first(monkeypatch):
     """Windows can interpret escapes only after the console host is asked. An
     unenabled console prints them literally, so a heading would arrive as
     "<-[94mMEASURED" -- worse than no colour."""
-    monkeypatch.setattr(console.os, "name", "nt")
+    # Same reason as the fixture above: patch the seam, never `os.name`.
+    monkeypatch.setattr(console, "_on_windows", lambda: True)
     monkeypatch.setattr(console, "_windows_vt", lambda: False)
     assert console.supported(_Tty()) is False
     monkeypatch.setattr(console, "_windows_vt", lambda: True)
     assert console.supported(_Tty()) is True
 
 
-def test_enabling_vt_never_raises(monkeypatch):
+def test_enabling_vt_never_raises():
     """It runs where there is no console attached at all. Microsoft's own
-    guidance is to treat failure as a system to degrade from."""
-    monkeypatch.setattr(console.os, "name", "nt")
-    assert console._windows_vt() is False  # no windll on this platform
+    guidance is to treat failure as a system to degrade from.
+
+    Asserts what the name says -- that it RETURNS rather than raising -- not
+    that it returns False. False is only the answer off Windows, or on a Windows
+    box with no console attached; on a real console host it is True, and a test
+    demanding False would fail there for being right.
+
+    The `os.name = "nt"` patch that used to be here did nothing: `_windows_vt`
+    never reads it. It also set os.name process-wide, which makes pathlib hand
+    out WindowsPath on Linux -- the same fault as the fixture above, pointing
+    the other way.
+    """
+    assert console._windows_vt() in (True, False)
 
 
 def test_the_text_survives_stripping_the_escapes():

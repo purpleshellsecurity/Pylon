@@ -50,7 +50,7 @@ def _page(tmp_path, *detections) -> str:
         "detections": list(detections),
     }
     report_design.write(report, tmp_path)
-    return (tmp_path / "detections.html").read_text()
+    return (tmp_path / "detections.html").read_text(encoding="utf-8")
 
 
 def _graded(verdict: str, detail: str) -> dict:

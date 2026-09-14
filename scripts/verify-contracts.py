@@ -41,7 +41,7 @@ def _operations_doc() -> dict:
     """`data-plane-operations.yaml`, keyed by table."""
     import yaml
 
-    text = (ROOT / "src/pylon/catalog/data-plane-operations.yaml").read_text("utf-8")
+    text = (ROOT / "src/pylon/catalog/data-plane-operations.yaml").read_text(encoding="utf-8")
     return (yaml.safe_load(text) or {}).get("tables") or {}
 
 

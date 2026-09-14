@@ -30,7 +30,7 @@ def test_there_are_trigger_scripts_to_check():
 
 @pytest.mark.parametrize("script", TRIGGERS, ids=lambda p: p.stem)
 def test_every_cmdlet_and_parameter_exists(script):
-    result = parse_check(script.read_text(), "powershell")
+    result = parse_check(script.read_text(encoding="utf-8"), "powershell")
     if not result.ran:
         pytest.skip("pwsh or the required modules are not installed")
     assert result.errors == [], "\n".join(result.errors)
@@ -41,6 +41,6 @@ def test_nothing_fires_without_an_explicit_execute_switch(script):
     """A trigger mutates a real tenant, so running it by accident must do
     nothing. The dry-run guard is the only thing standing between a stray
     invocation and a directory change."""
-    text = script.read_text()
+    text = script.read_text(encoding="utf-8")
     assert "[switch]$Execute" in text, "no -Execute switch"
     assert "if (-not $Execute)" in text, "no dry-run guard"

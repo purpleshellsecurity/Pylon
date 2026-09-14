@@ -3,6 +3,21 @@ name = "pylon"
 version = "1.0.0"
 description = "Read a Sentinel tenant, say what it detects, and write what it does not."
 requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+# Every version this file claims to support is tested. `requires-python` said
+# 3.11 while CI tested 3.13 only, and cli.py did not compile on 3.11 at all --
+# a backslash inside an f-string expression, which PEP 701 did not allow until
+# 3.12. Every command failed to import on the lowest version the project
+# promised, and CI was green because it never looked.
+# No `License ::` classifier: setuptools rejects one alongside the PEP 639
+# SPDX `license` field above, and fails the BUILD rather than warning. Found by
+# installing into a 3.11 venv immediately after adding it.
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
 
 # `analyze` and `recommend` measure a tenant and cost nothing to run. They must
 # stay installable without a model provider, which is why the agent stack is an
@@ -49,7 +64,10 @@ dev = ["pytest"]
 pylon = "pylon.cli:main"
 
 [build-system]
-requires = ["setuptools>=68"]
+# 77+, not 68: the PEP 639 `license = "MIT"` field above is rejected
+# by older setuptools as an invalid config, and it fails the BUILD rather
+# than warning. Verified by validating this file against 68, 74 and 80.
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]

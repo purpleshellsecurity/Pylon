@@ -98,7 +98,7 @@ class Knowledge:
 
 @functools.lru_cache(maxsize=1)
 def _techniques() -> dict[str, dict]:
-    raw = (resources.files("pylon.catalog") / "mitre_index.json").read_text("utf-8")
+    raw = (resources.files("pylon.catalog") / "mitre_index.json").read_text(encoding="utf-8")
     return json.loads(raw)["techniques"]
 
 
@@ -111,7 +111,7 @@ def _table_techniques() -> dict[str, dict]:
         import yaml
     except ModuleNotFoundError:
         return {}
-    raw = (resources.files("pylon.catalog") / "table-techniques.yaml").read_text("utf-8")
+    raw = (resources.files("pylon.catalog") / "table-techniques.yaml").read_text(encoding="utf-8")
     return (yaml.safe_load(raw) or {}).get("tables") or {}
 
 

@@ -140,7 +140,7 @@ def test_plan_then_detections_then_playbook(tmp_path, stub_model, target, table,
 
     # 1. design plan — writes plan.json and NO report.json.
     assert cli._design_plan(_args(target=target, out=out)) == 0
-    plan = json.loads((tmp_path / "plan.json").read_text())
+    plan = json.loads((tmp_path / "plan.json").read_text(encoding="utf-8"))
     assert not (tmp_path / "report.json").exists(), (
         "a plan-only run must not claim detections exist")
     assert plan["target"] == target, (
@@ -148,14 +148,14 @@ def test_plan_then_detections_then_playbook(tmp_path, stub_model, target, table,
 
     # 2. design detections --from — reopens the plan without being told the target.
     assert cli._design_detections(_args(source=out, pick="all", out=out)) == 0
-    report = json.loads((tmp_path / "report.json").read_text())
+    report = json.loads((tmp_path / "report.json").read_text(encoding="utf-8"))
     assert report["detections"], "no detection was built"
 
     # 3. design playbooks --from — assembles the document.
     assert cli._design_playbooks(_args(source=out, pick="all")) == 0
     written = sorted(tmp_path.glob("*-playbook.md"))
     assert len(written) == 1, [p.name for p in written]
-    doc = written[0].read_text()
+    doc = written[0].read_text(encoding="utf-8")
 
     # What lands on disk, judged as a responder would get it.
     assert doc.startswith("# IR Playbook:"), (
@@ -185,7 +185,7 @@ def test_no_plane_reads_another_plane_s_columns(tmp_path, stub_model, target, ta
     cli._design_plan(_args(target=target, out=out))
     cli._design_detections(_args(source=out, pick="all", out=out))
     cli._design_playbooks(_args(source=out, pick="all"))
-    doc = next(tmp_path.glob("*-playbook.md")).read_text()
+    doc = next(tmp_path.glob("*-playbook.md")).read_text(encoding="utf-8")
 
     foreign = {"AZKVAuditLogs": ("RequesterUpn", "UserAgentHeader", 'StatusCode != "200"'),
                "AuditLogs": ("RequesterUpn", "HttpStatusCode"),

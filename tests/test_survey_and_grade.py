@@ -24,7 +24,7 @@ from pylon import cli
 def _plan(tmp_path, vectors):
     (tmp_path / "plan.json").write_text(json.dumps({
         "service": "Microsoft.KeyVault/vaults", "platform": "resource",
-        "executive_summary": "s", "attack_vectors": vectors}))
+        "executive_summary": "s", "attack_vectors": vectors}), encoding="utf-8")
 
 
 def _vector(name, operation, table="AZKVAuditLogs"):

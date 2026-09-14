@@ -22,7 +22,7 @@ def _hits(pattern: str) -> list[str]:
     rx = re.compile(pattern)
     out = []
     for path in _PY:
-        for line in path.read_text().splitlines():
+        for line in path.read_text(encoding="utf-8").splitlines():
             code = line.split("#", 1)[0]
             if rx.search(code):
                 out.append(str(path.relative_to(_SRC)))
@@ -164,7 +164,7 @@ def test_no_asset_spells_an_operator_that_disagrees():
                 c == chain for c in _TABLE_RULES_KEY.values()):
             continue                     # tables/, which teaches no operator
         wrong = False
-        for n, line in enumerate(asset.read_text().splitlines(), 1):
+        for n, line in enumerate(asset.read_text(encoding="utf-8").splitlines(), 1):
             stripped = line.strip()
             # A WRONG: heading opens a block of deliberate counter-examples and
             # the next blank line closes it. Those lines are wrong on purpose.
@@ -200,7 +200,7 @@ def test_the_query_skeletons_ask_for_the_operator():
     from pylon import prompts
 
     root = Path(prompts.__file__).parent / "assets"
-    found = [a for a in sorted(root.rglob("*.md")) if "__OPERATOR__" in a.read_text()]
+    found = [a for a in sorted(root.rglob("*.md")) if "__OPERATOR__" in a.read_text(encoding="utf-8")]
     names = {f"{a.parent.name}/{a.name}" for a in found}
     for chain in ("arm", "entra", "dataplane"):
         assert f"{chain}/playbook.md" in names, chain

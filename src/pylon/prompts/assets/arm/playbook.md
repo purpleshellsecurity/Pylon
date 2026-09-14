@@ -152,6 +152,9 @@ try {
 
 **Option C — If the actor account is compromised**
 ```powershell
+#Requires -Modules Microsoft.Graph.Authentication
+#Requires -Modules Microsoft.Graph.Users
+#Requires -Modules Microsoft.Graph.Users.Actions
 # Get-Mg* / Update-Mg* are Microsoft Graph cmdlets — they need Connect-MgGraph,
 # not Connect-AzAccount. An Az context cannot authenticate them.
 Connect-MgGraph -Scopes "User.ReadWrite.All" -NoWelcome

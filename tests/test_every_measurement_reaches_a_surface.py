@@ -105,7 +105,7 @@ def _page(tmp_path) -> str:
                           "rationale": MARK["rationale"]}]},
         "detections": [json.loads(d.model_dump_json())]}
     report_design.write(report, tmp_path)
-    return (tmp_path / "detections.html").read_text()
+    return (tmp_path / "detections.html").read_text(encoding="utf-8")
 
 
 # ── the page ─────────────────────────────────────────────────────────────────

@@ -88,7 +88,7 @@ def _page(tmp_path, verdict, detail):
                              "expected": 110, "observed": 22, "verdict": verdict,
                              "detail": detail, "widened": True}}]}
     report_design.write(report, tmp_path)
-    return (tmp_path / "detections.html").read_text()
+    return (tmp_path / "detections.html").read_text(encoding="utf-8")
 
 
 def test_an_under_match_is_not_described_as_matching_real_events(tmp_path):
@@ -502,9 +502,40 @@ def test_the_release_script_warns_that_rsync_does_not_delete():
     if not script.is_file():
         import pytest
         pytest.skip("make-release.sh is not shipped in a release tree")
-    text = script.read_text()
+    text = script.read_text(encoding="utf-8")
     assert "--delete" in text
     assert "rsync copies, it does not delete" in text
+
+
+def test_the_release_ships_the_licence():
+    """The release is built from an EXPLICIT file list, and LICENSE was not on
+    it -- the list predates the file.
+
+    So the one thing that stops anyone legally using Pylon was fixed in this
+    repo and dropped on the way out, and nothing failed: `pyproject.toml`
+    declares `license-files = ["LICENSE"]`, a glob matching nothing is not an
+    error, so the wheel built clean and simply carried no licence.
+    """
+    import pathlib
+
+    root = pathlib.Path(__file__).resolve().parents[1]
+    script = root / "scripts" / "make-release.sh"
+    if not script.is_file():
+        import pytest
+        pytest.skip("make-release.sh is not shipped in a release tree")
+
+    archived = script.read_text(encoding="utf-8")
+    line = archived[archived.index("git archive HEAD"):]
+    line = line[:line.index("| tar")]
+    assert "LICENSE" in line, (
+        "make-release.sh does not archive LICENSE, so the public repo ships "
+        "without one")
+
+    licence = root / "LICENSE"
+    assert licence.is_file(), "there is no LICENSE to ship"
+    body = licence.read_text(encoding="utf-8")
+    assert len(body) > 500, "LICENSE looks like a placeholder"
+    assert "Purple Shell Security" in body, "the copyright line is unfilled"
 
 
 # ── 15. the header carried a verdict a later measurement had replaced ────────

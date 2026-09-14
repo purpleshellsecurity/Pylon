@@ -79,7 +79,7 @@ def main() -> int:
         print(f"  {table:34} {len(ref):3} columns "
               f"({dynamic} dynamic), name list had {claimed}")
 
-    OUT.write_text(json.dumps(out, indent=2, sort_keys=True) + "\n")
+    OUT.write_text(json.dumps(out, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(f"\nwrote {OUT.relative_to(ROOT)}: {len(out)} tables")
     if missing:
         # Named, not silent. A table with no types falls back to all-string,

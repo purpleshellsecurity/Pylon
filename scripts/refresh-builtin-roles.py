@@ -87,7 +87,7 @@ def main() -> int:
         # GUID -> role name, lowercase keys so a lookup never depends on how
         # the model happened to case the literal.
         "roles": dict(sorted(roles.items())),
-    }, indent=1) + "\n")
+    }, indent=1) + "\n", encoding="utf-8")
     print(f"wrote {OUT} with {len(roles)} built-in roles")
     return 0
 

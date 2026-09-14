@@ -47,7 +47,7 @@ def _report(platform: str = "resource") -> EngineReport:
 @pytest.fixture
 def source(tmp_path):
     def build(platform="resource"):
-        (tmp_path / "report.json").write_text(_report(platform).model_dump_json(indent=2))
+        (tmp_path / "report.json").write_text(_report(platform).model_dump_json(indent=2), encoding="utf-8")
         return str(tmp_path)
     return build
 

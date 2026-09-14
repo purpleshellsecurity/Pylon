@@ -49,9 +49,9 @@ def _report(operation: str, vector_name: str) -> dict:
 def _run(tmp_path, monkeypatch, report: dict, plan: dict | None = None):
     """Run `design verify` with the workspace stubbed, and return the
     verification rows it wrote back into report.json."""
-    (tmp_path / "report.json").write_text(json.dumps(report))
+    (tmp_path / "report.json").write_text(json.dumps(report), encoding="utf-8")
     if plan is not None:
-        (tmp_path / "plan.json").write_text(json.dumps(plan))
+        (tmp_path / "plan.json").write_text(json.dumps(plan), encoding="utf-8")
 
     from pylon import validate, verification
     monkeypatch.setattr(validate, "resolve", lambda w: ("t", "a", "guid"))
@@ -64,7 +64,7 @@ def _run(tmp_path, monkeypatch, report: dict, plan: dict | None = None):
                         lambda kql, guid, window: [{"Count": 1}])
 
     code = cli._design_verify(_Args(str(tmp_path)))
-    written = json.loads((tmp_path / "report.json").read_text())
+    written = json.loads((tmp_path / "report.json").read_text(encoding="utf-8"))
     return code, written.get("verification") or []
 
 

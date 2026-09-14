@@ -94,7 +94,7 @@ def test_the_budget_is_spent_across_targets_not_per_target(tmp_path, stages):
 
 def test_the_spend_survives_an_interrupted_sweep(tmp_path, stages):
     cli._design_sweep(_args(tmp_path, max_cost=2.0))
-    state = json.loads((tmp_path / ".sweep.json").read_text())
+    state = json.loads((tmp_path / ".sweep.json").read_text(encoding="utf-8"))
     assert state["_spent"] == pytest.approx(2.0)
     # A resumed sweep starts from what was already spent, not from zero.
     cli._design_sweep(_args(tmp_path, max_cost=2.0))
@@ -116,6 +116,6 @@ def test_a_failed_stage_is_recorded_so_a_rerun_retries_only_that(tmp_path,
                                                                  monkeypatch):
     monkeypatch.setattr(cli, "_sweep_stage", lambda *a: (1, 0.0))
     cli._design_sweep(_args(tmp_path, targets=["Microsoft.Compute/virtualMachines"]))
-    state = json.loads((tmp_path / ".sweep.json").read_text())
+    state = json.loads((tmp_path / ".sweep.json").read_text(encoding="utf-8"))
     row = state["microsoft-compute-virtualmachines"]
     assert row["detections"].startswith("failed"), row

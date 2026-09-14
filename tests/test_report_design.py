@@ -10,6 +10,8 @@ different questions -- what the operation does, and why it maps where it does --
 and a page carrying one of them cannot be reviewed.
 """
 
+from pathlib import Path
+
 from pylon import report_design
 
 
@@ -107,8 +109,11 @@ def test_the_html_is_written_even_where_no_pdf_renderer_exists(tmp_path, monkeyp
 
     monkeypatch.setattr(builtins, "__import__", no_weasyprint)
     written = report_design.write(_report(), tmp_path)
-    assert [p.rsplit("/", 1)[-1] for p in written] == ["detections.html"]
-    assert (tmp_path / "detections.html").read_text().startswith("<title>")
+    # `Path(p).name`, not rsplit("/"): on Windows `written` holds
+    # C:\\...\\detections.html and splitting on a forward slash returns the
+    # whole path, so this asserted an absolute path equals a bare filename.
+    assert [Path(p).name for p in written] == ["detections.html"]
+    assert (tmp_path / "detections.html").read_text(encoding="utf-8").startswith("<title>")
 
 
 class TestTheLeadSaysWhatIsWrongWithThePage:

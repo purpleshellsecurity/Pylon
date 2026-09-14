@@ -181,7 +181,7 @@ def test_one_blank_means_one_thing_on_every_plane():
     root = Path(prompts.__file__).parent / "assets"
     seen = set()
     for asset in sorted(root.glob("*/playbook.md")):
-        seen |= set(re.findall(r"\[([^\]\[\n]{3,110})\]", asset.read_text()))
+        seen |= set(re.findall(r"\[([^\]\[\n]{3,110})\]", asset.read_text(encoding="utf-8")))
     for gone in ("most likely benign triggers",
                  "IAM automation, provisioning tools, approved admins",
                  "application service accounts, backup jobs, CI/CD",

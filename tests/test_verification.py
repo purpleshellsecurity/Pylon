@@ -279,11 +279,11 @@ def test_the_entra_path_records_a_table_not_a_target():
     from pathlib import Path
 
     for plan_path in Path(".").glob("*/plan.json"):
-        plan = json.loads(plan_path.read_text())
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
         report_path = plan_path.with_name("report.json")
         if not report_path.is_file():
             continue
-        report = json.loads(report_path.read_text())
+        report = json.loads(report_path.read_text(encoding="utf-8"))
         if (plan.get("target") or "").startswith("Entra"):
             assert report.get("service") == "AuditLogs", (
                 "if this ever holds the target, the plan fallback can go")

@@ -36,7 +36,7 @@ def _advice_text(path: Path) -> str:
     """The advice slots of one asset, concatenated."""
     from pylon.prompts import parse_slots
 
-    slots = parse_slots(path.read_text("utf-8"))
+    slots = parse_slots(path.read_text(encoding="utf-8"))
     return "\n".join(slots.get(k, "") for k in ADVICE_SLOTS)
 
 
@@ -62,7 +62,7 @@ def test_the_mitigation_advice_is_service_neutral():
     line reaches every service. One of them said "vault-wide"."""
     from pylon import playbook
 
-    body = Path(playbook.__file__).read_text("utf-8")
+    body = Path(playbook.__file__).read_text(encoding="utf-8")
     advice = re.findall(r'^\s+"[^"]+": \(\n?\s+"([^"]+)"', body, re.MULTILINE)
     assert advice, "found no mitigation advice strings to check"
     bad = [a for a in advice if re.search(r"\bvaults?\b", a, re.IGNORECASE)]
@@ -98,7 +98,7 @@ def _technique_entries():
 
     path = (Path(__file__).resolve().parent.parent
             / "src/pylon/catalog/table-techniques.yaml")
-    doc = yaml.safe_load(path.read_text("utf-8"))
+    doc = yaml.safe_load(path.read_text(encoding="utf-8"))
     for table, block in (doc.get("tables") or {}).items():
         for entry in (block.get("techniques") or []):
             basis = " ".join(str(entry.get("basis", "")).split())

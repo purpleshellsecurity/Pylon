@@ -158,7 +158,7 @@ _ROOT = _README.parent
 def _examples() -> list[str]:
     """Every `pylon ...` line in a bash block, which is what a reader pastes."""
     out = []
-    for block in re.findall(r"```bash\n(.*?)```", _README.read_text(), re.S):
+    for block in re.findall(r"```bash\n(.*?)```", _README.read_text(encoding="utf-8"), re.S):
         for line in block.splitlines():
             line = line.strip()
             if line.startswith("pylon ") and not line.startswith("pylon config"):
@@ -190,7 +190,7 @@ def test_every_flag_in_an_example_exists(example):
 
 def test_every_file_path_the_readme_names_exists():
     paths = set(re.findall(r"`((?:src/|scripts/|docs/|tests/)[\w./-]+)`",
-                           _README.read_text()))
+                           _README.read_text(encoding="utf-8")))
     missing = sorted(p for p in paths if not (_ROOT / p).exists())
     assert missing == [], f"named in the README and not on disk: {missing}"
 
@@ -200,7 +200,7 @@ def test_no_stale_version_number():
     checkout reporting an old version is how a whole session gets spent against
     the wrong code."""
     stale = [v for v in re.findall(r"\bpylon[ -]?(\d+\.\d+\.\d+)\b",
-                                   _README.read_text())
+                                   _README.read_text(encoding="utf-8"))
              if v != pylon.__version__]
     assert stale == [], f"README names version(s) {stale}; package is {pylon.__version__}"
 
@@ -216,7 +216,7 @@ def test_every_environment_variable_the_code_reads_is_documented():
     read: set[str] = set()
     for path in (_ROOT / "src" / "pylon").rglob("*.py"):
         read |= _env_vars(path.read_text(encoding="utf-8"))
-    undocumented = sorted(read - _env_vars(_README.read_text()))
+    undocumented = sorted(read - _env_vars(_README.read_text(encoding="utf-8")))
     assert undocumented == [], f"read by the code, absent from the README: {undocumented}"
 
 
@@ -227,5 +227,5 @@ def test_no_environment_variable_is_documented_but_dead():
     read: set[str] = set()
     for path in (_ROOT / "src" / "pylon").rglob("*.py"):
         read |= _env_vars(path.read_text(encoding="utf-8"))
-    phantom = sorted(_env_vars(_README.read_text()) - read)
+    phantom = sorted(_env_vars(_README.read_text(encoding="utf-8")) - read)
     assert phantom == [], f"documented and read by nothing: {phantom}"

@@ -28,7 +28,7 @@ def _fresh(monkeypatch):
 
 
 def _events(path):
-    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
 def test_the_jsonl_file_is_written_with_no_tty(tmp_path, capsys):
@@ -76,7 +76,7 @@ def test_the_file_records_debug_even_when_the_console_does_not(tmp_path, capsys)
 def test_an_unwritable_log_location_does_not_kill_the_run(tmp_path, capsys):
     """A paid run must not die because a log directory is read-only."""
     blocked = tmp_path / "afile"
-    blocked.write_text("not a directory")
+    blocked.write_text("not a directory", encoding="utf-8")
     assert logs.configure(jsonl=blocked / "nested" / "run.jsonl") is None
     logs.get_logger("pylon.test").info("still alive")
     assert "still alive" in capsys.readouterr().err

@@ -140,6 +140,48 @@ def apply(paths: list[Path] | None = None) -> tuple[Path | None, list[str]]:
     return None, []
 
 
+def _restrict_to_owner(path: Path) -> bool:
+    """Make `path` readable by its owner alone. True when that was achieved.
+
+    `chmod(0o600)` DOES NOT DO THIS ON WINDOWS, and it does not fail either --
+    it succeeds and sets only the read-only bit, so the file keeps whatever the
+    directory's inherited ACL grants. The previous version caught OSError and
+    moved on, which is why a config file holding an API key was written 0o666
+    on Windows and the suite never said so: the assertion only ran on Linux.
+
+    Windows is done with `icacls`, which ships with the OS:
+
+        /inheritance:r   drop the inherited ACEs rather than adding to them --
+                         granting the owner access while the parent still grants
+                         Users would protect nothing
+        /grant:r USER:F  replace any existing grant for this user, not append
+
+    Returns False rather than raising when it cannot be done. A config file the
+    user asked for is still better than a crash, and `config set` reports it.
+    """
+    if os.name != "nt":
+        try:
+            path.chmod(0o600)
+            return True
+        except OSError:
+            return False
+
+    import getpass
+    import subprocess
+
+    try:
+        user = getpass.getuser()
+    except Exception:  # noqa: BLE001 - no name to grant to; nothing else to try
+        return False
+    try:
+        done = subprocess.run(
+            ["icacls", str(path), "/inheritance:r", "/grant:r", f"{user}:F"],
+            capture_output=True, text=True, timeout=20, check=False)
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return done.returncode == 0
+
+
 def write(values: dict[str, str], path: Path | None = None) -> Path:
     """Write a config file, readable only by its owner.
 
@@ -158,9 +200,6 @@ def write(values: dict[str, str], path: Path | None = None) -> Path:
 
     tmp = target.with_suffix(".tmp")
     tmp.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    try:
-        tmp.chmod(0o600)
-    except OSError:
-        pass  # Windows and some filesystems; the rename below still happens
+    _restrict_to_owner(tmp)
     tmp.replace(target)
     return target

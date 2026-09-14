@@ -261,7 +261,7 @@ def _design_list(args: argparse.Namespace) -> int:
             print(f"\n  next   pylon design detections --from {args.source} "
                   f"--pick ... --out {args.source}")
             return 0
-        report = EngineReport.model_validate_json(src.read_text())
+        report = EngineReport.model_validate_json(src.read_text(encoding="utf-8"))
         print(f"{report.platform} / {report.service}: "
               f"{len(report.detections)} detection(s)\n")
         _show_detections(report.detections)
@@ -467,7 +467,7 @@ def _load_plan(source: str):
               file=sys.stderr)
         return None
     try:
-        return ThreatAnalysis.model_validate_json(src.read_text())
+        return ThreatAnalysis.model_validate_json(src.read_text(encoding="utf-8"))
     except Exception as exc:                       # noqa: BLE001 — a bad file is user input
         print(f"{src} is not a readable plan: {exc}", file=sys.stderr)
         return None
@@ -922,17 +922,17 @@ def _write_detections(result, out_dir: str, plan_only: bool = False) -> None:
     out.mkdir(parents=True, exist_ok=True)
     for i, d in enumerate(result.detections or [], 1):
         stem = _stem(i, d.detection)
-        (out / f"{stem}.kql").write_text(_kql_header(d) + d.detection.kql + "\n")
+        (out / f"{stem}.kql").write_text(_kql_header(d) + d.detection.kql + "\n", encoding="utf-8")
     # The plan, always. A `design plan` run writes only this; a full run writes it
     # too, so what was ENUMERATED survives beside what was BUILT -- and a later
     # `--from` can pick something this run skipped without paying for Phase 1.
-    (out / "plan.json").write_text(result.analysis.model_dump_json(indent=2))
+    (out / "plan.json").write_text(result.analysis.model_dump_json(indent=2), encoding="utf-8")
     # report.json is the claim "detections were built". A plan-only run has built
     # none, and writing an empty one turned "you have not built anything yet" into
     # "0 detection(s) available", which reads as a run that produced nothing rather
     # than a step not taken.
     if not plan_only:
-        (out / "report.json").write_text(result.model_dump_json(indent=2))
+        (out / "report.json").write_text(result.model_dump_json(indent=2), encoding="utf-8")
     # The queries are only half of a detection. Until this page existed, the
     # KQL was in one file, the technique it claims in another, and the argument
     # for that technique in a catalogue the reader had no reason to open --
@@ -1038,7 +1038,7 @@ def _design_playbooks(args: argparse.Namespace) -> int:
             print(f"no report.json in {args.source} -- run `pylon design detections "
                   "--out <dir>` first", file=sys.stderr)
         return 2
-    report = EngineReport.model_validate_json(src.read_text())
+    report = EngineReport.model_validate_json(src.read_text(encoding="utf-8"))
     detections = report.detections or []
     if not detections:
         print(f"{src} holds no detections, so there is nothing to write a "
@@ -1118,7 +1118,7 @@ def _design_playbooks(args: argparse.Namespace) -> int:
                 failed += 1
                 continue
             path = out / f"{_stem(i + 1, d.detection)}-playbook.md"
-            path.write_text(text)
+            path.write_text(text, encoding="utf-8")
             written += 1
             report.playbooks.append(
                 Playbook(target=d.detection.vector_name, text=text))
@@ -1132,7 +1132,7 @@ def _design_playbooks(args: argparse.Namespace) -> int:
     # existence of documents sitting beside it, and anything reading the report
     # rather than globbing the directory saw a run that never wrote a playbook.
     if written or skipped:
-        src.write_text(report.model_dump_json(indent=2))
+        src.write_text(report.model_dump_json(indent=2), encoding="utf-8")
 
     m = current_meter()
     from .usage import estimate_cost
@@ -1181,7 +1181,7 @@ def _design_verify(args: argparse.Namespace) -> int:
     # -- see the loop below. Each detection now carries the operation it was
     # built for, so the gate on a file this command does not read would have
     # been a precondition that proved nothing.
-    report = EngineReport.model_validate_json(src.read_text())
+    report = EngineReport.model_validate_json(src.read_text(encoding="utf-8"))
     detections = report.detections or []
     if not detections:
         print(f"{src} holds no detections", file=sys.stderr)
@@ -1272,7 +1272,7 @@ def _design_verify(args: argparse.Namespace) -> int:
         graded = by_vector.get(d.detection.vector_name)
         if graded is not None:
             d.verification = graded
-    src.write_text(report.model_dump_json(indent=2))
+    src.write_text(report.model_dump_json(indent=2), encoding="utf-8")
 
     # Re-render the page. It was written once at generation and never revisited,
     # so a customer who ran this command -- the one built to find a detection
@@ -1294,7 +1294,7 @@ def _design_verify(args: argparse.Namespace) -> int:
         for i, d in enumerate(report.detections or [], 1):
             path = Path(args.source) / f"{_stem(i, d.detection)}.kql"
             if path.is_file():
-                path.write_text(_kql_header(d) + d.detection.kql + "\n")
+                path.write_text(_kql_header(d) + d.detection.kql + "\n", encoding="utf-8")
                 rewritten.append(path.name)
         for name in rewritten[:2] + ([f"{len(rewritten) - 2} more"]
                                      if len(rewritten) > 2 else []):
@@ -1332,7 +1332,7 @@ def _verify_playbooks(source, guid: str, window: str, measured, detections) -> N
           file=sys.stderr)
     total = failed = 0
     for path in playbooks:
-        queries = verification.runnable(path.read_text(), values)
+        queries = verification.runnable(path.read_text(encoding="utf-8"), values)
         if not queries:
             print(f"  {path.name[:58]:60} no queries")
             continue
@@ -1401,9 +1401,15 @@ def _alert_values(guid: str, window: str, measured, detections) -> dict:
         rows = validate._run_kql(
             f'{table} | where {column} =~ "{r.operation}" | take 1\n'
             f"| project TimeGenerated, CorrelationId,\n"
-            f"          Actor = {_ACTOR.get(table, '\"\"')},\n"
-            f"          ActorId = {_ACTOR_ID.get(table, '\"\"')},\n"
-            f"          SrcIp = {_SRC_IP.get(table, '\"\"')},\n"
+            # _EMPTY, not an inline '\"\"'. A backslash inside an f-string
+            # EXPRESSION is 3.12-only (PEP 701), and this file claims 3.11 --
+            # so every command, including the free ones, failed to import on
+            # the lowest version the project promises. CI tested 3.13 alone and
+            # stayed green. The literal is hoisted rather than the floor being
+            # raised, because the 3.11 support was the promise, not the bug.
+            f"          Actor = {_ACTOR.get(table, _EMPTY)},\n"
+            f"          ActorId = {_ACTOR_ID.get(table, _EMPTY)},\n"
+            f"          SrcIp = {_SRC_IP.get(table, _EMPTY)},\n"
             f"          Target = {_TARGET.get(table, '_ResourceId')}",
             guid, window)
         if not rows:
@@ -1588,7 +1594,7 @@ def _design_sweep(args: argparse.Namespace) -> int:
     root.mkdir(parents=True, exist_ok=True)
     state_path = root / ".sweep.json"
     try:
-        state = json.loads(state_path.read_text())
+        state = json.loads(state_path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         state = {}
 
@@ -1625,7 +1631,7 @@ def _design_sweep(args: argparse.Namespace) -> int:
                 print(f"  budget reached (${spent:,.2f}); stopping before "
                       f"{target} / {stage}", file=sys.stderr)
                 state["_spent"] = spent
-                state_path.write_text(json.dumps(state, indent=1))
+                state_path.write_text(json.dumps(state, indent=1), encoding="utf-8")
                 _sweep_summary(state, started)
                 return 0
             if seen.get(stage) == "done" and not args.force:
@@ -1635,7 +1641,7 @@ def _design_sweep(args: argparse.Namespace) -> int:
             seen[stage] = "done" if code == 0 else f"failed:{code}"
             done_any = True
             state["_spent"] = spent
-            state_path.write_text(json.dumps(state, indent=1))
+            state_path.write_text(json.dumps(state, indent=1), encoding="utf-8")
             if code != 0:
                 # One target failing is not the sweep failing. The state file
                 # records which stage stopped, so a rerun retries just that.
@@ -1745,6 +1751,11 @@ def _distinct(rows: list[dict]) -> list[dict]:
     return out
 
 
+# The KQL literal for "no column on this table": two double-quotes. Kept as a
+# module constant so it never has to appear inside an f-string expression.
+_EMPTY = '""'
+
+
 def _design_record(args: argparse.Namespace) -> int:
     """Capture real events as offline fixtures, one per detection.
 
@@ -1770,7 +1781,7 @@ def _design_record(args: argparse.Namespace) -> int:
         print(f"no report.json in {args.source} -- run `pylon design detections "
               "--out <dir>` first", file=sys.stderr)
         return 2
-    report = EngineReport.model_validate_json(src.read_text())
+    report = EngineReport.model_validate_json(src.read_text(encoding="utf-8"))
     detections = report.detections or []
     if not detections:
         print(f"{src} holds no detections", file=sys.stderr)
@@ -1950,7 +1961,7 @@ def _design_record(args: argparse.Namespace) -> int:
                               measured=graded, anchored=anchored)
         body["recorded_by"] = provenance.stamp("design record").model_dump()
         (out / f"{name}.yaml").write_text(
-            yaml.safe_dump(body, sort_keys=False, width=100))
+            yaml.safe_dump(body, sort_keys=False, width=100), encoding="utf-8")
         written += 1
         print(f"  {len(tp)} tp / {len(tn)} tn  {name}", file=sys.stderr)
 
@@ -1995,7 +2006,7 @@ def _design_survey(args: argparse.Namespace) -> int:
         print(f"no plan.json in {args.source} -- run `pylon design plan` first",
               file=sys.stderr)
         return 2
-    plan = json.loads(plan_path.read_text())
+    plan = json.loads(plan_path.read_text(encoding="utf-8"))
     vectors = plan.get("attack_vectors") or []
     if not vectors:
         print(f"{plan_path} enumerates no vectors", file=sys.stderr)
@@ -2104,7 +2115,7 @@ def _design_grade(args: argparse.Namespace) -> int:
     rows, failed = [], 0
     for path in paths:
         try:
-            fx = _yaml.safe_load(path.read_text())
+            fx = _yaml.safe_load(path.read_text(encoding="utf-8"))
         except (OSError, _yaml.YAMLError) as exc:
             print(f"  {path.name}: unreadable ({exc})", file=sys.stderr)
             failed += 1
@@ -2195,7 +2206,7 @@ def _design_coverage(args: argparse.Namespace) -> int:
             else sorted(root.rglob("report.json"))
         for path in found:
             try:
-                reports.append((path, EngineReport.model_validate_json(path.read_text())))
+                reports.append((path, EngineReport.model_validate_json(path.read_text(encoding="utf-8"))))
             except (OSError, ValueError):
                 print(f"  unreadable: {path}", file=sys.stderr)
 
@@ -2223,7 +2234,7 @@ def _design_coverage(args: argparse.Namespace) -> int:
         plan_path = path.with_name("plan.json")
         if plan_path.is_file():
             try:
-                asked = json.loads(plan_path.read_text()).get("target")
+                asked = json.loads(plan_path.read_text(encoding="utf-8")).get("target")
             except (OSError, ValueError):
                 asked = None
             if asked:

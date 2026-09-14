@@ -29,7 +29,7 @@ _PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                      "catalog", "mitre_index.json")
 
 try:
-    with open(_PATH) as _f:
+    with open(_PATH, encoding="utf-8") as _f:
         _DATA = json.load(_f)
 except (OSError, ValueError) as _exc:
     # An empty index is not a tenant with no techniques, and the difference has

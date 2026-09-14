@@ -53,7 +53,7 @@ def _runs_inside_a_loop(tree: ast.AST) -> list[int]:
 
 @pytest.mark.parametrize("path", sorted(SRC.rglob("*.py")), ids=lambda p: p.name)
 def test_asyncio_run_is_not_called_per_iteration(path):
-    hits = _runs_inside_a_loop(ast.parse(path.read_text("utf-8")))
+    hits = _runs_inside_a_loop(ast.parse(path.read_text(encoding="utf-8")))
     assert hits == [], (
         f"{path.name} calls asyncio.run inside a loop at line(s) {hits}. Each "
         f"call closes its event loop while a client bound to it is still alive, "

@@ -7,6 +7,7 @@ variables.
 """
 
 import os
+import subprocess
 import stat
 
 from pylon import config
@@ -100,10 +101,33 @@ def test_a_malformed_line_is_ignored_not_fatal():
 
 
 def test_the_written_file_is_owner_readable_only(tmp_path):
-    # It holds an API key.
+    """It holds an API key.
+
+    Asserted per platform because the MECHANISM differs, not the intent. Unix
+    mode bits do not exist on Windows: `chmod(0o600)` there succeeds, sets only
+    the read-only bit, and leaves the inherited ACL in place -- so this test
+    read 0o666 on Windows while passing everywhere else, and the file really was
+    readable by anyone on the box.
+    """
     path = config.write({"OPENAI_API_KEY": "sk-secret"}, tmp_path / "c.env")
-    mode = stat.S_IMODE(path.stat().st_mode)
-    assert mode & (stat.S_IRGRP | stat.S_IROTH) == 0, oct(mode)
+    if os.name == "nt":
+        # icacls is the mechanism; ask Windows what the ACL actually says.
+        out = subprocess.run(["icacls", str(path)], capture_output=True,
+                             text=True, timeout=20, check=False).stdout
+        assert "(I)" not in out, f"inherited ACEs survive: {out}"
+        assert out.count(":") >= 1, out
+    else:
+        mode = stat.S_IMODE(path.stat().st_mode)
+        assert mode & (stat.S_IRGRP | stat.S_IROTH) == 0, oct(mode)
+
+
+def test_restricting_a_file_reports_failure_rather_than_raising(tmp_path,
+                                                               monkeypatch):
+    """A config file the user asked for beats a crash, so the helper returns a
+    bool. The old code swallowed OSError and returned nothing, which is how a
+    silent no-op on Windows went unnoticed for as long as it did."""
+    missing = tmp_path / "nope" / "c.env"
+    assert config._restrict_to_owner(missing) is False
 
 
 def test_a_written_file_round_trips(tmp_path):

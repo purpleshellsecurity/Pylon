@@ -185,10 +185,50 @@ CHECKPOINT_ALLOWED_TYPES = [
 ]
 
 
+def _force_utf8_checkpoints() -> bool:
+    """Make agent_framework's checkpoint file I/O UTF-8. True when patched.
+
+    UPSTREAM BUG, AND IT BREAKS WINDOWS OUTRIGHT. `_checkpoint.py` opens its
+    files four times with no encoding and then writes
+    `json.dump(..., ensure_ascii=False)`, so the non-ASCII in a checkpoint --
+    the box drawing from the attack diagram, the status emoji -- goes through
+    the locale codec. On Linux and macOS that is UTF-8 and nothing is noticed.
+    On Windows it is cp1252:
+
+        UnicodeEncodeError: 'charmap' codec can't encode character '\u2502'
+
+    Saving raises and resuming would mis-decode, so `--resume` is unusable there.
+
+    `open` is shadowed in that module's namespace rather than the four methods
+    being reimplemented here: their bodies are upstream's to change, and a copy
+    would drift silently. Shadowing a module global affects only that module --
+    builtins are untouched everywhere else.
+
+    A no-op once upstream names its encoding, and reports that rather than
+    asserting, so the day it is fixed is visible instead of silent.
+    """
+    import builtins
+    import importlib
+
+    mod = importlib.import_module("agent_framework._workflows._checkpoint")
+    if getattr(mod, "_pylon_utf8", False):
+        return True
+
+    def _utf8_open(file, mode="r", *args, **kwargs):
+        if "b" not in mode:
+            kwargs.setdefault("encoding", "utf-8")
+        return builtins.open(file, mode, *args, **kwargs)
+
+    mod.open = _utf8_open
+    mod._pylon_utf8 = True
+    return True
+
+
 def make_checkpoint_storage(path):
     """FileCheckpointStorage with our types allowlisted for restore."""
     from agent_framework import FileCheckpointStorage
 
+    _force_utf8_checkpoints()
     return FileCheckpointStorage(str(path), allowed_checkpoint_types=CHECKPOINT_ALLOWED_TYPES)
 
 

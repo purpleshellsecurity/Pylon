@@ -39,7 +39,7 @@ _PLAN = _plan(("Secret read (SecretGet)", "T1555.006", "SecretGet"),
 
 
 def _written(tmp_path) -> argparse.Namespace:
-    (tmp_path / "plan.json").write_text(_PLAN.model_dump_json())
+    (tmp_path / "plan.json").write_text(_PLAN.model_dump_json(), encoding="utf-8")
     return argparse.Namespace(
         target="", source=str(tmp_path), pick="", out=None,
         max_cost=1.0, max_tokens=0, unconfirmed_tables=True)
@@ -117,7 +117,7 @@ def test_a_missing_or_unreadable_plan_is_refused_by_name(tmp_path):
         assert cli._design_detections(args) == 2
     assert "no plan.json" in err.getvalue()
 
-    (tmp_path / "plan.json").write_text("{ not json")
+    (tmp_path / "plan.json").write_text("{ not json", encoding="utf-8")
     err = io.StringIO()
     with redirect_stderr(err):
         assert cli._design_detections(args) == 2
@@ -267,7 +267,7 @@ def test_a_full_run_still_writes_the_report(tmp_path):
 
 def test_playbooks_on_a_plan_only_directory_names_the_missing_step(tmp_path):
     """The directory is not broken; Phase 2 has not run. Point at the command."""
-    (tmp_path / "plan.json").write_text(_PLAN.model_dump_json())
+    (tmp_path / "plan.json").write_text(_PLAN.model_dump_json(), encoding="utf-8")
     err = io.StringIO()
     with redirect_stderr(err):
         rc = cli._design_playbooks(argparse.Namespace(
@@ -289,7 +289,7 @@ def test_an_out_of_range_number_says_so(capsys):
 def test_design_list_falls_back_to_the_plan(tmp_path, capsys):
     """One step earlier in the same directory. Showing the plan beats refusing,
     and its numbering is what `design detections --pick` counts against."""
-    (tmp_path / "plan.json").write_text(_PLAN.model_dump_json())
+    (tmp_path / "plan.json").write_text(_PLAN.model_dump_json(), encoding="utf-8")
     rc = cli._design_list(argparse.Namespace(source=str(tmp_path), target=[]))
     assert rc == 0
     out = capsys.readouterr().out

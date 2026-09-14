@@ -107,6 +107,9 @@ how an attacker keeps access after you revoke sessions.
 
 <!-- SLOT: preserve -->
 ```powershell
+#Requires -Modules Microsoft.Graph.Authentication
+#Requires -Modules Microsoft.Graph.Identity.SignIns
+#Requires -Modules Microsoft.Graph.Users
 Connect-MgGraph -Scopes "User.Read.All","UserAuthenticationMethod.Read.All" -NoWelcome
 Get-MgUser -UserId "[FROM ALERT: ActorUpn]" -Property * |
     ConvertTo-Json -Depth 6 | Out-File ".\evidence-user-$(Get-Date -Format yyyyMMddTHHmmssZ).json"
@@ -123,6 +126,8 @@ attacker enrolled is the evidence, and eradication removes it.
 
 **Option B — Revoke the actor's sessions**
 ```powershell
+#Requires -Modules Microsoft.Graph.Authentication
+#Requires -Modules Microsoft.Graph.Users.Actions
 Connect-MgGraph -Scopes "User.ReadWrite.All" -NoWelcome
 $UserId = "[FROM ALERT: ActorUpn]"
 try {
@@ -138,6 +143,9 @@ is not containment: see Eradication.
 
 **Option C — If the actor account is compromised: disable it**
 ```powershell
+#Requires -Modules Microsoft.Graph.Authentication
+#Requires -Modules Microsoft.Graph.Users
+#Requires -Modules Microsoft.Graph.Users.Actions
 Connect-MgGraph -Scopes "User.ReadWrite.All" -NoWelcome
 $UserId = "[FROM ALERT: ActorUpn]"
 try {

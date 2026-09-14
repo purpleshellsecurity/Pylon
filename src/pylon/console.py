@@ -59,6 +59,19 @@ def _windows_vt() -> bool:
         return False
 
 
+def _on_windows() -> bool:
+    """Whether this is Windows, as its own function so a test can say "pretend
+    it is not" WITHOUT touching `os.name`.
+
+    A test patched `console.os.name`, and `console.os` IS the os module, so it
+    set `os.name` process-wide. `pathlib` reads `os.name` to choose its Path
+    flavour, so every `Path()` on Windows then tried to build a PosixPath and
+    raised -- including inside pytest's own failure reporting, which turned four
+    assertions into an INTERNALERROR that hid the rest of the run.
+    """
+    return os.name == "nt"
+
+
 def supported(stream=None) -> bool:
     stream = stream if stream is not None else sys.stdout
     if os.environ.get("NO_COLOR"):
@@ -70,7 +83,7 @@ def supported(stream=None) -> bool:
             return False
     except Exception:
         return False
-    if os.name == "nt":
+    if _on_windows():
         return _windows_vt()
     return True
 

@@ -45,7 +45,7 @@ def test_the_installed_version_matches_this_source_tree():
     """Fails on a stale install, which is the condition worth knowing about:
     four playbook runs were once read as evidence about code that was not
     installed, and nothing in the output said so."""
-    declared = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["version"]
+    declared = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
     if pylon.__version__.startswith("unknown"):
         pytest.skip("running from a source tree with nothing installed")
     assert pylon.__version__ == declared, (

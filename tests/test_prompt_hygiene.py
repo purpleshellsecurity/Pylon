@@ -74,7 +74,7 @@ def test_every_threat_asset_permits_an_empty_answer():
                     .glob("src/pylon/prompts/assets/*/threat.md"))
     assert assets, "no threat assets found"
     for f in assets:
-        assert "Zero is a valid answer" in f.read_text(), f.parent.name
+        assert "Zero is a valid answer" in f.read_text(encoding="utf-8"), f.parent.name
 
 
 def test_every_threat_asset_also_sets_a_floor():
@@ -97,7 +97,7 @@ def test_every_threat_asset_also_sets_a_floor():
                     .glob("src/pylon/prompts/assets/*/threat.md"))
     assert assets, "no threat assets found"
     for f in assets:
-        body = f.read_text()
+        body = f.read_text(encoding="utf-8")
         assert "Cover the surface, do not sample it" in body, f.parent.name
         assert "never about brevity" in body, f.parent.name
 

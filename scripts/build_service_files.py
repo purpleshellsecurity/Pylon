@@ -21,14 +21,14 @@ from pathlib import Path
 CATALOG = Path(__file__).resolve().parent.parent / "src" / "pylon" / "catalog"
 OUT_DIR = CATALOG / "service_files"
 
-manifest = json.loads((CATALOG / "service_manifest.json").read_text())["services"]
-docs_raw = json.loads((CATALOG / "service_logging_docs.json").read_text())["services"]
+manifest = json.loads((CATALOG / "service_manifest.json").read_text(encoding="utf-8"))["services"]
+docs_raw = json.loads((CATALOG / "service_logging_docs.json").read_text(encoding="utf-8"))["services"]
 # Doc-verified operations from the verification workflow (resource_type -> table ->
 # {status, operations, source_url, notes}). status="verified" means the ops literally
 # appear in the cited doc; "not_enumerated" means the doc was read but lists no
 # OperationName values. Never invented — see service_operations_verified.json header.
 _wf_path = CATALOG / "service_operations_verified.json"
-WF_VERIFIED = json.loads(_wf_path.read_text())["services"] if _wf_path.exists() else {}
+WF_VERIFIED = json.loads(_wf_path.read_text(encoding="utf-8"))["services"] if _wf_path.exists() else {}
 # resource_type -> its service-docs entry (first product wins for shared types)
 docs: dict[str, dict] = {}
 for e in docs_raw:

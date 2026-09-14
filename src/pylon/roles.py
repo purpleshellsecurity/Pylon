@@ -31,7 +31,7 @@ _PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                      "catalog", "builtin-roles.json")
 
 try:
-    with open(_PATH) as _f:
+    with open(_PATH, encoding="utf-8") as _f:
         _DATA = json.load(_f)
 except (OSError, ValueError) as _exc:  # pragma: no cover - install damage
     # An empty catalogue is not a world with no roles. Every caller checks

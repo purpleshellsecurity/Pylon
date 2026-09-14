@@ -36,7 +36,7 @@ def _plan(**kw) -> ThreatAnalysis:
 
 @pytest.mark.parametrize("target", ["Entra RoleManagement", "Microsoft.KeyVault/vaults"])
 def test_the_target_a_plan_records_can_be_resolved_again(tmp_path, target):
-    (tmp_path / "plan.json").write_text(_plan(target=target).model_dump_json())
+    (tmp_path / "plan.json").write_text(_plan(target=target).model_dump_json(), encoding="utf-8")
     peek = cli._load_plan(str(tmp_path))
     again = getattr(peek, "target", "") or peek.service
     assert again == target
@@ -56,7 +56,7 @@ def test_a_plan_written_before_the_field_still_loads(tmp_path):
     have made every one of them unreadable."""
     raw = json.loads(_plan().model_dump_json())
     raw.pop("target")
-    (tmp_path / "plan.json").write_text(json.dumps(raw))
+    (tmp_path / "plan.json").write_text(json.dumps(raw), encoding="utf-8")
     peek = cli._load_plan(str(tmp_path))
     assert peek is not None
     assert (getattr(peek, "target", "") or peek.service) == "AuditLogs"

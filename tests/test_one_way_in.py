@@ -122,7 +122,10 @@ def test_nothing_above_the_accessor_reads_a_catalogue_directly():
 
     offenders = []
     for path in sorted(pathlib.Path("src/pylon").rglob("*.py")):
-        rel = str(path.relative_to("src/pylon"))
+        # as_posix(), not str(): on Windows this is "validation\\kql_rules.py"
+        # and the allow-list is written with forward slashes, so every nested
+        # module stopped matching and was reported as an offender.
+        rel = path.relative_to("src/pylon").as_posix()
         if rel in _SOURCE_LAYER or path.parts[-2] == "catalog":
             continue
         for line in path.read_text(encoding="utf-8").splitlines():

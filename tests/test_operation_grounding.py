@@ -120,7 +120,7 @@ def test_both_catalogs_are_now_imported_by_the_product():
     importers = [
         p.name for p in root.rglob("*.py")
         if p.name not in {"entra_actions.py", "graph_permissions.py"}
-        and ("entra_actions" in p.read_text() or "graph_permissions" in p.read_text())
+        and ("entra_actions" in p.read_text(encoding="utf-8") or "graph_permissions" in p.read_text(encoding="utf-8"))
     ]
     assert "operation_grounding.py" in importers, importers
 

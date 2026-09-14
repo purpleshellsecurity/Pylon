@@ -146,7 +146,7 @@ def load() -> dict[str, dict]:
         if os.path.basename(path) == "_index.json":
             continue
         try:
-            with open(path) as handle:
+            with open(path, encoding="utf-8") as handle:
                 doc = json.load(handle)
         except (OSError, ValueError):
             continue
