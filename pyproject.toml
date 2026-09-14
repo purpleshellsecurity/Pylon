@@ -67,7 +67,7 @@ pylon = "pylon.cli:main"
 # 77+, not 68: the PEP 639 `license = "MIT"` field above is rejected
 # by older setuptools as an invalid config, and it fails the BUILD rather
 # than warning. Verified by validating this file against 68, 74 and 80.
-requires = ["setuptools>=77"]
+requires = ["setuptools>=84.0.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
