@@ -24,7 +24,7 @@ classifiers = [
 # extra rather than a dependency: a scan that has to import an LLM SDK to tell
 # you which tables are dark has the wrong shape.
 dependencies = [
-    "pydantic>=2",
+    "pydantic>=2.13.5",
     # The catalogues are YAML and three of them are read by commands that cost
     # nothing: `design list` prints the targets, and correlation, data-plane
     # operations and the no-detection-surface list are all read outside a paid
