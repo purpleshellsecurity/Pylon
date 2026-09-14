@@ -512,6 +512,31 @@ def _unconfirmed(have: frozenset[str] | None, tables: list[str]) -> str:
     return ""
 
 
+def _scan_will_block(tables: list[str]) -> str:
+    """What `design detections` will refuse with, said while it is still free.
+
+    The refusal is correctly deferred to the step that spends money -- writing a
+    plan for a service you have not deployed is a normal thing to do, and
+    blocking it would be wrong. But `plan` and `survey` said nothing about it
+    beyond one header line reading like status, so round nine followed steps 1
+    to 8, had both free steps succeed, and hit a hard stop at step 4. Survey
+    even prints the exact `design detections` command to run next, which is the
+    command that then refuses.
+
+    Returned rather than printed so both callers put it where their own output
+    ends.
+    """
+    from . import deployed as provisioned_tables
+
+    have, _why = provisioned_tables.from_analysis()
+    if not _unconfirmed(have, tables or ["AuditLogs"]):
+        return ""
+    return ("  NOTE  `pylon design detections` will refuse: no scan confirms "
+            "these tables.\n"
+            "        `pylon analyze` fixes it and costs nothing, or pass "
+            "--unconfirmed-tables.")
+
+
 def _design_detections(args: argparse.Namespace) -> int:
     """Phases 1 and 2: threat analysis, then a detection per attack vector."""
     engine = _engine()
@@ -587,9 +612,9 @@ def _design_detections(args: argparse.Namespace) -> int:
                           f"scan saw nothing land there", file=sys.stderr)
 
     building = getattr(args, "pick", "") != "none"
-    if building and not getattr(args, "unconfirmed_tables", False):
+    if not getattr(args, "unconfirmed_tables", False):
         refusal = _unconfirmed(have, list(target.tables) or ["AuditLogs"])
-        if refusal:
+        if refusal and building:
             print(f"\n{refusal}", file=sys.stderr)
             return 2
 
@@ -675,6 +700,13 @@ def _design_detections(args: argparse.Namespace) -> int:
         out = _slug(target.key)
         print(f"\n  no --out given; writing to ./{out}/", file=sys.stderr)
     _write_detections(result, out, plan_only=plan_only)
+    # Last thing a plan-only run prints. It succeeded and cost nothing, and the
+    # step it points at will refuse -- so say that here rather than letting the
+    # free success imply the paid one will work.
+    if plan_only and not getattr(args, "unconfirmed_tables", False):
+        blocked = _scan_will_block(list(target.tables))
+        if blocked:
+            print(f"\n{blocked}", file=sys.stderr)
     return 0
 
 
@@ -1054,27 +1086,46 @@ def _design_playbooks(args: argparse.Namespace) -> int:
     # have stopped it. Checked between playbooks, so a cap is approximate in the
     # same way the engine's is: an in-flight call can push slightly over.
     reset_meter()
-    written = skipped = failed = 0
     from .models import Playbook
-    for i in picks:
-        d = detections[i]
-        if over_budget(args.max_cost, args.max_tokens):
-            skipped += 1
-            report.playbooks_skipped.append(d.detection.vector_name)
-            continue
-        try:
-            text = asyncio.run(engine.run_playbook_phase(request, d))
-        except Exception as exc:
-            print(f"  FAILED {d.detection.vector_name}: "
-                  f"{type(exc).__name__}: {exc}", file=sys.stderr)
-            failed += 1
-            continue
-        path = out / f"{_stem(i + 1, d.detection)}-playbook.md"
-        path.write_text(text)
-        written += 1
-        report.playbooks.append(
-            Playbook(target=d.detection.vector_name, text=text))
-        print(f"  wrote {path.name}  ({d.detection.vector_name})")
+
+    async def _write_playbooks() -> tuple[int, int, int]:
+        """Every playbook in ONE event loop.
+
+        `asyncio.run` was called per playbook, inside the loop. Each call opens a
+        fresh loop and closes it on the way out, while the provider SDK's HTTP
+        client stays alive across iterations bound to the loop that created it --
+        so its finaliser ran against a closed loop and the interpreter printed a
+        bare `RuntimeError: Event loop is closed` traceback mid-run, with no
+        line of ours in it. The playbooks were written correctly either side of
+        it, which is what made it read as a crash that somehow did no damage.
+
+        Still sequential: the budget is checked BETWEEN playbooks, and running
+        them concurrently would spend the cap before the check could see it.
+        """
+        written = skipped = failed = 0
+        for i in picks:
+            d = detections[i]
+            if over_budget(args.max_cost, args.max_tokens):
+                skipped += 1
+                report.playbooks_skipped.append(d.detection.vector_name)
+                continue
+            try:
+                text = await engine.run_playbook_phase(request, d)
+            except Exception as exc:  # noqa: BLE001 - one bad playbook must not
+                # take the rest of the run with it.
+                print(f"  FAILED {d.detection.vector_name}: "
+                      f"{type(exc).__name__}: {exc}", file=sys.stderr)
+                failed += 1
+                continue
+            path = out / f"{_stem(i + 1, d.detection)}-playbook.md"
+            path.write_text(text)
+            written += 1
+            report.playbooks.append(
+                Playbook(target=d.detection.vector_name, text=text))
+            print(f"  wrote {path.name}  ({d.detection.vector_name})")
+        return written, skipped, failed
+
+    written, skipped, failed = asyncio.run(_write_playbooks())
 
     # report.json is the record of what this directory holds. Writing the .md
     # files and leaving `playbooks: []` behind meant the report denied the
@@ -1997,6 +2048,12 @@ def _design_survey(args: argparse.Namespace) -> int:
         print(f"\n  pylon design detections --from {args.source} --pick "
               f"\"{','.join(str(i) for i, _v, _n in gradable)}\" "
               f"--out {args.source}", file=sys.stderr)
+        # That command is the one that refuses without a scan. Handing it over
+        # and staying quiet is how a measured, successful survey came to imply
+        # the next step would run.
+        blocked = _scan_will_block(sorted(tables))
+        if blocked:
+            print(f"\n{blocked}", file=sys.stderr)
     return 0
 
 
@@ -2066,7 +2123,7 @@ def _design_grade(args: argparse.Namespace) -> int:
     # so it is the part to drop.
     shared = os.path.commonprefix([n for n, _r, _m, _a, _o in rows]) if len(rows) > 1 else ""
     shared = shared[:shared.rfind("-") + 1] if "-" in shared else ""
-    labels = {n: (n[len(shared):] or n) for n, _r, _m in rows}
+    labels = {n: (n[len(shared):] or n) for n, _r, _m, _a, _o in rows}
     if shared:
         print(f"\n  all names begin {shared!r}; dropped below", file=sys.stderr)
     width = min(max((len(v) for v in labels.values()), default=24), 54)

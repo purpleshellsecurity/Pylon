@@ -1070,17 +1070,35 @@ async def run_detection_phase(
             _gate("engine", vector, kql, True, ran=False, skipped=True,
                   error=offline.error[:120] or "skipped")
         if offline.ran and not offline.ok:
+            # WHAT THE ENGINE SAID COMES FIRST, when it said anything. This text
+            # asserted "It reports no reason" unconditionally and then printed
+            # the reason underneath, so round nine read:
+            #
+            #   It reports no reason, so re-read the whole query [...]
+            #   Engine response: 'extend' operator: Failed to resolve scalar
+            #   expression named 'OperationName'
+            #
+            # Written when the offline engine returned a bare failure, and never
+            # revisited once it started naming the fault. The advice is still
+            # right for the silent case, so it is kept for that case only --
+            # leading with a guess when the engine has named the column wastes
+            # the retry this error exists to drive.
+            reason = (offline.error or "").strip()
+            hints = ("Common causes: an `extend` assignment reading a name "
+                     "defined beside it, a column referenced after a "
+                     "`summarize` that did not carry it through, an operator "
+                     "written as a function (`startswith(a, b)` is not valid "
+                     "KQL -- it is `a startswith b`), or a column this table "
+                     "does not have.")
+            message = (
+                f"the real KQL engine refused this query: {reason[:200]} "
+                f"Fix exactly what it names. {hints}"
+                if reason else
+                f"the real KQL engine refused this query and reports no "
+                f"reason, so re-read the whole query for a syntax error or a "
+                f"column that does not resolve. {hints}")
             result = merge_results(result, ValidationResult(
-                valid=False,
-                errors=[
-                    "the real KQL engine refused this query. It reports no "
-                    "reason, so re-read the whole query for a syntax error or "
-                    "a column that does not resolve: an `extend` assignment "
-                    "reading a name defined beside it, an operator written as "
-                    "a function (`startswith(a, b)` is not valid KQL -- it is "
-                    "`a startswith b`), or a column this table does not have. "
-                    f"Engine response: {offline.error[:200]}"],
-            ))
+                valid=False, errors=[message]))
         if not (workspace_guid and operation and result.valid):
             return result, offline, None
 

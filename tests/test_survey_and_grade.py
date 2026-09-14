@@ -126,3 +126,37 @@ def test_the_golden_harness_is_reachable_from_the_cli():
     import inspect
 
     assert "golden_eval" in inspect.getsource(cli._design_grade)
+
+
+def test_grading_real_fixtures_reaches_the_table(tmp_path, monkeypatch, capsys):
+    """The rendering path EXECUTES, on more than one fixture.
+
+    Round eight reported `design grade` crashing on a stale 3-way unpack of a
+    5-tuple, with the exact line. Round nine hit the identical crash on the
+    identical line after a full release cycle, because every test here either
+    returned before reaching it -- no engine, or an empty directory -- or read
+    the source as text with `inspect.getsource`. Four tests named the function
+    and none ran it.
+
+    TWO fixtures, not one: the faulty line sits behind `if len(rows) > 1`, so a
+    single fixture leaves `shared` empty and skips it. A one-fixture test would
+    have gone green on the broken code and reported this bug fixed.
+    """
+    import yaml as _yaml
+
+    monkeypatch.setenv("PYLON_KUSTAINER_URL", "http://localhost:8080")
+    for name in ("blob-download-oauth", "blob-delete-mass"):
+        (tmp_path / f"{name}.yaml").write_text(_yaml.safe_dump({
+            "name": name, "table": "StorageBlobLogs",
+            "query": 'StorageBlobLogs | where AuthenticationType == "OAuth"',
+            "anchored": False,
+            "measured": {"verdict": "under", "observed": 3},
+            "events": [{"_outcome": "attack", "AuthenticationType": "OAuth"},
+                       {"_outcome": "benign", "AuthenticationType": "SAS"}],
+        }), encoding="utf-8")
+
+    code = cli._design_grade(argparse.Namespace(fixtures=str(tmp_path)))
+    out = capsys.readouterr()
+    assert code != 2, "returned the no-fixtures code with two fixtures present"
+    # The header only prints once the unpack at the labels line has succeeded.
+    assert "fixture" in out.out and "verdict" in out.out, out.out + out.err

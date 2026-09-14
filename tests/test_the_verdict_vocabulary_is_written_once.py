@@ -159,3 +159,47 @@ def test_a_joined_query_is_not_peeled():
               '| where OperationNameValue =~ "X"\n'
               '| join kind=inner (AzureActivity | where Caller != "") on CorrelationId')
     assert verification.peel(joined, lambda _k: 0) == []
+
+
+def test_the_baseline_carries_the_same_time_bound_as_every_row_below_it():
+    """Round nine printed a ladder in which a filter INCREASED the row count:
+
+        114  StorageBlobLogs (no filters)
+        580  where TimeGenerated > ago(30d)
+
+    The baseline was the only row with no time predicate, so it was counted over
+    a different window and was never the denominator the rest were measured
+    against. A time filter says which window is being measured; it is not one of
+    the conditions under test.
+    """
+    from pylon import verification
+
+    seen = []
+    verification.peel(
+        'StorageBlobLogs\n'
+        '| where TimeGenerated > ago(30d)\n'
+        '| where OperationName == "GetBlob"\n'
+        '| where AuthenticationType == "OAuth"\n'
+        '| where toint(StatusCode) < 300',
+        lambda q: (seen.append(q), 1)[1])
+
+    assert seen, "the peel ran nothing"
+    assert all("TimeGenerated" in q for q in seen), (
+        "every row of the ladder must be counted over the same window; "
+        f"these were not: {[q for q in seen if 'TimeGenerated' not in q]}")
+
+
+def test_the_time_filter_is_not_offered_as_a_step_that_killed_the_query():
+    """It is the window, so it cannot be the filter under test -- and listing it
+    as a step is what let it appear to add rows."""
+    from pylon import verification
+
+    rows = verification.peel(
+        'StorageBlobLogs\n'
+        '| where TimeGenerated > ago(30d)\n'
+        '| where OperationName == "GetBlob"\n'
+        '| where AuthenticationType == "OAuth"',
+        lambda _q: 1)
+    steps = [label for label, _n in rows[1:]]
+    assert not any("TimeGenerated" in s for s in steps), steps
+    assert rows[0][0].endswith("(time filter only)"), rows[0][0]

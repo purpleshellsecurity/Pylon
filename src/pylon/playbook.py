@@ -55,6 +55,13 @@ RESPONDER_BLANKS: tuple[str, ...] = (
     "[FROM ALERT: SrcIp]",
     "[FROM ALERT: TargetResource]",
     "[FROM ALERT: CorrelationId]",
+    # Storage-specific, and it earns its place: AccountName is the
+    # StorageLogs contract's declared `scope` field and is projected by every
+    # one of its recipes, so it is on the alert row in front of the reader --
+    # which is what this list means. `current_state` needs the account NAME,
+    # not its id: `az storage container-rm --storage-account` takes a name,
+    # and TargetResource on a blob detection is the ObjectKey.
+    "[FROM ALERT: AccountName]",
     "[TIME YOU RAN CONTAINMENT]",
     "[the resource from the alert]",
     "[the resource id]",
@@ -683,7 +690,7 @@ def document_template(platform_id: str, service: str, target_label: str, *,
         attack_diagram=attack_diagram(service, operation, technique),
         assessment_questions=assessment_questions(service, az_provider),
         escalation_matrix=escalation_matrix(service, technique, az_provider),
-        current_state=current_state(),
+        current_state=current_state(service),
         prevention=computed,
     )
     document = _render(
@@ -937,7 +944,16 @@ def attack_diagram(table: str, operation: str, technique: str = "") -> str:
         lines += ["     │  the rest of the story is in", "     ▼",
                   "   " + ", ".join(onward)]
     lines.append("```")
-    return "\n".join(lines)
+    # HEADED, so it can be found. It rendered as a bare fence between the
+    # metadata block and the first `---`, with no heading of its own, and round
+    # nine reported the section absent from five playbooks it was present in --
+    # nothing scanning the document's structure could see it, which for a
+    # section is the same as not being there.
+    #
+    # The heading is returned WITH the diagram rather than written into the
+    # skeleton, because the slot's default is the empty string: a heading in the
+    # skeleton would stand alone over nothing whenever the diagram is empty.
+    return "## Attack Sequence\n\n" + "\n".join(lines)
 
 
 def prevention(table: str, technique: str = "", containment_role: str = "",
@@ -1009,7 +1025,7 @@ _CONTROL_GUIDANCE: dict[str, tuple[str, str]] = {
         "Resource firewall rules allowing only the addresses that legitimately reach it",
         "Turns an anonymous attempt into one that must come from a known network"),
     "Restrict File and Directory Permissions": (
-        "RBAC scoped to the object rather than vault-wide or account-wide access policies",
+        "RBAC scoped to the object rather than to the whole account or resource",
         "Narrows what a compromised identity can reach once inside"),
     "Encrypt Sensitive Information": (
         "Customer-managed keys, and TLS enforced on the data plane",
@@ -1130,18 +1146,58 @@ def monitoring(table: str, service: str = "") -> list[str]:
     return out
 
 
-def current_state() -> str:
+# What a service's present state looks like, beyond the two questions every
+# resource answers. Keyed by the CONTRACT'S table, because that is what the
+# playbook builder has in hand.
+#
+# EVERY COMMAND AND EVERY PROPERTY NAME HERE WAS RESOLVED AGAINST THE LIVE API
+# BEFORE IT WAS WRITTEN, not recalled. `az storage container-rm list` is the ARM
+# route rather than `az storage container list`: the data-plane one needs
+# data-plane auth and returns XML, and the control-plane one answers the same
+# question in JSON from the same credentials as the line above it.
+_SERVICE_STATE: dict[str, tuple[str, str]] = {
+    "StorageBlobLogs": (
+        "Is any container public, and can it be?",
+        r"""
+az storage account show --ids "[FROM ALERT: TargetResource]" \
+    --query "{allowBlobPublicAccess:allowBlobPublicAccess, \
+              publicNetworkAccess:publicNetworkAccess, \
+              defaultAction:networkRuleSet.defaultAction, \
+              allowSharedKeyAccess:allowSharedKeyAccess}" -o jsonc
+
+# Which containers are public RIGHT NOW, and what still protects them.
+az storage container-rm list --storage-account "[FROM ALERT: AccountName]" \
+    --query "[].{name:name, publicAccess:publicAccess, \
+                 hasLegalHold:hasLegalHold, \
+                 hasImmutabilityPolicy:hasImmutabilityPolicy}" -o table
+        """),
+}
+
+
+def current_state(table: str = "") -> str:
     """What the resource and the actor look like NOW, as opposed to what the
     logs recorded happening.
 
-    The queries above read history; these two commands read the present, and
-    they answer a question no log can: a row saying a role assignment was
-    created does not say whether it is still there. Deliberately generic --
-    `az resource show --ids` and `az role assignment list --assignee` work for
-    every resource type and every principal Pylon targets, so neither needs a
-    per-service cmdlet resolved against its module before it can be emitted.
+    The queries above read history; these commands read the present, and they
+    answer a question no log can: a row saying a role assignment was created
+    does not say whether it is still there.
+
+    The first two are generic on purpose. `az resource show --ids` and
+    `az role assignment list --assignee` work for every resource type and every
+    principal Pylon targets, so neither needs a per-service cmdlet resolved
+    before it can be emitted, and every table gets them.
+
+    A SERVICE THAT CAN ANSWER MORE, DOES. Round nine read a blob playbook whose
+    Attack Context said the actor had been checking "for publicly exposed
+    containers", and whose current-state block never asked whether a container
+    was public -- it would have read identically for Key Vault. Generic is the
+    right floor and it was being used as the ceiling.
+
+    Per-table, and only where the commands have been resolved against the live
+    API. A table with no entry gets the two generic commands, which is what
+    every table got before.
     """
-    return """```bash
+    generic = """```bash
 # What does the resource look like right now? (Not what the logs say happened.)
 az resource show --ids "[FROM ALERT: TargetResource]" -o jsonc
 
@@ -1150,3 +1206,8 @@ az role assignment list --assignee "[FROM ALERT: ActorUpn or ActorId]" --all -o 
 ```
 A log row says a change happened. These say whether it is still in place, which
 is the question containment actually turns on."""
+    extra = _SERVICE_STATE.get(table)
+    if not extra:
+        return generic
+    question, commands = extra
+    return f"{generic}\n\n**{question}**\n```bash\n{commands.strip()}\n```"

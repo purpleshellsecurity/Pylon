@@ -85,11 +85,15 @@ tables:
           - MICROSOFT.SQL/SERVERS/ELASTICPOOLS/PROVIDERS/MICROSOFT.INSIGHTS/DIAGNOSTICSETTINGS/WRITE
           - MICROSOFT.WEB/SITES/PROVIDERS/MICROSOFT.INSIGHTS/DIAGNOSTICSETTINGS/WRITE
           - MICROSOFT.WEB/SITES/SLOTS/PROVIDERS/MICROSOFT.INSIGHTS/DIAGNOSTICSETTINGS/WRITE
+        # Listed per resource type as well as under Microsoft.Insights: Azure
+        # emits the NSG-scoped setting under the NSG's own type, so a filter on
+        # the provider alone misses it. A MAINTAINER'S note -- it is a comment
+        # rather than part of `basis`, because `basis` is printed to a responder
+        # as "why this technique" and a blob vector was being told about NSGs.
         basis: >-
-          Diagnostic-setting delete/modify is how cloud logging is turned off in
-          Azure. The NSG-scoped one is listed separately because Azure emits it
-          under the NSG's own resource type rather than under Microsoft.Insights,
-          so a filter on the provider alone misses it.
+          Deleting or modifying a diagnostic setting is how cloud logging is
+          turned off in Azure. It removes the evidence of whatever follows, on
+          whichever resource the setting was scoped to.
       - id: T1686.001
         operations:
           - MICROSOFT.NETWORK/NETWORKSECURITYGROUPS/SECURITYRULES/WRITE
@@ -102,11 +106,15 @@ tables:
           - MICROSOFT.STORAGE/STORAGEACCOUNTS/BLOBSERVICES/CONTAINERS/SETACL/ACTION
           - MICROSOFT.STORAGE/STORAGEACCOUNTS/QUEUESERVICES/QUEUES/SETACL/ACTION
           - MICROSOFT.STORAGE/STORAGEACCOUNTS/TABLESERVICES/TABLES/SETACL/ACTION
+        # Group-level write and delete are here as well as the rule-level ones:
+        # deleting a security group removes every rule in it at once, and a
+        # detection watching only securityRules/delete would not see that.
         basis: >-
-          NSG rule and firewall writes are the cloud-firewall modification surface.
-          The group-level write and delete are here as well as the rule-level ones:
-          deleting a security group removes every rule in it at once, and a
-          detection watching only securityRules/delete would not see that.
+          Changing what can reach a resource, at either layer. At the network
+          layer that is NSG rules and Azure Firewall; at the resource layer it
+          is the storage account's own network rules, its private-endpoint
+          approvals, and the container, queue and table ACLs that decide who
+          may read the data directly.
       - id: T1578.001
         operations:
           - MICROSOFT.COMPUTE/SNAPSHOTS/WRITE
@@ -151,10 +159,9 @@ tables:
           the other half of vaults/deploy/action -- a deployment is how secrets
           leave a vault without one data-plane read.
 
-          The noisiest entry in this table by a wide margin. Any tenant running
-          infrastructure-as-code deploys constantly, so this is worth watching only
-          alongside something else, most obviously a vault release in the same
-          deployment.
+          Expect high volume: any tenant running infrastructure-as-code deploys
+          constantly, so this is worth watching only alongside something else,
+          most obviously a vault release in the same deployment.
       - id: T1485
         operations:
           - MICROSOFT.COMPUTE/VIRTUALMACHINES/DELETEPRESERVEDOSDISK/ACTION
@@ -164,10 +171,14 @@ tables:
           - MICROSOFT.STORAGE/STORAGEACCOUNTS/FILESERVICES/SHARES/DELETE
           - MICROSOFT.STORAGE/STORAGEACCOUNTS/QUEUESERVICES/QUEUES/DELETE
           - MICROSOFT.STORAGE/STORAGEACCOUNTS/TABLESERVICES/TABLES/DELETE
-        basis: Destructive ARM deletes of data-bearing resources. Key Vault and
-          SQL are absent on purpose -- their own sections below carry the same two
-          deletes with what is recoverable and what is not, and one operation is
-          judged once.
+        # Key Vault and SQL are absent on purpose: their own sections carry the
+        # same deletes with what is recoverable and what is not, and one
+        # operation is judged once. A MAINTAINER'S note, kept out of `basis`.
+        basis: >-
+          Destroying a data-bearing resource through the control plane. The
+          delete removes the container, share, queue, table or account and
+          everything inside it in one call, without any data-plane operation
+          appearing at all.
       - id: T1490
         operations:
           - MICROSOFT.RECOVERYSERVICES/VAULTS/DELETE
@@ -565,8 +576,8 @@ tables:
           The baseline operations are the quiet ones. A vulnerability assessment
           baseline declares a finding to be expected, and a rule with a baseline
           stops reporting. Nothing is switched off and the scan still runs green,
-          so writing a baseline over a real finding hides it without any operation
-          in this table naming disable.
+          so writing a baseline over a real finding hides it without any
+          operation name containing the word disable.
 
           Data masking is a read control rather than a detection: it is what stops
           an ordinary application login from seeing full card numbers. Rewriting
@@ -823,8 +834,8 @@ tables:
           - MICROSOFT.WEB/SITES/TRIGGEREDWEBJOBS/RUN/ACTION
           - MICROSOFT.WEB/SITES/WRITE
         basis: >-
-          Every way code arrives at, or runs on, an App Service instance. There are
-          more doors than any other service in this table and they are all the same
+          Every way code arrives at, or runs on, an App Service instance. It has
+          more doors than any other Azure service, and they are all the same
           act: publish, a source control connection that deploys on push, a
           deployment write, a site extension that loads into the app's own process,
           a container image, a function, a WebJob run, a Logic App workflow

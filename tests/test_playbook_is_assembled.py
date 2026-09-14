@@ -62,7 +62,7 @@ def _target(table: str) -> ValidatedDetection:
 
 
 @pytest.mark.parametrize("table", TABLES)
-def test_every_plane_renders_all_fifteen_sections(table):
+def test_every_plane_renders_all_sixteen_sections(table):
     """The structure is the same on every plane and in every run, because no run
     is in a position to change it."""
     doc = render(document_template("dataplane", table, "X"), _target(table), table, FILL)
@@ -77,7 +77,13 @@ def test_every_plane_renders_all_fifteen_sections(table):
     # present, and it has to run before containment changes the present.
     assert "Current State" in headings
     assert headings.index("Current State") < headings.index("Preserve Evidence")
-    assert len(headings) == 15, headings
+    # Sixteen since the attack diagram got a heading. It had rendered as a bare
+    # fence under the metadata for as long as it existed, and round nine
+    # reported the section absent from five playbooks that contained it --
+    # a section nothing can navigate to is one nobody finds.
+    assert "Attack Sequence" in headings
+    assert headings.index("Attack Sequence") < headings.index("Attack Context")
+    assert len(headings) == 16, headings
 
 
 @pytest.mark.parametrize("table", TABLES)

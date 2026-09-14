@@ -119,6 +119,14 @@ def _one(vector: dict, det: dict | None, names: dict, bases: dict) -> str:
         chips.append('<span class="chip chip--partial">no technique</span>')
     if det is not None and not det.get("valid", True):
         chips.append('<span class="chip chip--none">did not validate</span>')
+    # PLANNED, NOT BUILT. A plan enumerates a service's whole vocabulary and
+    # `--pick` builds a few; the rest reach this page as proposals. Nothing said
+    # so -- the query block was simply omitted for them -- so a run that built 5
+    # of 25 rendered 20 cards identical to a built detection minus its code, and
+    # read as twenty detections that had lost their queries.
+    if det is None:
+        chips.append('<span class="chip chip--partial">planned &mdash; '
+                     'not built in this run</span>')
 
     # What was MEASURED, beside what was written. The page used to show only
     # `valid`, which answers "is this well formed" -- and a detection that
@@ -146,7 +154,12 @@ def _one(vector: dict, det: dict | None, names: dict, bases: dict) -> str:
         "catalogue": "No data in the scan window.",
         "unchecked": "No scan was run.",
     }
-    table_note = basis_words.get((det or {}).get("table_basis", "unchecked"), "")
+    # `table_basis` is a property of a BUILT detection. Defaulting an unbuilt
+    # vector to "unchecked" made every one of them report "No scan was run." on
+    # a run where a scan had been run and had answered for the built ones.
+    table_note = ("Not built in this run, so nothing was measured."
+                  if det is None else
+                  basis_words.get(det.get("table_basis", "unchecked"), ""))
 
     # The verdict's own sentence, and every warning the validator raised.
     # `warnings` was populated on every detection and read by nothing outside
@@ -174,7 +187,17 @@ def _one(vector: dict, det: dict | None, names: dict, bases: dict) -> str:
                  f'{e(technique or "no technique")}.</p>')
 
     kql = (det or {}).get("detection", {}).get("kql", "")
-    query = f'<div class="scroll"><pre class="kql">{e(kql)}</pre></div>' if kql else ""
+    if kql:
+        query = f'<div class="scroll"><pre class="kql">{e(kql)}</pre></div>'
+    elif det is None:
+        query = ('<p class="note">No query: this vector was planned but not '
+                 'built. Re-run <code>design detections</code> with this '
+                 'number in <code>--pick</code> to build it.</p>')
+    else:
+        # Built, and produced nothing. A different failure from not building,
+        # and collapsing the two is what this whole block exists to stop.
+        query = ('<p class="note">This detection was built but produced no '
+                 'query.</p>')
 
     details = "".join([
         _detail("why it matters", " ".join(str(vector.get("rationale", "")).split())),

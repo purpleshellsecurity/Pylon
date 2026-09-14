@@ -227,6 +227,10 @@ _IS_DEDUPE = re.compile(
     r"^\s*summarize\s+take_any\s*\(\s*\*\s*\)\s+by\b", re.IGNORECASE)
 
 _IS_WHERE = re.compile(r"^\s*where\b", re.IGNORECASE)
+# A time predicate is the measurement WINDOW, not a detection filter. Peeling it
+# off the baseline measured that row over a different window from every row
+# beneath it -- see `peel`.
+_IS_TIME = re.compile(r"^\s*where\b.*\bTimeGenerated\b", re.IGNORECASE)
 
 # Peeling a query whose rows come from more than one source says nothing: the
 # prefix of a join is not the join, and removing a filter on one leg changes
@@ -267,9 +271,20 @@ def peel(kql: str, count: "Callable[[str], int | None]") -> list[tuple[str, int 
     """[(what was added, rows surviving)] as the query's filters go back on one
     at a time. Empty when the query cannot be peeled.
 
-    The first row is the query with no filters at all, so a reader can see the
+    The first row is the query with only its TIME BOUND, so a reader can see the
     denominator the rest are measured against. The row where the count reaches
     zero names the filter that killed it.
+
+    THE TIME FILTER STAYS ON THE BASELINE. It used to be stripped with the rest,
+    and round nine caught what that produced:
+
+        114  StorageBlobLogs (no filters)
+        580  where TimeGenerated > ago(30d)
+
+    A filter cannot increase rows. The baseline was the only row in the table
+    carrying no time bound, so it was counted over a different window from every
+    row beneath it and was never their denominator. A time predicate says which
+    window is being measured; it is not one of the conditions being measured.
     """
     from .validate import _pipeable
 
@@ -287,7 +302,10 @@ def peel(kql: str, count: "Callable[[str], int | None]") -> list[tuple[str, int 
         return []
 
     kept = [seg for seg in rest if not _SHAPING.match(seg)]
-    wheres = [i for i, seg in enumerate(kept) if _IS_WHERE.match(seg)]
+    # Time predicates are the window, not filters under test: they stay on the
+    # baseline and are not offered as steps.
+    wheres = [i for i, seg in enumerate(kept)
+              if _IS_WHERE.match(seg) and not _IS_TIME.match(seg)]
     if len(wheres) < 2:
         # One filter and no rows is already unambiguous: that filter is the one.
         return []
@@ -295,9 +313,12 @@ def peel(kql: str, count: "Callable[[str], int | None]") -> list[tuple[str, int 
     out: list[tuple[str, int | None]] = []
     for stop in [None] + wheres:
         if stop is None:
-            prefix = [seg for seg in kept if not _IS_WHERE.match(seg)
+            prefix = [seg for seg in kept
+                      if (_IS_TIME.match(seg) or not _IS_WHERE.match(seg))
                       and not _IS_DEDUPE.match(seg)]
-            label = f"{source} (no filters)"
+            timed = any(_IS_TIME.match(seg) for seg in kept)
+            label = (f"{source} (time filter only)" if timed
+                     else f"{source} (no filters)")
         else:
             prefix = kept[:stop + 1]
             label = " ".join(kept[stop].split())

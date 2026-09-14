@@ -111,13 +111,13 @@ reads are what exfiltration looks like on a data plane.
 ```powershell
 Connect-AzAccount
 try {
-    # Key Vault RBAC example — use the access model this resource actually uses.
+    # Use the access model this resource actually uses; RBAC is the common one.
     Remove-AzRoleAssignment -ObjectId "[FROM ALERT: ActorId]" `
         -RoleDefinitionName "[the role that grants this operation]" -Scope "[the resource id]"
     Write-Host "✅ Data-plane access removed" -ForegroundColor Green
 } catch {
     Write-Host "❌ Failed: $($_.Exception.Message)" -ForegroundColor Red
-    Write-Host "MANUAL: Portal → the resource → Access control (IAM) / Access policies"
+    Write-Host "MANUAL: Portal → the resource → Access control (IAM), or this service's own key/policy model"
 }
 ```
 **Undo:** `New-AzRoleAssignment` with the same three arguments.
@@ -171,7 +171,8 @@ __NORMALISE_ACTOR_FAIL__
 <!-- SLOT: prevention -->
 - Private endpoint or firewall restriction so the data plane is not reachable from where
   this came from.
-- RBAC instead of access policies, scoped to the object rather than the vault/account.
+- RBAC instead of shared keys or per-service access policies, scoped to the object
+  rather than the whole account.
 
 <!-- SLOT: escalation -->
 - The actor read secrets, keys or customer data — assume disclosure and start the rotation

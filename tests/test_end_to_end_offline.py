@@ -163,8 +163,10 @@ def test_plan_then_detections_then_playbook(tmp_path, stub_model, target, table,
         "a blank first line on all three planes and nothing here noticed: "
         + repr(doc[:40]))
     heads = [h.strip() for h in re.findall(r"^## (.+)$", doc, re.M)]
-    assert len(heads) == 15, heads
+    # Sixteen since the attack diagram got a heading of its own.
+    assert len(heads) == 16, heads
     assert heads[0] == "Playbook Metadata"
+    assert "Attack Sequence" in heads
     assert heads.index("Preserve Evidence") < heads.index("Containment")
     assert unfilled(doc) == [], "a blank with no stated source shipped"
     assert check_playbook(doc, table).errors == []
