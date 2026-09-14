@@ -154,3 +154,21 @@ def test_a_basis_spanning_providers_does_not_speak_for_only_one():
     assert offenders == [], (
         f"these use network-only vocabulary while listing non-network "
         f"operations: {offenders}")
+
+
+# NOT TESTED, deliberately: "the first sentence leads with the provider most of
+# these operations use".
+#
+# Round ten found T1686.001 still opening "At the network layer that is NSG
+# rules and Azure Firewall" under a blob container ACL. The prose is fixed --
+# the storage half leads now -- but the RULE resisted three attempts to
+# mechanise it, and the third flagged T1685.002, whose operations span seven
+# providers and whose opening sentence is correctly provider-neutral:
+# "Deleting or modifying a diagnostic setting is how cloud logging is turned
+# off in Azure." A gate that demanded the word "storage" there would have
+# forced a worse sentence.
+#
+# The two checks above are mechanical and hold: no maintainer's note reaches
+# the reader, and no entry uses network-only vocabulary while listing
+# non-network operations. Which clause leads is a judgement, and leaving it to
+# review is more honest than a gate that is wrong a third of the time.

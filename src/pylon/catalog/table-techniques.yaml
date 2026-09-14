@@ -110,11 +110,18 @@ tables:
         # deleting a security group removes every rule in it at once, and a
         # detection watching only securityRules/delete would not see that.
         basis: >-
-          Changing what can reach a resource, at either layer. At the network
-          layer that is NSG rules and Azure Firewall; at the resource layer it
-          is the storage account's own network rules, its private-endpoint
-          approvals, and the container, queue and table ACLs that decide who
-          may read the data directly.
+          Changing what can reach a resource. For a storage account that is its
+          own network rules, its private-endpoint approvals, and the container,
+          queue and table ACLs that decide who may read the data directly; for a
+          network security group or an Azure Firewall it is the rules
+          themselves.
+
+          Round ten is why the storage half leads. The earlier wording opened
+          "At the network layer that is NSG rules and Azure Firewall", and a
+          responder looking at a blob container ACL read two clauses about
+          security groups before reaching anything about their own resource.
+          Covering every provider is not the same as leading with the right
+          one, and most of these operations are storage.
       - id: T1578.001
         operations:
           - MICROSOFT.COMPUTE/SNAPSHOTS/WRITE

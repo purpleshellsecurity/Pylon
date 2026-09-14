@@ -176,6 +176,11 @@ class OfflineCheck(Strict):
     ran: bool
     ok: bool = False
     error: str = ""
+    # The engine was CONFIGURED and could not be talked to -- a dead container,
+    # a refused connection -- as opposed to never configured. Both leave the
+    # gate unrun; only one means the run is broken and should stop. Kept off
+    # `ok` deliberately: an unreachable engine has no opinion about the query.
+    unreachable: bool = False
 
 
     @model_validator(mode="after")

@@ -183,9 +183,32 @@ def schema_for_table(table: str) -> dict[str, str]:
     return {}
 
 
+class EngineUnreachable(RuntimeError):
+    """The KQL engine could not be TALKED TO. Not a verdict on the query.
+
+    Round ten ran with a kustainer that died mid-run -- the documented Rosetta
+    crash on Apple silicon -- and every detection after it was condemned:
+
+        BAD  the real KQL engine refused this query: ConnectError: [Errno 61]
+             Connection refused  Fix exactly what it names.
+
+    The engine refused nothing; it was not there. Five correct detections were
+    marked invalid, each re-prompted, and the run cost $0.45 to produce nothing.
+    The same five scored 5 of 5 valid for $0.22 against a live container.
+
+    A transport failure and a semantic rejection arrived at the caller as the
+    same `(False, message)` pair, so it could not tell "your query is wrong"
+    from "I could not ask".
+    """
+
+
 def _http_executor(url: str) -> Callable[[str], tuple[bool, str]]:
     """Default executor: POST the script to a kustainer REST endpoint. Returns
-    (ok, error). A non-200 or a Kusto error payload -> (False, message)."""
+    (ok, error). A non-200 or a Kusto error payload -> (False, message).
+
+    Raises EngineUnreachable when the endpoint cannot be reached at all, which
+    is not the same answer and must not be reported as one.
+    """
 
     def run(script: str) -> tuple[bool, str]:
         import httpx
@@ -195,7 +218,7 @@ def _http_executor(url: str) -> Callable[[str], tuple[bool, str]]:
         try:
             res = httpx.post(endpoint, json=body, timeout=20.0)
         except httpx.HTTPError as exc:
-            return False, f"{type(exc).__name__}: {exc}"
+            raise EngineUnreachable(f"{type(exc).__name__}: {exc}") from exc
         if res.status_code != 200:
             # Kusto returns the semantic error (unresolved column, type mismatch) here.
             detail = res.text
@@ -229,6 +252,11 @@ def verify_query_offline(
     script = build_check_script(kql, table, schema)
     try:
         ok, error = executor(script)
+    except EngineUnreachable as exc:
+        # ran=False: the gate did not run. `unreachable` separates "configured
+        # but not answering" from "never configured", because the first is a
+        # broken run and the second is a choice.
+        return OfflineCheck(ran=False, unreachable=True, error=str(exc))
     except Exception as exc:  # noqa: BLE001 — an executor failure must not crash the run
         return OfflineCheck(ran=False, error=f"{type(exc).__name__}: {exc}")
     return OfflineCheck(ran=True, ok=ok, error="" if ok else error)

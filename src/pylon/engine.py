@@ -358,6 +358,14 @@ def _build_prompt(request: "EngineRequest", phase_id: str, playbook_target: str 
 
 log = get_logger(__name__)
 
+class EngineGone(RuntimeError):
+    """The offline KQL engine was configured and stopped answering mid-run.
+
+    Raised rather than folded into the detection's result, because it is not a
+    fact about the detection. See the gate in `_checked`.
+    """
+
+
 MAX_CONCURRENCY = int(os.environ.get("PYLON_MAX_CONCURRENCY", "2"))
 MAX_RETRIES = int(os.environ.get("PYLON_MAX_RETRIES", "5"))
 # A model call that never returns blocked an entire run for 103 minutes with no
@@ -1096,6 +1104,20 @@ async def run_detection_phase(
         # verdict. The gates are independent and the control flow now says so.
         if offline_on and result.valid:
             offline = await _offline(kql, table)
+            if offline.unreachable:
+                # CONFIGURED AND NOT ANSWERING. Not a verdict on this query, and
+                # not a gate the caller chose to skip -- they asked for the
+                # parser and are not getting it. Continuing means every
+                # remaining detection ships unparsed while the run keeps paying
+                # for model calls, which is what round ten did: five correct
+                # detections condemned, each re-prompted, $0.45 for nothing.
+                raise EngineGone(
+                    f"the KQL engine at PYLON_KUSTAINER_URL stopped answering: "
+                    f"{offline.error}. Nothing is wrong with the detections -- "
+                    f"the parser gate cannot run, so the run is stopping rather "
+                    f"than billing for queries nothing can check. Restart the "
+                    f"container and re-run; on Apple silicon it dies under "
+                    f"Rosetta with exit 133.")
             _gate("engine", vector, kql, offline.ok, ran=offline.ran,
                   error=offline.error[:120])
         else:
