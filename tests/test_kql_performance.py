@@ -19,16 +19,42 @@ def test_contains_is_flagged_has_is_not():
     assert not _warns(f'AzureActivity {TIME} | where Caller has "admin"')
 
 
-def test_unscoped_search_is_flagged():
-    # A bare search term is a full-text scan of every column, not only `search *`.
-    assert _warns(f'search * {TIME}')
-    assert _warns('search "compromise"')
-    assert not _warns('search in (AzureActivity) "compromise"')
+def _errors(kql: str) -> list[str]:
+    return validate_kql(kql, "AzureActivity").errors
 
 
-def test_union_wildcard_is_flagged():
-    assert _warns(f'union * {TIME}')
-    assert not _warns(f'union AzureActivity, SigninLogs {TIME}')
+def test_search_is_an_error_not_a_performance_warning():
+    """Reclassified, and the reclassification is the finding.
+
+    `search` was filed here as slow. Microsoft states that a log search alert
+    rule using `search` is not supported -- the rule cannot be CREATED. A query
+    that will not deploy is not a performance characteristic, and reporting it
+    as a warning let it through generation to fail at install time.
+    """
+    assert any("no-union-in-alert-rule" in e for e in _errors(f'search * {TIME}'))
+    assert any("no-union-in-alert-rule" in e for e in _errors('search "compromise"'))
+    assert not _errors(f'AzureActivity {TIME} | where Caller has "svc"')
+
+
+def test_a_union_of_named_tables_is_an_error_too():
+    """This test used to assert the opposite, and that assertion WAS the bug.
+
+    `assert not _warns('union AzureActivity, SigninLogs')` encoded the belief
+    that only `union *` mattered. A union of two named tables is what a model
+    actually writes, it passed with zero errors and zero warnings, and Sentinel
+    will not create an alert rule from it.
+    """
+    assert any("no-union-in-alert-rule" in e for e in _errors(f'union * {TIME}'))
+    assert any("no-union-in-alert-rule" in e
+               for e in _errors(f'union AzureActivity, SigninLogs {TIME}'))
+
+
+def test_a_cross_resource_union_is_still_allowed():
+    """The one union Microsoft still supports in an alert rule, because it
+    scopes to named resources rather than scanning tables."""
+    cross = ("union workspace('00000000-0000-0000-0000-000000000003').AzureActivity, "
+             "app('00000000-0000-0000-0000-000000000001').requests")
+    assert not any("no-union-in-alert-rule" in e for e in _errors(cross))
 
 
 def test_tolower_comparison_is_flagged():
@@ -75,8 +101,12 @@ def test_performance_findings_never_invalidate_a_query():
         f'AzureActivity {TIME} | where Caller contains "admin"', "AzureActivity"
     )
     assert result.valid is True
-    assert any("Performance" in w for w in result.warnings)
-    assert not any("Performance" in e for e in result.errors)
+    # Asserted on the RULE ID rather than on a "Performance:" prefix. The prefix
+    # was a category word typed into four message strings; the id is the rule
+    # the model was shown, so a test naming it fails when the rule is renamed
+    # rather than when somebody reworded a message.
+    assert any("has-not-contains" in w for w in result.warnings)
+    assert not any("has-not-contains" in e for e in result.errors)
 
 
 def test_clean_query_carries_no_performance_warnings():

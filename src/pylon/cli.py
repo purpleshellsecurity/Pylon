@@ -281,9 +281,16 @@ def _design_list(args: argparse.Namespace) -> int:
         if target.label != target.key:
             print(f"    {target.label}")
         for table in tables_for(target.key):
+            # A table can reach a target through its CONTRACT before it has a
+            # technique-map entry -- AppServiceFileAuditLogs did, the moment it
+            # was measured -- and `entry()` returns None for one that has not.
+            # Dereferencing it crashed `design list` for the whole target, so a
+            # newly measured table took the command down rather than appearing
+            # in it without a plane label.
             entry = table_techniques.entry(table)
             plane = {"control": "control plane", "data": "data plane",
-                     "identity": "the directory itself"}.get(entry.plane, "")
+                     "identity": "the directory itself"}.get(
+                         getattr(entry, "plane", ""), "")
             operator, why = operation_match(table)
             vocab = operation_vocabulary(target.resource_type, table,
                                          target.entra_category)
@@ -308,6 +315,13 @@ def _design_list(args: argparse.Namespace) -> int:
         if target is None:
             print(f"{typed.strip()!r} is not a target this tool can ground.\n",
                   file=sys.stderr)
+            # An AMBIGUOUS name is a different failure from an unknown one, and
+            # the catalogue has always been able to tell them apart: `storage`
+            # means four resource types and `nonsense` means none. That answer
+            # existed, was exported, and reached nobody -- so every ambiguous
+            # name got the same "not a target" wall as a typo.
+            for candidate in _candidates(typed):
+                print(f"  did you mean {candidate}?", file=sys.stderr)
             _supported()
             return 2
         detail(target)
@@ -554,6 +568,24 @@ def _design_detections(args: argparse.Namespace) -> int:
     from . import deployed as provisioned_tables
     have, why = provisioned_tables.from_analysis()
     print(f"  {'tables':<14}{why}", file=sys.stderr)
+    # Which table a category lands in is decided by logAnalyticsDestinationType
+    # on the diagnostic setting, and the scan already read it. The surface list
+    # comes from a fixed overlay entry, so the two can disagree -- and when they
+    # do, every detection is generated against a table this tenant does not
+    # fill. The workspace gate then grades them no-match, which reads as "the
+    # attack did not happen" rather than "you are querying the wrong table".
+    if target.resource_type:
+        observed, why = provisioned_tables.destination_tables(target.resource_type)
+        if observed:
+            elsewhere = [s.table for s in target.surfaces
+                         if s.table != "AzureActivity" and s.table not in observed]
+            if elsewhere:
+                print(f"  {'destination':<14}scan says this tenant fills "
+                      f"{', '.join(sorted(observed))} ({why})", file=sys.stderr)
+                for table in elsewhere:
+                    print(f"  {'':<14}WARNING {table} is in the surface list and the "
+                          f"scan saw nothing land there", file=sys.stderr)
+
     building = getattr(args, "pick", "") != "none"
     if building and not getattr(args, "unconfirmed_tables", False):
         refusal = _unconfirmed(have, list(target.tables) or ["AuditLogs"])
@@ -1381,12 +1413,66 @@ def _show_verification(results) -> None:
     for r in results:
         if r.verdict in verification.DEFECTS:
             print(f"\n  {r.verdict.upper()}  {r.operation}\n        {r.detail}")
+    # WHY it matched nothing. `no-match` used to end at "counting the operation
+    # cannot tell them apart", which is true of the count and false of the
+    # query: putting each filter back one at a time says which line took the
+    # rows to zero. Printed for every verdict that reached zero rows, defect or
+    # not, because "the tenant is quiet" and "this filter is wrong" are the two
+    # readings and this is what separates them.
+    for r in results:
+        if not r.narrowing:
+            continue
+        print(f"\n  {r.operation} — rows surviving each filter:")
+        for step in r.narrowing:
+            mark = "  <-- this filter" if step.filter == r.killed_by else ""
+            rows = "  ?" if step.rows is None else str(step.rows)
+            # The line this whole table exists to print is the one that gets
+            # truncated, so give it room: 76 chars cut the offending filter
+            # mid-word and the reader still had to open the KQL.
+            print(f"    {rows:>7}  {step.filter[:110]}{mark}")
     untested = counts.get("no-ground-truth", 0)
     if untested:
         # Named, never counted as a pass. "Nothing happened" is exactly what a
         # detection that can never fire also looks like.
         print(f"\n  {untested} detection(s) had no events to test against. That is "
               "not a pass;\n  it means this workspace cannot answer the question.")
+
+
+def _candidates(typed: str) -> list[str]:
+    """Resource types an ambiguous friendly name could have meant, narrowed to
+    the ones this tool can actually be aimed at. Empty for a name that is simply
+    unknown, so the caller prints nothing rather than a shrug."""
+    from .catalog import resource_candidates
+    from .services import targets
+
+    known = {getattr(t, "resource_type", "") for t in targets().values()}
+    return [c for c in resource_candidates(typed) if c in known]
+
+
+def _design_tuning(args) -> int:
+    """Print the tuning contract: one row per target, assembled from the
+    catalogues. Free -- it reads vendored data and makes no model call and no
+    workspace query."""
+    from . import tuning
+    from .services import targets
+
+    if args.target:
+        wanted = " ".join(args.target).strip().lower()
+        key = next((k for k in targets() if k == wanted), None)
+        if key is None:
+            print(f"no such target: {' '.join(args.target)}\n"
+                  f"run `pylon design list` for the ones that exist", file=sys.stderr)
+            return 2
+        text = tuning.render(tuning.contract(key))
+    else:
+        text = tuning.render_all()
+
+    if args.out:
+        Path(args.out).write_text(text, encoding="utf-8")
+        print(f"wrote {args.out}", file=sys.stderr)
+        return 0
+    print(text)
+    return 0
 
 
 def _slug(target: str) -> str:
@@ -2393,6 +2479,16 @@ def build_parser() -> argparse.ArgumentParser:
     dc.add_argument("paths", nargs="*", metavar="DIR",
                     help="directories to scan for report.json (default: .)")
     dc.set_defaults(func=_design_coverage)
+
+    dt = dn.add_parser("tuning",
+                       help="what an analyst needs to make a target's rules "
+                            "usable: fields, known noise, a baseline query, "
+                            "levers and a severity floor")
+    dt.add_argument("target", nargs="*", metavar="TARGET",
+                    help="one target, or every target when omitted")
+    dt.add_argument("--out", metavar="FILE",
+                    help="write the markdown to a file instead of stdout")
+    dt.set_defaults(func=_design_tuning)
 
     dl = dn.add_parser("list",
                        help="every target you can design against, or a run's detections")

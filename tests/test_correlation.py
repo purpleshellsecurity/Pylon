@@ -45,9 +45,12 @@ def test_the_map_covers_every_table_a_detection_can_fire_on():
 
     for table in all_tables():
         assert co.has_table(table), f"{table} can fire and has no correlation entry"
+    # AppServiceAuditLogs and FunctionAppLogs were on this list and have earned
+    # their way off it: both now carry a measured contract, values counted from
+    # real rows, and a correlation entry built from those measurements rather
+    # than guessed.
     for withdrawn in ("SQLSecurityAuditEvents", "CDBDataPlaneRequests", "AKSAudit",
-                      "AKSAuditAdmin", "AZMSRunTimeAuditLogs", "AppServiceAuditLogs",
-                      "FunctionAppLogs", "DeviceLogonEvents"):
+                      "AKSAuditAdmin", "AZMSRunTimeAuditLogs", "DeviceLogonEvents"):
         assert not co.has_table(withdrawn), f"{withdrawn} cannot fire and is still mapped"
 
 

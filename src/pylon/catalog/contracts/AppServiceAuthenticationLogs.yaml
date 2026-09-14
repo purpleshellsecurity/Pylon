@@ -1,0 +1,88 @@
+# How a detection reads -- and mostly, does NOT read -- App Service
+# Authentication logs. This contract exists because the table's name is
+# misleading and an empty one will be read as good news.
+table: AppServiceAuthenticationLogs
+plane: data
+platform: azure
+
+# THE THING TO KNOW. This is not an authentication audit. It is a diagnostic log
+# for the Easy Auth MODULE. Microsoft's own three sample queries for this table
+# all filter the same way:
+#     | where TaskName == "MiddlewareError"
+#     | where TaskName == "MiddlewareWarning"
+# A row means the authentication middleware malfunctioned, not that somebody
+# signed in or failed to.
+what_a_row_means: >-
+  An error or warning raised by the App Service Authentication module itself --
+  a misconfigured provider, a failed token exchange, an expired secret. Routine
+  authentication outcomes are not events here.
+
+# Measured, and the negative result is the point. On an app with Easy Auth
+# enabled, an Entra provider wired and RedirectToLoginPage set, the following
+# produced ZERO rows over 22 minutes of polling:
+#   22 unauthenticated requests turned away with 401
+#   several redirects to the login endpoint
+#   malformed bearer tokens
+#   a valid ARM token presented against the wrong audience
+#   a login callback with a bogus code, and one with error=access_denied
+# All of those are the middleware working correctly, so none is an event.
+measured_negative:
+  rows: 0
+  attempts: 30-plus authentication decisions across five shapes
+  conclusion: >-
+    An empty table means Easy Auth has not malfunctioned. It says NOTHING about
+    who authenticated or who was refused.
+
+# The consequence, and the reason this file exists rather than the table simply
+# being skipped.
+do_not_build:
+  - a detection for failed sign-ins to an App Service
+  - a detection for brute force or credential stuffing against an App Service
+  - any rule whose absence of alerts is read as absence of attempts
+where_that_lives_instead: >-
+  Interactive sign-in activity is in Entra's SigninLogs, which is a different
+  table and outside this tool's current frame. Requests refused before
+  authentication appear in AppServiceIPSecAuditLogs, and only when access
+  restrictions are configured.
+
+# From Microsoft's published column list; NOT measured, because no row exists to
+# measure. Marked as such deliberately -- every other contract here was counted
+# in a live workspace and this one was read off a page.
+provenance: published
+operation:
+  column: TaskName
+  operator: "=="
+  observed_values_published: [MiddlewareError, MiddlewareWarning]
+
+roles:
+  who: none -- the module logs its own faults, not a principal
+  what: TaskName
+  severity: Level
+  detail: Message
+  outcome_code: StatusCode
+  outcome_sub: SubStatusCode
+  correlate: CorrelationId
+  scope: [_ResourceId, SiteName, HostName]
+
+typing:
+  StatusCode: int
+  SubStatusCode: int
+  TaskName: string
+  Level: string
+
+shape:
+  - time filter is the first operator after the table name
+  - filter TaskName; an unfiltered read returns module chatter, not security events
+
+recipes:
+  middleware_faults: |
+    AppServiceAuthenticationLogs
+    | where TimeGenerated > ago({window})
+    | where TaskName in ("MiddlewareError", "MiddlewareWarning")
+    | project TimeGenerated, TaskName, Level, StatusCode, SubStatusCode,
+              Message, Details, SiteName, _ResourceId
+
+reference_query: |
+  AppServiceAuthenticationLogs
+  | where TimeGenerated > ago({window})
+  | project TimeGenerated, TaskName, Level, StatusCode, Message, SiteName, _ResourceId

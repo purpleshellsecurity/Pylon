@@ -62,6 +62,15 @@ roles:
   # RequestHeaderSize is long, so the typing is genuinely inconsistent and
   # cannot be guessed from the values.
   outcome_cast: toint(StatusCode)
+  # These two were in the TYPING block, where `render()` turned them into
+  # "`target` is typed ObjectKey" and "`scope` is typed ['AccountName',
+  # '_ResourceId']" -- a Python list repr offered to the model as a type -- and
+  # `roles()` could not see them, so every storage playbook and tuning row was
+  # missing the object acted on and the resource to scope by. Caught when the
+  # verifier learned to check typing against the live schema and reported two
+  # "columns" this table does not have.
+  target: ObjectKey
+  scope: [AccountName, _ResourceId]
 
 # Machine-readable so the conformance check can see it, not only the model.
 # A fact recorded as prose reaches the prompt and not the test, which is the
@@ -71,8 +80,6 @@ typing:
   RequestHeaderSize: long
   ResponseHeaderSize: long
   DurationMs: real
-  target: ObjectKey
-  scope: [AccountName, _ResourceId]
 
 # THE rule for this family. Measured: 38 of 38 OAuth rows carry a principal,
 # and 158 of 158 rows of every other auth type carry none.
@@ -101,9 +108,20 @@ categories:
     use Category only to describe.
 
 # Projecting these wastes a column and implies a value that is never there.
-never_populated: [AccessTier, CopyDestinationArmId, DestinationUri, OperationCount,
-                  ReferrerHeader, RehydratePriority, RequestRegion, SasExpiryStatus,
-                  SourceUri, TrafficClassification]
+# Shared by all four tables and empty on every one of them.
+# OperationCount was here and is populated on StorageFileLogs only -- 16 rows
+# of 83, and none of the other three. Same shape as the blob-only columns, and
+# caught by the verifier rather than by reading.
+file_only_columns: [OperationCount]
+
+never_populated: [ReferrerHeader, SasExpiryStatus]
+
+# Empty too, but these columns exist ONLY on StorageBlobLogs. Claiming them for
+# the whole family made a re-measurement query fail on the other three, because
+# a column that is not in the schema is an error rather than an empty count.
+never_populated_blob_only: [AccessTier, CopyDestinationArmId, DestinationUri,
+                            RehydratePriority, RequestRegion, SourceUri,
+                            TrafficClassification]
 
 # Observed in this tenant. Not the closed vocabulary -- the catalogue holds that
 # -- but every name here is confirmed to appear.

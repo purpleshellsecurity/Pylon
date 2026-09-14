@@ -55,7 +55,14 @@ def test_the_vocabulary_holds_the_tables_a_target_can_fire_on_and_no_others():
 
     reachable = {t for t in all_tables() if t not in ("AzureActivity", "AuditLogs")}
     for table in reachable:
-        assert dp.has_table(table), f"{table} can fire and has no vocabulary"
+        # A contract's MEASURED values are a vocabulary too -- counted in a
+        # workspace rather than harvested from a published reference. That is
+        # what `_surface_refusal` accepts, so it is what this must accept.
+        from pylon import contracts as _contracts
+
+        measured, _complete = _contracts.vocabulary(table)
+        assert dp.has_table(table) or measured, (
+            f"{table} can fire and has no vocabulary, harvested or measured")
     for withdrawn in ("SQLSecurityAuditEvents", "CDBDataPlaneRequests",
                       "AZMSRunTimeAuditLogs", "AKSAudit", "AKSAuditAdmin"):
         assert not dp.has_table(withdrawn), (

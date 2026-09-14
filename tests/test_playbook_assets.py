@@ -155,9 +155,11 @@ def test_the_playbook_phase_retries_a_bad_fill():
     bad = PlaybookFill(what_happened="The actor read the object.",
                        attack_context=context, why_it_matters=why,
                        # `\$` is not an escape in PowerShell; the checker rejects it.
+                       true_positive_indicators=["first indicator", "second indicator"],
                        containment_role=r"\$($_.Role)")
     good = PlaybookFill(what_happened="The actor read the object.",
                         attack_context=context, why_it_matters=why,
+                        true_positive_indicators=["first indicator", "second indicator"],
                         containment_role="Key Vault Secrets Officer")
 
     calls = []
@@ -486,16 +488,34 @@ def test_the_triage_window_comes_from_the_detection(path):
 
 
 @pytest.mark.parametrize("path", _PLAYBOOKS, ids=lambda p: p.parent.name)
-def test_the_allowlist_is_a_watchlist_in_both_phases(path):
-    """Phase 2 shipped `dynamic([])`, Phase 3 shipped three differently-named
-    arrays. Nobody hand-populates four lists at 3am."""
+def test_the_playbook_offers_a_watchlist_and_the_detection_does_not(path):
+    """The two phases want different things from a watchlist, and conflating
+    them was the bug.
+
+    In a PLAYBOOK it is a triage input: "is this actor one we expect?" is the
+    first question a responder asks, the answer informs them, and nothing is
+    suppressed. It sits in the "Fill these in first" block, separate from the
+    queries that read it, so neither the dead-collection nor the unverified-
+    watchlist gate fires on it.
+
+    In a DETECTION it was a mandated clause -- required on all four planes with
+    no exception -- which told the operator that excluding principals is the
+    intended tuning point, on a permanent Global Administrator grant as readily
+    as on a config write. It was also impossible to satisfy: both gates reject
+    both forms, and three generated detections contained none.
+
+    So the playbook keeps it and Phase 2 no longer mandates it. Tuning advice
+    for a detection lives in its own `tuning_guidance`, per detection.
+    """
     from pylon.prompts.shared import QUERY_RULES
 
     text = _rendered(path.parent.name)
     assert "_GetWatchlist(" in text
     assert "fallback" in text
-    assert any("_GetWatchlist(" in rules for rules in QUERY_RULES.values()), (
-        "Phase 2 must read the same watchlist Phase 3 does"
+    assert not any("EXCLUSION SCAFFOLDING" in rules for rules in QUERY_RULES.values()), (
+        "Phase 2 mandates an exclusion clause again. Both gates reject both "
+        "forms of it, so the only output they accept is one that ignores the "
+        "instruction."
     )
 
 

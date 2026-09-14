@@ -89,6 +89,19 @@ def render(table: str) -> str:
                    "one matches nothing and projecting one implies a value that was never "
                    f"there: {', '.join(never)}")
 
+    # A column that is populated so rarely it cannot be relied on, with the
+    # count. Distinct from never_populated: the gate does NOT reject it, because
+    # the claim "always empty" is false and a gate enforcing a false claim
+    # rejects correct queries. The model still has to be told, or it reaches for
+    # a column that is empty on 99.96% of rows and the detection looks fine.
+    for column, detail in (c.get("effectively_empty") or {}).items():
+        rows, of = detail.get("rows"), detail.get("of")
+        only = detail.get("only_on")
+        out.append(
+            f"- `{column}` is populated on {rows} of {of} measured rows"
+            + (f", all of them {only}" if only else "")
+            + f". {str(detail.get('guidance', '')).strip()}")
+
     for column, cast in (c.get("typing") or {}).items():
         out.append(f"- `{column}` is typed {cast}")
     if (c.get("roles") or {}).get("outcome_cast"):
@@ -118,6 +131,44 @@ def render(table: str) -> str:
         out.append(f"- {str(text).strip()}")
 
     out += _lines("- ", c.get("shape") or [])
+
+    scoping = c.get("scoping") or {}
+    if scoping.get("required"):
+        out.append(f"- this table is SHARED by every service that writes to it, so "
+                   f"filter {' and '.join('`' + r + '`' for r in scoping['required'])} "
+                   f"before anything else: {(scoping.get('why') or '').strip()}")
+    if c.get("column_existence"):
+        out.append(f"- {str(c['column_existence']).strip()}")
+
+    for key, section in (c.get("services") or {}).items():
+        roles = ", ".join(f"{r} is `{col}`" for r, col in (section.get("roles") or {}).items()
+                          if isinstance(col, str) and not col.startswith("none"))
+        out.append(f"\n{key} -- {str(section.get('what','')).strip()}")
+        if roles:
+            out.append(f"  {roles}")
+        if section.get("note"):
+            out.append(f"  {str(section['note']).strip()}")
+        # The VALUES, not just the column names. Naming `targetResources_Resource_s`
+        # without saying it holds "Credential" sent a model to guess at
+        # `AdditionalFields has "automationAccounts/credentials"` instead, which
+        # matched nothing. These fed `conforms()` and not the prompt, which is
+        # the exact drift this object exists to prevent.
+        for column, values in (section.get("observed_values") or {}).items():
+            if column.endswith("_note") or not isinstance(values, list):
+                continue
+            out.append(f"  `{column}` was measured to hold: "
+                       + ", ".join(f'"{v}"' for v in values))
+        for column, note in (section.get("observed_values") or {}).items():
+            if column.endswith("_note"):
+                out.append(f"  {str(note).strip()}")
+        if section.get("redacted"):
+            out.append(f"  REDACTED, always the literal \"{{scrubbed}}\": "
+                       + ", ".join(section["redacted"]))
+        if section.get("resource_id_note"):
+            out.append(f"  {str(section['resource_id_note']).strip()}")
+        if section.get("columns"):
+            out.append(f"  the only columns this service sends: "
+                       + ", ".join(map(str, section["columns"])))
 
     recipes = c.get("recipes") or {}
     if recipes:
@@ -199,6 +250,69 @@ def conforms(kql: str, table: str) -> list[str]:
                     f"catalogued names do, the catalogue spells them with a "
                     f"hyphen and the directory emits an en dash, so this matches "
                     f"nothing. {dashed.get('rule', '').strip()}")
+
+    # A literal compared against a column whose real values were measured.
+    # A generated detection filtered OperationName == "JobStreams" on a table
+    # where every JobStreams row carries OperationName "Job". It parsed, it ran,
+    # and it matched nothing for ever.
+    # Only the section this query actually scopes to. Checking every service's
+    # vocabulary at once made SQL's values reject a correct Automation query,
+    # which is the shared table's whole problem reappearing inside the checker.
+    def _literal(column: str) -> str:
+        hit = re.search(
+            rf"""(?<![A-Za-z0-9_]){re.escape(column)}\s*(?:==|=~)\s*["']([^"']+)["']""",
+            literals)
+        return hit.group(1) if hit else ""
+
+    scoped_to = ""
+    provider, category = _literal("ResourceProvider"), _literal("Category")
+    if provider and category:
+        for key in (c.get("services") or {}):
+            if key.casefold() == f"{provider}/{category}".casefold():
+                scoped_to = key
+                break
+
+    for _key, section in (c.get("services") or {}).items():
+        if scoped_to and _key != scoped_to:
+            continue
+        if not scoped_to:
+            break          # cannot tell which service; the scoping check covers it
+        for column, values in (section.get("observed_values") or {}).items():
+            if column.endswith("_note") or not isinstance(values, list):
+                continue
+            for literal in re.findall(
+                    rf"""(?<![A-Za-z0-9_]){re.escape(column)}\s*(?:==|=~)\s*["']([^"']+)["']""",
+                    literals):
+                if literal.casefold() not in {str(v).casefold() for v in values}:
+                    problems.append(
+                        f"matches `{column}` against {literal!r}, which is not a "
+                        f"value it was measured to hold. Observed: "
+                        f"{', '.join(map(str, values))}")
+
+    # A type-suffixed column the scoped service does not have. On a shared
+    # table these are per-service, so a generated detection read
+    # `identity_claim_upn_s` -- a column no provider in this workspace sends --
+    # and the query ran with that field empty on every row.
+    if scoped_to:
+        known = {str(x) for x in ((c["services"][scoped_to].get("columns")) or [])}
+        known |= set(c.get("envelope") or [])
+        for name in set(re.findall(r"(?<![A-Za-z0-9_])([A-Za-z][A-Za-z0-9_]*_[sgdb])(?![A-Za-z0-9_])", code)):
+            if name not in known:
+                problems.append(
+                    f"reads `{name}`, which {scoped_to} does not send. On a shared "
+                    f"table the type-suffixed columns belong to whichever service "
+                    f"wrote the row, so this resolves to nothing")
+
+    # A shared table read without narrowing to one service returns every
+    # service in the tenant. Measured: 50 rows, 4 categories, 2 providers, and
+    # a workspace column count that is a property of who is sending rather than
+    # of any one service.
+    for required in ((c.get("scoping") or {}).get("required") or []):
+        if not used(required):
+            problems.append(
+                f"reads {table} without filtering `{required}`. This table is "
+                f"shared by every service that writes to it, so the query "
+                f"returns other services' events as well as the ones it means")
 
     # Naming a principal that the row does not carry unless the gate is applied.
     attribution = c.get("attribution") or {}
@@ -323,3 +437,133 @@ def plan_problems(vectors: list, table: str, vocabulary=()) -> dict[int, list[st
                        f"is real and simply quiet in this tenant, trigger it and "
                        f"re-measure rather than dropping the vector")
     return out
+
+
+def vocabulary(table: str) -> tuple[dict[str, list], frozenset[str]]:
+    """(measured values per column, which of those sets are COMPLETE).
+
+    The values are evidence from a workspace. Completeness is a separate claim
+    and a much stronger one: it says the table writes nothing else, which is
+    true of an access-restriction outcome and false of a publishing protocol
+    nobody has exercised. Conflating them would reject a correct FTP detection
+    for naming a value this lab never produced.
+    """
+    c = for_table(table) or {}
+    values = {k: v for k, v in (c.get("observed_values") or {}).items()
+              if isinstance(v, list)}
+    for section in (c.get("services") or {}).values():
+        for k, v in (section.get("observed_values") or {}).items():
+            if isinstance(v, list):
+                values.setdefault(k, v)
+    return values, frozenset(c.get("vocabulary_complete") or ())
+
+
+def _section(c: dict, service: str) -> dict:
+    """The per-service section of a shared contract, or {} for a normal table.
+
+    AzureDiagnostics is every service's table, so "which column holds the
+    caller" has one answer per provider and category -- clientInfo_ObjectId_g
+    on an Automation audit event, Caller_s on a job log, server_principal_name_s
+    on a SQL audit event. A single table-level answer would be wrong for at
+    least two of the three, which is why this takes the service rather than
+    guessing.
+
+    Matched case-insensitively and by prefix, because the caller has the ARM
+    provider ("Microsoft.Automation") and the section is keyed by provider and
+    category ("MICROSOFT.AUTOMATION/AuditEvent"). A prefix match with more than
+    one hit is ambiguous and returns nothing rather than picking one.
+    """
+    sections = c.get("services") or {}
+    if not sections or not service:
+        return {}
+    want = service.strip().lower()
+    exact = next((v for k, v in sections.items() if k.lower() == want), None)
+    if exact is not None:
+        return exact
+    hits = [v for k, v in sections.items() if k.lower().startswith(want + "/")]
+    return hits[0] if len(hits) == 1 else {}
+
+
+def roles(table: str, service: str = "") -> dict[str, str]:
+    """{role: the column that carries it} for one table, or one service of a
+    shared table. Empty when the table has no contract.
+
+    The roles block is the contract's answer to "which column holds the actor,
+    the address, the outcome". It is what makes a rendered triage question
+    specific to the table instead of specific to nothing.
+    """
+    c = for_table(table)
+    if not c:
+        return {}
+    section = _section(c, service)
+    base = dict(c.get("roles") or {})
+    base.update(section.get("roles") or {})
+    # `scope` is a list in every contract. str() on a list renders the Python
+    # repr -- "['_ResourceId']" -- straight into the document, brackets and
+    # quotes included.
+    return {k: ", ".join(map(str, v)) if isinstance(v, list) else str(v)
+            for k, v in base.items()}
+
+
+def unusable(table: str, service: str = "") -> dict[str, str]:
+    """{column: why it cannot be relied on} -- never-populated and redacted.
+
+    Two different reasons with the same consequence. A never-populated column
+    was measured empty; a redacted one holds a literal placeholder, which is
+    worse, because a query filtering it runs, returns rows, and names nobody.
+    Measured: Automation's clientInfo_PrincipalName_s is "{scrubbed}" on every
+    audit event in the tenant.
+    """
+    c = for_table(table)
+    if not c:
+        return {}
+    section = _section(c, service)
+    out = {str(col): "always empty in the measured window"
+           for col in (c.get("never_populated") or [])}
+    for col in (section.get("redacted") or []) + (c.get("redacted") or []):
+        out[str(col)] = "redacted -- holds a placeholder, not a value"
+    return out
+
+
+def ingestion(table: str) -> dict[str, str]:
+    """How long before an absence in this table means anything, if measured.
+
+    Only FunctionAppLogs carries this so far, and it carries it because an
+    emptiness claim written from a too-short window was wrong and the verifier
+    caught it: host lifecycle rows land in about a minute, invocation rows
+    materially slower, so "no rows" measured over a host start proves nothing.
+    """
+    c = for_table(table) or {}
+    return {str(k): str(v).strip() for k, v in (c.get("ingestion") or {}).items()}
+
+
+def section_for(table: str, provider: str, operation: str = "") -> str:
+    """The per-service section key of a shared table: "PROVIDER/Category", or "".
+
+    A single AzureDiagnostics surface spans every category a provider writes --
+    Automation's is one surface covering AuditEvent, DscNodeStatus, JobLogs and
+    JobStreams -- so the provider alone does not say which section a detection
+    reads. The operation does, because each section records its own measured
+    values and they do not overlap: "Create" is an audit event and "Job" is a
+    job log.
+
+    Returns "" rather than guessing when the operation matches more than one
+    section or none, and the caller then degrades to the table-level contract.
+    A wrong section is worse than no section: it would name another service's
+    actor column with full confidence.
+    """
+    c = for_table(table)
+    if not c:
+        return ""
+    want = provider.strip().lower()
+    keys = [k for k in (c.get("services") or {}) if k.lower().startswith(want + "/")]
+    if len(keys) == 1:
+        return keys[0]
+    if not keys or not operation:
+        return ""
+    op = operation.strip().lower()
+    hits = [k for k in keys
+            if op in {str(v).lower()
+                      for v in ((c["services"][k].get("observed_values") or {})
+                                .get("OperationName") or [])}]
+    return hits[0] if len(hits) == 1 else ""

@@ -140,3 +140,54 @@ def note(table: str, how: TableBasis, why: str = "") -> str:
                 f"this detection will never fire.")
     return (f"{table}: unchecked — {why or 'no scan document was available'}. "
             f"Run `pylon analyze` to confirm the table exists before deploying.")
+
+
+def destination_tables(resource_type: str, path: str | Path = "analysis.json"
+                       ) -> tuple[frozenset[str] | None, str]:
+    """(tables this tenant's resources of this type actually fill, why).
+
+    `None` means no scan, or a scan that assessed nothing of this type. It is
+    NOT "this type fills no tables", and a caller must not read it as one.
+
+    This exists because the answer was collected and never consulted. `analyze`
+    reads `logAnalyticsDestinationType` off each diagnostic setting, works out
+    which table each category lands in, and writes the result as
+    `expected_tables`. The table a detection is generated against came from a
+    fixed overlay entry instead.
+
+    On a tenant in Dedicated mode the two agree and nothing looks wrong. On one
+    left in the default, the scan records AzureDiagnostics, the overlay still
+    says AZKVAuditLogs, and every Key Vault detection is generated against a
+    table holding nothing -- which the workspace gate then grades no-match,
+    reading as "the attack did not happen here" rather than "you are querying
+    the wrong table".
+    """
+    src = Path(path)
+    if not src.is_file():
+        return None, f"no scan document at {src}"
+    try:
+        document = json.loads(src.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as unreadable:
+        return None, f"could not read {src}: {unreadable}"
+
+    wanted = (resource_type or "").casefold()
+    tables: set[str] = set()
+    measured = assumed = 0
+    for row in (document.get("resources") or []):
+        if str(row.get("resource_type", "")).casefold() != wanted:
+            continue
+        if row.get("assessment_status") != "assessed":
+            continue
+        for surface in (row.get("surfaces") or []):
+            tables.update(surface.get("expected_tables") or [])
+            if surface.get("mode_basis") == "measured":
+                measured += 1
+            elif surface.get("mode_basis") == "assumed":
+                assumed += 1
+        tables.update(row.get("expected_tables") or [])
+
+    if not tables:
+        return None, f"the scan assessed no {resource_type} with a destination"
+    basis = (f"{measured} surface(s) read from a diagnostic setting"
+             if measured else f"{assumed} surface(s) with an assumed destination")
+    return frozenset(tables), basis

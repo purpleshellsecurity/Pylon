@@ -57,7 +57,6 @@ Two bullets at most, one line each, 20 words or fewer per bullet. No preamble, a
 
 ---
 
-__QUERY_RULES__
 
 Use the exact operation strings from Phase 1. The column is OperationName on
 all five of these tables.

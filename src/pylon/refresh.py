@@ -52,6 +52,46 @@ def attribution(bundle: dict, ext_id) -> dict[str, dict]:
     return {tid: {k: sorted(v) for k, v in rec.items()} for tid, rec in out.items()}
 
 
+def mitigations(bundle: dict, ext_id) -> dict[str, list[str]]:
+    """{technique id: the countermeasures ATT&CK publishes for it}.
+
+    ATT&CK states these as `mitigates` relationships from a course-of-action to
+    a technique. They are CATEGORIES, not controls -- T1485 yields "Data
+    Backup", "Multi-factor Authentication", "User Account Management", and none
+    of those is a thing anyone can go and configure. That is the point of
+    carrying them: the category is the published half of a prevention
+    recommendation and the Azure specifics are Pylon's half, so the playbook
+    can say which is which instead of presenting both as one opinion.
+
+    Deprecated and revoked countermeasures are dropped. ATT&CK retires a
+    course-of-action when it stops being advice, and recommending one is worse
+    than recommending nothing.
+    """
+    named = {o["id"]: o for o in bundle["objects"]
+             if o.get("type") == "course-of-action"
+             and not o.get("revoked")
+             and not o.get("x_mitre_deprecated")}
+    by_ref = {o["id"]: o for o in bundle["objects"]
+              if o.get("type") == "attack-pattern"}
+
+    out: dict[str, set[str]] = {}
+    for obj in bundle["objects"]:
+        if obj.get("type") != "relationship" or obj.get("relationship_type") != "mitigates":
+            continue
+        target = by_ref.get(obj.get("target_ref"))
+        source = named.get(obj.get("source_ref"))
+        if not target or not source:
+            continue
+        tid = ext_id(target)
+        if not tid:
+            continue
+        # The same countermeasure reaches a technique more than once -- ATT&CK
+        # carries one relationship per rationale. A set, or the playbook prints
+        # "Operating System Configuration" twice, which it did on T1098.
+        out.setdefault(tid, set()).add(source.get("name", ""))
+    return {tid: sorted(n for n in names if n) for tid, names in out.items()}
+
+
 def distill(bundles: dict) -> tuple[dict, dict]:
     """(techniques, versions) from {matrix: parsed STIX bundle}."""
     techniques, versions = {}, {}
@@ -104,11 +144,19 @@ def distill(bundles: dict) -> tuple[dict, dict]:
                 "groups": [],
                 "campaigns": [],
                 "software": [],
+                # Filled below. Empty means ATT&CK publishes no countermeasure
+                # for this technique, which is a real answer and the reason the
+                # Prevention section has to be able to render without one.
+                "mitigations": [],
             }
 
         for tid, who in attribution(bundle, ext_id).items():
             if tid in techniques and techniques[tid]["matrix"] == matrix:
                 techniques[tid].update(who)
+
+        for tid, names in mitigations(bundle, ext_id).items():
+            if tid in techniques and techniques[tid]["matrix"] == matrix:
+                techniques[tid]["mitigations"] = names
     return techniques, versions
 
 

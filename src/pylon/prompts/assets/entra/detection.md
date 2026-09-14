@@ -68,6 +68,5 @@ Two bullets at most, one line each, 20 words or fewer per bullet. No preamble, a
 
 ---
 
-__QUERY_RULES__
 
 Use the exact OperationName strings from Phase 1. Do not invent operations not in Phase 1.

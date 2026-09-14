@@ -37,6 +37,7 @@ from dataclasses import dataclass
 from agent_framework import Agent, RunContext, step, workflow
 
 from . import column_values, contracts, mitre, operation_grounding, pivot, progress
+from . import knowledge as contracts_knowledge
 from . import verification
 from .attack_paths import normalize_tags, tag_seed_context
 from . import deployed
@@ -173,6 +174,10 @@ CHECKPOINT_ALLOWED_TYPES = [
     # `design verify` records what it measured on the report, so a checkpoint
     # carrying a report carries these too. Found by the derived guard again.
     "pylon.models:DetectionVerification",
+    # Nested inside it: the rows-surviving-each-filter table a verdict carries
+    # when the detection matched nothing. Found by the derived guard a third
+    # time, which is the point of that guard.
+    "pylon.models:NarrowingStep",
     # Stamped onto the plan, the report and every verdict, so a checkpoint
     # carrying any of those carries this.
     "pylon.provenance:Provenance",
@@ -561,6 +566,58 @@ async def _run_with_retry(agent: Agent, prompt: str, *, options: dict):
 
 
 # ── Steps ─────────────────────────────────────────────────────────────────────
+def _guidance_result(detection, table: str = "") -> "ValidationResult":
+    """What is wrong with a detection's TUNING NOTES, as a ValidationResult.
+
+    `tuning_guidance` is free text the model writes, and until now nothing
+    checked it -- so the advice a SOC acts on was the least verified thing in
+    the output. Measured: a detection for a permanent Global Administrator
+    grant outside PIM (T1098.003) advised "Allowlist ActorUPN for break-glass
+    or approved automation accounts". Break-glass accounts are the highest-value
+    identities in a tenant; an attacker who reaches one becomes invisible to
+    that rule, and nothing decided that advice or checked it.
+
+    Folded into the same ValidationResult the retry loop already reads, so a bad
+    note drives the same one-shot correction a fabricated column does.
+    """
+    from .validation.kql_rules import guidance_problems, technique_problems
+    from .validation.validate_kql import ValidationResult
+
+    notes = getattr(detection, "tuning_guidance", "") or ""
+    technique = getattr(detection, "mitre_technique", "") or ""
+    problems = guidance_problems(notes, technique)
+    # The technique itself, as a WARNING. A host-platform technique on a cloud
+    # operation is usually wrong and occasionally right, and the catalogue says
+    # which by carrying a `platform_exception`. A warning rather than an error
+    # because blocking it would force the wrong mapping: T1648 Serverless
+    # Execution is the cloud-tagged alternative to T1505.003 Web Shell and its
+    # tactic is EXECUTION where a planted backdoor is PERSISTENCE, so a gate
+    # insisting on the platform tag would make the alert say the wrong thing
+    # about what is happening.
+    warnings = technique_problems(technique, table)
+    return ValidationResult(valid=not problems, errors=list(problems),
+                            warnings=list(warnings))
+
+
+def _shared_section(request: "EngineRequest", target) -> str:
+    """"PROVIDER/Category" for a detection on the shared table, else "".
+
+    AzureDiagnostics is every service's table and each service answers "which
+    column holds the caller" differently, so a playbook on it needs to know
+    WHICH service before it can say anything true. The provider is on the
+    request in generic mode and on the resource type in resource mode; the
+    category comes from the operation, because one AzureDiagnostics surface
+    spans every category a provider writes.
+    """
+    if target.log_table != "AzureDiagnostics":
+        return ""
+    provider = request.az_diag_provider or (request.resource or "").split("/")[0]
+    if not provider:
+        return ""
+    from . import contracts as _c
+    return _c.section_for("AzureDiagnostics", provider, target.operation or "")
+
+
 # @step = cached across HITL resumes / checkpoint restores, emits
 # executor lifecycle events, and checkpoints after completion.
 
@@ -765,6 +822,31 @@ async def run_detection_phase(
     # nobody has triggered yet is unmeasured rather than unreal, and refusing
     # would delete correct work for a surface that is merely quiet. It is loud,
     # it names the count behind the claim, and it reaches report.json.
+    # Where ATT&CK puts the technique decides the floor on priority. A
+    # discovery or reconnaissance technique is real and is rarely what anyone
+    # alerts on, and until now that judgement was the model's -- it graded
+    # vectors critical through low on its own. `assessPatches` is discovery
+    # because MITRE places T1518 there, which is a fact rather than an opinion.
+    #
+    # A floor, not an override: the model may rank something lower still, and a
+    # late-chain technique is never demoted.
+    for vector in analysis.attack_vectors:
+        table = _expected_for_vector(request, vector)
+        known = contracts_knowledge.about(table, vector.operation,
+                                          request.resource or "")
+        if known.tier_exception and vector.priority in ("critical", "high"):
+            log.info("plan: %s is early-chain but exempt; keeping %s (%s)",
+                     vector.name, vector.priority,
+                     known.tier_exception.detail[:120],
+                     extra={"event": "plan_gate", "vector": vector.name,
+                            "operation": vector.operation, "table": table})
+        elif known.tier_floor_applies and vector.priority in ("critical", "high"):
+            log.info("plan: %s is %s in ATT&CK; lowering %s to medium",
+                     vector.name, known.tier, vector.priority,
+                     extra={"event": "plan_gate", "vector": vector.name,
+                            "operation": vector.operation, "table": table})
+            vector.priority = "medium"
+
     for table in {_expected_for_vector(request, v) for v in analysis.attack_vectors}:
         here = [(i, v) for i, v in enumerate(analysis.attack_vectors)
                 if _expected_for_vector(request, v) == table]
@@ -853,6 +935,21 @@ async def run_detection_phase(
     # change of mind would make half the run checked and half not, with nothing
     # saying which.
     offline_on = bool(os.environ.get("PYLON_KUSTAINER_URL", "").strip())
+    # Said once per run, before the money, because the consequence is not
+    # obvious from the gate lines. The static checks are regexes: they know a
+    # banned column and a dead literal, and they cannot tell you a query is well
+    # formed. The only real KQL PARSER in this tool is the offline engine. With
+    # neither it nor a workspace, nothing in the run will notice a syntax error,
+    # and a detection that cannot be parsed ships looking exactly like one that
+    # can. That happened.
+    if not offline_on and not workspace_guid:
+        log.warning(
+            "syntax will NOT be checked this run: no PYLON_KUSTAINER_URL and no "
+            "--workspace, so nothing here parses KQL. A detection that does not "
+            "run will still be written.",
+            extra={"event": "gate", "gate": "engine", "passed": False,
+                   "vector": "", "kql_sha": "", "skipped": True,
+                   "error": "no parser and no workspace"})
 
     async def _offline(kql: str, table: str) -> OfflineCheck:
         """Run the query through the real KQL engine against an empty typed
@@ -906,7 +1003,11 @@ async def run_detection_phase(
         prompt, and the only way to see it is to have both halves recorded
         against each attempt.
         """
-        log.info("gate %s: %s", name, "pass" if passed else "FAIL",
+        # "pass" and "skipped" are different answers and were rendered the
+        # same. A reader scanning a run log for three passes and finding four
+        # lines has no way to tell the gate ran from the gate being absent.
+        verdict = "skipped" if detail.get("skipped") else ("pass" if passed else "FAIL")
+        log.info("gate %s: %s", name, verdict,
                  extra={"event": "gate", "gate": name, "passed": passed,
                         "vector": vector,
                         "kql_sha": hashlib.sha256(kql.encode()).hexdigest()[:12],
@@ -957,6 +1058,17 @@ async def run_detection_phase(
             offline = await _offline(kql, table)
             _gate("engine", vector, kql, offline.ok, ran=offline.ran,
                   error=offline.error[:120])
+        else:
+            # A gate that does not run must say so. This one was simply absent
+            # from the log when no endpoint was configured, so a run showed
+            # static, contract and workspace passing and nothing to suggest the
+            # only real KQL PARSER had been skipped. The static checks are
+            # regexes and cannot tell you a query is well formed, so without an
+            # endpoint the sole thing catching a syntax error is the live
+            # workspace query -- which means a run without --workspace ships an
+            # unparseable detection clean, and one did.
+            _gate("engine", vector, kql, True, ran=False, skipped=True,
+                  error=offline.error[:120] or "skipped")
         if offline.ran and not offline.ok:
             result = merge_results(result, ValidationResult(
                 valid=False,
@@ -1093,6 +1205,7 @@ async def run_detection_phase(
             detection.vector_name = vector.name
             result, offline, graded = await _checked(
                 detection.kql, expected, vector.operation, vector.name)
+            result = merge_results(result, _guidance_result(detection, expected))
             retried = False
 
             if not result.valid:
@@ -1108,6 +1221,7 @@ async def run_detection_phase(
                 detection.vector_name = vector.name
                 result, offline, graded = await _checked(
                     detection.kql, expected, vector.operation, vector.name)
+                result = merge_results(result, _guidance_result(detection, expected))
 
         # Warning-only sanity check on the model-asserted operation string. A
         # wrong operation produces KQL that passes schema validation but filters
@@ -1254,7 +1368,14 @@ async def run_playbook_phase(request: EngineRequest, target: ValidatedDetection)
     op_block = f"\n\nVerified operation reference (ground triage/containment in this):\n{_og}" if _og else ""
     # Grounded cross-log pivots for the Investigation section — actor-correlated
     # queries with each table's real fields. Empty for uncovered tables.
-    _pv = pivot.render_pivot_block(target.log_table)
+    # The pivot key is the table for every ordinary detection and the composite
+    # provider/category key on the shared table, where the actor column differs
+    # per service and a table-level pivot would name the wrong one. Computed
+    # once and used by the pivots, the prompt, the template and the render, so
+    # all four are looking at the same service.
+    _section = _shared_section(request, target)
+    _pv = pivot.render_pivot_block(
+        f"{target.log_table}/{_section}" if _section else target.log_table)
     pivot_block = f"\n\n{_pv}" if _pv else ""
     prompt = (
         "Use the Phase 2 output below for context and exact field names.\n\n"
@@ -1285,9 +1406,16 @@ async def run_playbook_phase(request: EngineRequest, target: ValidatedDetection)
             options={"response_format": PlaybookFill},
         )
         fill = _unwrap_fill(response)
-    template = document_template(request.platform, target.log_table,
-                                 target.detection.vector_name)
-    text = render(template, target, target.log_table, fill)
+    template = document_template(
+        request.platform, target.log_table, target.detection.vector_name,
+        operation=target.operation or "",
+        technique=target.detection.mitre_technique or "",
+        # The provider is already resolved on the generic AzureDiagnostics path
+        # and was never handed to the playbook, so a shared-table playbook read
+        # the table-level contract and got no per-service roles at all.
+        az_provider=_section,
+    )
+    text = render(template, target, target.log_table, fill, _section)
     # A blank nobody filled is a blank the RESPONDER cannot fill either, because
     # the document never says where its value comes from. Named, not shipped.
     left = unfilled(text)
@@ -1323,7 +1451,7 @@ async def run_playbook_phase(request: EngineRequest, target: ValidatedDetection)
             "again, corrected. Still four fields — Pylon writes the document.",
             options={"response_format": PlaybookFill},
         )
-        text = render(template, target, target.log_table, _unwrap_fill(response))
+        text = render(template, target, target.log_table, _unwrap_fill(response), _section)
         recheck = await asyncio.to_thread(check_playbook, text, target.log_table)
         if recheck.failed:
             # Surfaced, not swallowed. A playbook that still has a broken

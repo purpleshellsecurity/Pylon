@@ -94,12 +94,36 @@ def test_a_subresource_earns_a_target_only_by_bringing_its_own_table():
     assert not _redundant_subresource("a/c", kept)
 
 
-def test_web_sites_runs_control_plane_only_and_names_what_it_dropped():
+def test_web_sites_admits_the_tables_that_earned_it_and_names_the_rest():
+    """It ran control plane only, and the reason was true: six data-plane tables
+    with no schema asset and no operation vocabulary between them, so a run
+    could check an operation name on none of them.
+
+    Four now have a measured contract and values counted from real rows, which
+    is stronger grounding than the schema asset the gate was asking for.
+    AppServiceFileAuditLogs was the fourth and the slowest, because measuring it
+    needed a WINDOWS PREMIUM app -- Microsoft offers the category on Windows
+    only and above Premium tier, and the lab app was Linux on Consumption, so
+    the platform did not offer it at all. Measuring a table is what moves it
+    across this line.
+
+    The other two are still refused and each for its own reason: AppServiceHTTP
+    Logs was never measured, and AppServiceAuthenticationLogs produced zero rows
+    however hard it was pushed, because it only logs faults in the Easy Auth
+    module.
+    """
     target = resolve_target("Microsoft.Web/sites")
-    assert target.tables == ("AzureActivity",)
-    assert len(target.refused) == 6
-    for table in ("AppServiceHTTPLogs", "FunctionAppLogs", "AppServiceAuditLogs"):
-        assert any(table in r for r in target.refused)
+    assert "AzureActivity" in target.tables
+    for table in ("AppServiceAuditLogs", "AppServiceIPSecAuditLogs",
+                  "FunctionAppLogs", "AppServiceFileAuditLogs"):
+        assert table in target.tables, f"{table} has a contract and should be in the run"
+
+    assert len(target.refused) == 2
+    for table, because in (
+            ("AppServiceHTTPLogs", "no schema asset"),
+            ("AppServiceAuthenticationLogs", "no operation vocabulary")):
+        assert any(table in r and because in r for r in target.refused), (
+            f"{table} should be refused for {because!r}")
 
 
 def test_a_table_with_no_schema_asset_cannot_back_a_surface():

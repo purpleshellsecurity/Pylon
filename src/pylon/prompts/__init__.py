@@ -35,6 +35,7 @@ from .constants import (
 )
 from .shared import (
     ACTOR_IDENTITY_RULE,
+    kql_contract,
     CONTAINMENT_CMD,
     LOG_SOURCE,
     PLAYBOOK_SKELETON,
@@ -56,7 +57,6 @@ __all__ = [
     "build_resource_prompt",
     "build_system_prompt",
     "get_platform",
-    "is_grounded_table",
     "is_known_service",
     "load_asset",
     "table_context",
@@ -85,6 +85,15 @@ def _dataplane_tables() -> frozenset[str]:
     )
 
 # Platform-specific KQL rule bullets (port of the platform_rules section).
+# "time filter must be the FIRST operator" is NOT here any more. All twelve table
+# contracts state it in their `shape` block, measured, and `table_rules()` puts
+# the contract in front of these rules -- so every prompt carried it twice, once
+# generically and once from the table that proved it.
+#
+# Checked before deleting: `contracts.render()` emits it for every one of the
+# twelve, so no table loses the rule. The semicolon rule went the other way --
+# no contract states it -- and moved to catalog/kql-rules.yaml, where it now has
+# a checker instead of being asserted twelve times and enforced nowhere.
 _KQL_RULES: dict[str, str] = {
     "arm": """- KQL: filter on OperationNameValue using =~ for case-insensitive matching — not OperationName
 - KQL: filter ActivityStatusValue =~ "Success" for successful operations — not Result
@@ -93,8 +102,6 @@ _KQL_RULES: dict[str, str] = {
 - KQL: no COLUMN holds an array, so never mv-expand a column — but a value
   parsed out of Properties can be one, and `properties.logs` on a diagnostic
   settings write is exactly that
-- KQL: time filter must be the FIRST operator after the table name
-- KQL: end let-statement queries with a semicolon
 - KQL: `Authorization` has exactly three keys — `scope`, `action`, `evidence`.
   There is NO top-level `role`. `tostring(Auth.role)` is always empty, so a
   query filtering on it matches nothing, ever, and reads as a quiet tenant
@@ -162,19 +169,21 @@ _KQL_RULES: dict[str, str] = {
   no event id cannot find the raw record, and the tooling cannot recover which
   rows a detection matched without it -- measured, 11 of 106 generated
   detections carried it, so nine in ten could not be traced back to their own
-  evidence""",
+  evidence
+- Claims is a JSON STRING; parse_json it first. The caller's object ID is under the FULL URI key `http://schemas.microsoft.com/identity/claims/objectidentifier` — there is no `oid` key. `appid` IS a short key. A wrong key name parses without error and silently yields "", so use these spellings exactly.
+- NORMALIZE OUTPUT (required): before the final project, map this table's fields to the shared entity schema — `| extend ActorUpn = Caller, ActorId = tostring(parse_json(Claims)["http://schemas.microsoft.com/identity/claims/objectidentifier"]), SrcIp = CallerIpAddress, TargetResource = _ResourceId, Operation = OperationNameValue` — then `| project TimeGenerated, ActorUpn, ActorId, SrcIp, TargetResource, Operation` plus any raw columns useful for triage. Leave a field = "" when the table has no such value. This makes entity mapping and cross-table correlation uniform.
+""",
     "dataplane": """- KQL: use the exact table name provided in the task — never substitute AzureDiagnostics
 - KQL: identity field varies by service — use the correct field for the specific table
 - KQL: always wrap dynamic field access in tostring()
-- KQL: time filter must be the FIRST operator after the table name
-- KQL: end let-statement queries with a semicolon
 - KQL: project the table's row id (`Id` on the data-plane audit tables) in the
-  final output, so an alert can be traced back to the record that raised it""",
+  final output, so an alert can be traced back to the record that raised it
+- Use the exact service-specific table provided — never substitute AzureDiagnostics
+- NORMALIZE OUTPUT (required): before the final project, map this table's fields to the shared entity schema — `| extend ActorUpn/ActorId from the table's identity field(s), SrcIp from its client-IP field, TargetResource from the object/resource field, Operation = OperationName` — then `| project TimeGenerated, ActorUpn, ActorId, SrcIp, TargetResource, Operation` plus any raw columns useful for triage. Leave a field = "" when the table has no such value. This makes entity mapping and cross-table correlation uniform.
+""",
     "entra": """- KQL: extract InitiatedBy fields BEFORE mv-expand
 - KQL: always wrap dynamic field access in tostring()
 - KQL: clean modifiedProperties with trim(@'[\\[\\]"\\s]', value)
-- KQL: end let-statement queries with a semicolon
-- KQL: time filter must be the FIRST operator after the table name
 - KQL: filter Result == "success" — not ActivityStatusValue
 - KQL: `TargetResources` is an ARRAY and a plain `mv-expand` over it emits ONE
   ALERT ROW PER ELEMENT. A directory role assignment carries six entries — the
@@ -188,7 +197,10 @@ _KQL_RULES: dict[str, str] = {
   API spellings — keyCredentials, passwordCredentials, appRoles,
   oauth2PermissionScopes, servicePrincipalNames, accountEnabled — NEVER appear,
   so a query filtering on them matches nothing. If you are unsure of a value,
-  filter on OperationName instead of guessing a property name""",
+  filter on OperationName instead of guessing a property name
+- OperationName MUST be matched with `=~`, never `==`. Documented activity names
+- NORMALIZE OUTPUT (required): before the final project, map this table's fields to the shared entity schema — `| extend ActorUpn = tostring(InitiatedBy.user.userPrincipalName), ActorId = tostring(InitiatedBy.user.id), SrcIp = tostring(InitiatedBy.user.ipAddress), TargetResource = tostring(TargetResources[0].id), Operation = OperationName` — then `| project TimeGenerated, ActorUpn, ActorId, SrcIp, TargetResource, Operation` plus any raw columns useful for triage. Leave a field = "" when the table has no such value. This makes entity mapping and cross-table correlation uniform.
+""",
 }
 
 # context asset appended (like the data-plane tables).
@@ -223,6 +235,22 @@ _TABLE_RULES_KEY: dict[str, str] = {
     "StorageQueueLogs": "dataplane",
     "StorageTableLogs": "dataplane",
     "AuditLogs": "entra",
+    # Admitted once each had a measured contract. The platform half of their
+    # rules is the data-plane set; the per-table half is the contract, which
+    # `table_rules` puts first.
+    "AppServiceAuditLogs": "dataplane",
+    "AppServiceIPSecAuditLogs": "dataplane",
+    "FunctionAppLogs": "dataplane",
+    # The shared table. Admitted once its contract carried per-service roles and
+    # the correlation map carried a pivot entry per provider and category.
+    # Without an entry here it fell back to the bare platform chain, so the
+    # widest table in the catalogue -- SQL, Automation, and every service left
+    # on the default destination mode -- had the least grounding of any of them.
+    "AzureDiagnostics": "dataplane",
+    # Measured 2026-09-14 on a Windows Premium app, which is the only place the
+    # platform offers it. The one App Service data-plane table with a real
+    # operation vocabulary -- Create/Update, Delete, RenameTo, RenameFrom.
+    "AppServiceFileAuditLogs": "dataplane",
 }
 
 _GENERIC_TABLE_RULES = (
@@ -254,9 +282,17 @@ def table_rules(table: str) -> str:
             f"confirmed by running it:\n{measured}\n\nGeneral rules:\n{platform}")
 
 
-def is_grounded_table(table: str) -> bool:
-    """True if we have both KQL rules and a schema asset for this table."""
-    return table in _TABLE_RULES_KEY and bool(table_context(table))
+# `is_grounded_table` was here. It asked "do we have both KQL rules and a schema
+# asset for this table", which stopped being the question when a table could be
+# grounded by a measured CONTRACT instead of by an asset file: it returned False
+# for AppServiceAuditLogs, AppServiceIPSecAuditLogs and FunctionAppLogs, all
+# three of which are grounded. Nothing called it, so the wrong answer never
+# reached anything -- but it was exported, and the next caller would have
+# inherited it.
+#
+# Deleted rather than corrected. The question it asked is answered properly by
+# `contracts.tables()` and `table_rules()`, and a function nothing calls is a
+# function nothing tests.
 
 
 def load_asset(relpath: str) -> str:
@@ -480,6 +516,19 @@ def _build_azure_diagnostics_prompt(
     # The categories come off the resolver as one comma-joined string per surface;
     # split back out so the model gets a real enumeration axis.
     cat_axis = [c.strip() for c in ", ".join(cats).split(",") if c.strip()]
+    # The measured contract for this table. It reaches the resource-mode prompt
+    # through `table_rules` and reached this path through nothing, so the
+    # contract gate was rejecting queries for breaking rules the model had
+    # never been given -- which is not a rule, it is a trap. Measured facts
+    # first: which column carries the caller for THIS provider and category,
+    # which values each column was seen to hold, and which are redacted.
+    from .. import contracts
+
+    measured = contracts.render("AzureDiagnostics")
+    contract_block = (
+        "\n\nMeasured against real rows in this table. Every line was confirmed "
+        f"by running it:\n{measured}" if measured else "")
+
     sample_block = ""
     if samples:
         joined = "\n\n".join(s for s in samples)
@@ -508,6 +557,7 @@ def _build_azure_diagnostics_prompt(
   IS the correct and intended table for every query here — never invent a
   per-resource table name.
 {rules_block}
+{kql_contract()}
 {CLAIM_RULE}
 {MITRE_RULE}
 - Map every technique to the MITRE ATT&CK CLOUD matrix (IaaS / Identity Provider /
@@ -524,7 +574,7 @@ to this resource:
 Resource-specific fields are stored as type-suffixed dynamic columns (_s string,
 _d double, _g guid, _b bool) — e.g. httpStatusCode_d, identity_claim_upn_s. Use the
 suffixed names. Live AzureDiagnostics column documentation is appended below when
-available — prefer those exact names over memory.{sample_block}
+available — prefer those exact names over memory.{sample_block}{contract_block}
 </schema_reference>"""
 
     if phase_id == "threat":
@@ -606,6 +656,7 @@ def build_resource_prompt(
 - This resource writes to multiple tables; follow the routing guidance below and
   each query must state its table on the first line and follow THAT table's rules.
 {rule_blocks}
+{kql_contract()}
 {CLAIM_RULE}
 {MITRE_RULE}
 {OUTPUT_RULE}
@@ -864,6 +915,7 @@ one you cannot.
 {FIELD_RULE}
 - Log source for this platform: {log_source}
 {_KQL_RULES[chain]}
+{kql_contract()}
 {CLAIM_RULE}
 {MITRE_RULE}
 {OUTPUT_RULE}

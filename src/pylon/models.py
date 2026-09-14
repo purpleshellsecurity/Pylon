@@ -415,6 +415,18 @@ class Playbook(Strict):
     text: str    # the playbook markdown
 
 
+class NarrowingStep(Strict):
+    """One line of the peel: a filter, and the rows that survived it.
+
+    `rows` is None when that prefix did not run, which is worth carrying rather
+    than dropping -- a prefix that fails to run is itself a finding about the
+    query.
+    """
+
+    filter: str
+    rows: int | None = None
+
+
 class DetectionVerification(Strict):
     """One detection measured against the events it claims to detect.
 
@@ -435,6 +447,13 @@ class DetectionVerification(Strict):
     # have been regenerated since, and the workspace certainly has moved on.
     verified_by: Provenance | None = None
     workspace: str = ""
+    # Why it matched nothing, when it matched nothing. Each filter goes back on
+    # one at a time and the rows are counted, so the line that reaches zero
+    # names the cause instead of leaving the reader to open the KQL. Empty when
+    # the query matched rows, when it has fewer than two filters, or when it
+    # joins -- see `verification.peel`.
+    narrowing: list[NarrowingStep] = []
+    killed_by: str = ""
 
 
 class EngineReport(Strict):

@@ -13,8 +13,8 @@ Two layers:
 
 This is the backbone for resource-centric mode: you name a resource and each
 attack vector is routed to the correct table — the generalization of combined
-Graph mode. It IS wired into the generation workflow (the resource-mode branch
-of engine.pylon calls allowed_tables / log_surfaces).
+Graph mode. It IS wired into the generation workflow: the resource-mode branch
+of the engine calls `log_surfaces`, and the services layer calls it too.
 """
 
 import json
@@ -28,7 +28,6 @@ __all__ = [
     "NO_DATA_PLANE",
     "RESOURCE_OVERLAY",
     "LogSurface",
-    "allowed_tables",
     "control_plane_surface",
     "DISPLAY_NAMES",
     "data_plane_state",
@@ -366,9 +365,12 @@ def resource_candidates(name: str) -> list[str]:
     return sorted(auto) if len(auto) > 1 else []
 
 
-def allowed_tables(resource_type: str) -> list[str]:
-    """The tables an attack vector may be routed to for this resource."""
-    return [s.table for s in log_surfaces(resource_type)]
+# `allowed_tables` was here: a one-line wrapper returning
+# `[s.table for s in log_surfaces(rt)]`. Nothing called it -- the engine and the
+# services layer both call `log_surfaces` and take `.table` themselves -- and
+# this module's own docstring claimed the engine called it, which was half true
+# and half false in a way nobody could notice from reading either file.
+# Deleted rather than kept as a convenience nobody reached for.
 
 
 def data_plane_state(resource_type: str) -> str:

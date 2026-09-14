@@ -62,9 +62,15 @@ def test_a_contracts_own_recipes_pass_its_own_check(table):
     c = contracts.for_table(table)
     for name, body in (c.get("recipes") or {}).items():
         fields = set(re.findall(r"\{(\w+)\}", body))
-        filled = body.format(**{f: ("0" if f == "threshold" else
-                                    table if f == "table" else
-                                    "logs" if f == "array" else "x") for f in fields})
+        # Fill with values the contract itself records as real. Filling "x"
+        # made a recipe fail the value check that the same contract enables,
+        # which is the test being naive rather than the recipe being wrong.
+        sample = {"threshold": "0", "table": table, "array": "logs",
+                  "window": "1d", "provider": "MICROSOFT.AUTOMATION",
+                  "category": "JobStreams", "stream": "Output",
+                  "action": "BATCH COMPLETED", "operation": "x",
+                  "operations": '"x"'}
+        filled = body.format(**{f: sample.get(f, "x") for f in fields})
         assert contracts.conforms(filled, table) == [], (
             f"{table}/{name} is offered as a model and fails the check")
 
@@ -173,3 +179,38 @@ def test_a_breach_is_worded_for_the_model_that_has_to_fix_it():
     text = breaches[0]
     assert "StatusCode" in text, "the message must name the column"
     assert "string" in text, "and say what is actually wrong with it"
+
+
+def test_every_fact_the_checker_uses_also_reaches_the_prompt():
+    """The drift this whole object exists to prevent, committed in it.
+
+    `observed_values` was added so `conforms()` could reject a literal no row
+    carries. It was not added to `render()`, so the prompt named
+    `targetResources_Resource_s` and never said it holds "Credential". A model
+    guessed `AdditionalFields has "automationAccounts/credentials"` instead and
+    the detection matched nothing.
+
+    A fact that reaches the checker and not the model turns a rule into a trap:
+    the model cannot comply with something it was never told.
+    """
+    for table in _TABLES:
+        c = contracts.for_table(table)
+        rendered = contracts.render(table)
+        for section in (c.get("services") or {}).values():
+            for column, values in (section.get("observed_values") or {}).items():
+                if column.endswith("_note") or not isinstance(values, list):
+                    continue
+                assert column in rendered, (
+                    f"{table}: `{column}` is checked and not taught")
+                for value in values:
+                    assert str(value) in rendered, (
+                        f"{table}: `{column}` is checked against {value!r} and the "
+                        f"prompt never says that is a value it holds")
+
+
+def test_a_redacted_column_is_named_as_redacted_in_the_prompt():
+    """Knowing the column exists is worse than useless if the model does not
+    know it always holds "{scrubbed}"."""
+    rendered = contracts.render("AzureDiagnostics")
+    assert "REDACTED" in rendered
+    assert "clientInfo_PrincipalName_s" in rendered

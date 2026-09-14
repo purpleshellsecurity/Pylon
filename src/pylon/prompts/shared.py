@@ -23,27 +23,18 @@ LOG_SOURCE: dict[str, str] = {
 ACTOR_IDENTITY_RULE = """
 - SPLIT THE ACTOR UPN (required, immediately after the normalize extend): `| extend ActorName = iff(ActorUpn has "@", tostring(split(ActorUpn, "@")[0]), ""), ActorUpnSuffix = iff(ActorUpn has "@", tostring(split(ActorUpn, "@")[1]), "")` and add both to the final project alongside ActorUpn. Sentinel's strong Account identifier is Name + UPNSuffix as a pair; the full UPN alone identifies an account only weakly. The iff guards a non-UPN actor (an object GUID, a service name), which must leave both empty rather than land a GUID in Name."""
 
+# ONE rule set per plane now lives in `prompts._KQL_RULES`, and this holds only
+# the AzureDiagnostics one, which has no counterpart there and is read directly.
+#
+# There used to be two. Both reached the SAME detection prompt -- `_KQL_RULES`
+# through <platform_rules> and this one through the asset's __QUERY_RULES__
+# token -- so every prompt stated the same rule twice in different words: eight
+# topics twice on ARM, eight on Entra, four on the data plane. A correctness fix
+# therefore had to be made in two files and sometimes was not.
+#
+# The claims unique to this set were moved into `_KQL_RULES` before the
+# duplicates were deleted, and a test asserts each one still reaches a prompt.
 QUERY_RULES: dict[str, str] = {
-    "arm": """KQL Rules for AzureActivity (ARM):
-- Time filter FIRST: | where TimeGenerated > ago(1h)
-- Filter on OperationNameValue with =~ (case-insensitive): | where OperationNameValue =~ "MICROSOFT.PROVIDER/RESOURCE/ACTION"
-- Filter ActivityStatusValue =~ "Success" — never use Result (that is an AuditLogs field)
-- Caller and CallerIpAddress are plain strings — no tostring() or parse needed
-- Claims is a JSON STRING; parse_json it first. The caller's object ID is under the FULL URI key `http://schemas.microsoft.com/identity/claims/objectidentifier` — there is no `oid` key. `appid` IS a short key. A wrong key name parses without error and silently yields "", so use these spellings exactly.
-- Extract nested data with parse_json(): | extend Detail = parse_json(Properties)
-- No COLUMN here holds an array, so never mv-expand a column. A value parsed
-  out of Properties can be an array and must be expanded
-- End let-statement queries with a semicolon
-- EXCLUSION SCAFFOLDING (required): begin the query with `let AllowedActors = _GetWatchlist('ApprovedAutomation') | project SearchKey;` so the org maintains ONE list that both the detection and its Phase 3 playbook read, and add `// let AllowedActors = dynamic([]);  // fallback: no watchlist in this tenant` immediately below it and add `| where Caller !in (AllowedActors)` — empty by default, so the rule ships with a place to suppress known-good principals instead of firing on them on day one
-- NORMALIZE OUTPUT (required): before the final project, map this table's fields to the shared entity schema — `| extend ActorUpn = Caller, ActorId = tostring(parse_json(Claims)["http://schemas.microsoft.com/identity/claims/objectidentifier"]), SrcIp = CallerIpAddress, TargetResource = ResourceId, Operation = OperationNameValue` — then `| project TimeGenerated, ActorUpn, ActorId, SrcIp, TargetResource, Operation` plus any raw columns useful for triage. Leave a field = "" when the table has no such value. This makes entity mapping and cross-table correlation uniform.""",
-    "dataplane": """KQL Rules for Data Plane diagnostic tables:
-- Time filter FIRST: | where TimeGenerated > ago(1h)
-- Use the exact service-specific table provided — never substitute AzureDiagnostics
-- Identity field varies by service — use the correct field for each table
-- Always tostring() on dynamic fields
-- End let-statement queries with a semicolon
-- EXCLUSION SCAFFOLDING (required): begin the query with `let AllowedActors = _GetWatchlist('ApprovedAutomation') | project SearchKey;` so the org maintains ONE list that both the detection and its Phase 3 playbook read, and add `// let AllowedActors = dynamic([]);  // fallback: no watchlist in this tenant` immediately below it and add `| where the table's caller/identity field !in (AllowedActors)` — empty by default, so the rule ships with a place to suppress known-good principals instead of firing on them on day one
-- NORMALIZE OUTPUT (required): before the final project, map this table's fields to the shared entity schema — `| extend ActorUpn/ActorId from the table's identity field(s), SrcIp from its client-IP field, TargetResource from the object/resource field, Operation = OperationName` — then `| project TimeGenerated, ActorUpn, ActorId, SrcIp, TargetResource, Operation` plus any raw columns useful for triage. Leave a field = "" when the table has no such value. This makes entity mapping and cross-table correlation uniform.""",
     "azure-diagnostics": """KQL Rules for the generic AzureDiagnostics table:
 - Query the AzureDiagnostics table — this resource publishes NO resource-specific
   table, so AzureDiagnostics is correct here (do NOT invent a per-resource table)
@@ -58,21 +49,7 @@ QUERY_RULES: dict[str, str] = {
 - Filter on OperationName plus ResourceProvider/Category — this generic path is
   lower fidelity than a curated table, so keep filters conservative and documented
 - End let-statement queries with a semicolon
-- EXCLUSION SCAFFOLDING (required): begin the query with `let AllowedActors = _GetWatchlist('ApprovedAutomation') | project SearchKey;` so the org maintains ONE list that both the detection and its Phase 3 playbook read, and add `// let AllowedActors = dynamic([]);  // fallback: no watchlist in this tenant` immediately below it and add `| where the caller identity column (e.g. identity_claim_upn_s) !in (AllowedActors)` — empty by default, so the rule ships with a place to suppress known-good principals instead of firing on them on day one
 - NORMALIZE OUTPUT (required): before the final project, map this table's fields to the shared entity schema — `| extend ActorUpn from the caller-identity column (e.g. identity_claim_upn_s), SrcIp from the client-IP column, TargetResource = _ResourceId, Operation = OperationName` — then `| project TimeGenerated, ActorUpn, ActorId, SrcIp, TargetResource, Operation` plus any raw columns useful for triage. Leave a field = "" when the table has no such value. This makes entity mapping and cross-table correlation uniform.""",
-    "entra": """KQL Rules for AuditLogs (Entra ID):
-- OperationName MUST be matched with `=~`, never `==`. Documented activity names
-  and the casing a tenant actually writes differ ("Delete Conditional Access
-  policy" documented, "Delete conditional access policy" logged), and `==` is
-  case-sensitive — the query then parses, runs clean and never matches.
-- Time filter FIRST: | where TimeGenerated > ago(1h)
-- Extract ALL InitiatedBy fields BEFORE mv-expand — violations produce empty fields
-- Always tostring() on dynamic fields — never compare dynamic fields directly
-- Clean modifiedProperties values: trim(@'[\\[\\]"\\s]', value) before comparison
-- End let-statement queries with a semicolon
-- Filter Result == "success" unless explicitly detecting failures
-- EXCLUSION SCAFFOLDING (required): begin the query with `let AllowedActors = _GetWatchlist('ApprovedAutomation') | project SearchKey;` so the org maintains ONE list that both the detection and its Phase 3 playbook read, and add `// let AllowedActors = dynamic([]);  // fallback: no watchlist in this tenant` immediately below it and add `| where tostring(InitiatedBy.user.userPrincipalName) !in (AllowedActors)` — empty by default, so the rule ships with a place to suppress known-good principals instead of firing on them on day one
-- NORMALIZE OUTPUT (required): before the final project, map this table's fields to the shared entity schema — `| extend ActorUpn = tostring(InitiatedBy.user.userPrincipalName), ActorId = tostring(InitiatedBy.user.id), SrcIp = tostring(InitiatedBy.user.ipAddress), TargetResource = tostring(TargetResources[0].id), Operation = OperationName` — then `| project TimeGenerated, ActorUpn, ActorId, SrcIp, TargetResource, Operation` plus any raw columns useful for triage. Leave a field = "" when the table has no such value. This makes entity mapping and cross-table correlation uniform.""",
 }
 
 CONTAINMENT_CMD: dict[str, str] = {
@@ -81,6 +58,46 @@ CONTAINMENT_CMD: dict[str, str] = {
     "azure-diagnostics": "Azure CLI / PowerShell with error handling and manual Azure Portal fallback",
     "entra": "PowerShell via Microsoft Graph SDK with try/catch and manual Entra Portal fallback",
 }
+
+
+def kql_contract() -> str:
+    """The KQL rules, rendered from the file the VALIDATOR reads.
+
+    Deliberately a function and not a constant: a constant is evaluated at
+    import and a rule added to the catalogue afterwards would reach the gate
+    and not the prompt, which is the exact asymmetry this whole mechanism
+    exists to remove.
+    """
+    from ..validation import kql_rules
+
+    return ("- The rules below are the ones this run ENFORCES. A query breaking "
+            "a MUST is rejected.\n" + kql_rules.render())
+
+
+# The EXCLUSION SCAFFOLDING rule was here, four times, one per plane. It required
+# every detection to begin with
+#     let AllowedActors = _GetWatchlist('ApprovedAutomation') | project SearchKey;
+# and to filter the caller against it. It is gone, for two reasons and in that
+# order of importance.
+#
+# It was WRONG ADVICE on a class of detections. The rule was unconditional, with
+# no exception for anything, so a detection for a permanent Global Administrator
+# grant outside PIM was told to carry a place to exclude principals by UPN. The
+# clause ships empty and suppresses nothing on day one; what it does is tell the
+# operator that actor suppression is the intended tuning point, on the one
+# detection where every occurrence is meant to be reviewed.
+#
+# And it was IMPOSSIBLE to satisfy. `_dead_empty_collections` rejects
+# `!in (dynamic([]))` and `_unverified_watchlists` rejects the _GetWatchlist
+# form, both as errors, so no query could obey the prompt and pass the gates.
+# Measured: three generated detections, zero containing AllowedActors. That was
+# not the model ignoring an instruction; it was the only output the gates would
+# accept.
+#
+# Both gates stay exactly as they are. Nothing is exempted. Tuning advice lives
+# in the detection's own `tuning_guidance`, per detection, where it can say
+# "narrow by role scope" on a privileged grant and "allowlist the deploy
+# principal" on a config write -- which a single mandated clause never could.
 
 
 # ── The Phase 3 playbook skeleton ─────────────────────────────────────────────
@@ -119,6 +136,8 @@ Output rules for this document, before anything else:
 ## Playbook Metadata
 {metadata}
 
+{attack_diagram}
+
 ---
 
 ## Fill these in first
@@ -153,7 +172,23 @@ let AllowedActors  = _GetWatchlist('ApprovedAutomation') | project SearchKey;
 
 **Decide first:** {quick_decision}
 
+### Answer these first
+
+{assessment_questions}
+
 {quick_triage}
+
+### False positive / true positive
+
+Benign (✓):
+- ✓ [common false positives]
+
+Real (✗):
+[true positive indicators]
+
+### Escalation
+
+{escalation_matrix}
 
 ---
 
@@ -199,6 +234,12 @@ ACROSS logs is a different job, and each of these carries the other table's real
 field names rather than this one's.
 
 {pivots}
+
+---
+
+## Current State
+
+{current_state}
 
 ---
 
@@ -296,6 +337,20 @@ Read the operation reference supplied with this prompt before writing this secti
 # What a plane does not override. Every one of these is deliberately generic —
 # a plane with something better says so in its own asset.
 PLAYBOOK_SLOT_DEFAULTS: dict[str, str] = {
+    # COMPUTED, never written by a plane. Each is assembled from the table's
+    # contract, so the default is the honest "this table has no contract" case
+    # rather than generic prose standing in for a measurement.
+    "attack_diagram": "",
+    "assessment_questions": (
+        "[No contract for this table, so there is no measured answer to which "
+        "column holds the actor, the address or the outcome. Establish those "
+        "from the detection's own projection before triaging.]"
+    ),
+    "escalation_matrix": (
+        "[No contract for this table. Escalate on the plane-specific criteria "
+        "at the foot of this document.]"
+    ),
+    "current_state": "",
     "metadata": (
         "- **Detection:** __TARGET__\n- **MITRE:** [from Phase 2]\n"
         "- **Log source:** __SERVICE__\n- **Severity:** [from Phase 2]"

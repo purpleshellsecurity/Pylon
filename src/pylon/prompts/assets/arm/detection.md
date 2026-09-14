@@ -48,7 +48,7 @@ AzureActivity
 | extend Auth = parse_json(Authorization)
 | extend AuthScope = tostring(Auth.scope)
 // [Strategy-specific logic here]
-| extend ActorUpn = Caller, ActorId = tostring(parse_json(Claims)["http://schemas.microsoft.com/identity/claims/objectidentifier"]), SrcIp = CallerIpAddress, TargetResource = ResourceId, Operation = OperationNameValue
+| extend ActorUpn = Caller, ActorId = tostring(parse_json(Claims)["http://schemas.microsoft.com/identity/claims/objectidentifier"]), SrcIp = CallerIpAddress, TargetResource = _ResourceId, Operation = OperationNameValue
 | project TimeGenerated, ActorUpn, ActorId, SrcIp, TargetResource, Operation, ResourceGroup, SubscriptionId, AuthScope, CorrelationId;
 ```
 
@@ -60,6 +60,5 @@ Two bullets at most, one line each, 20 words or fewer per bullet. No preamble, a
 
 ---
 
-__QUERY_RULES__
 
 Use the exact OperationNameValue strings from Phase 1. Do not invent operations not in Phase 1.

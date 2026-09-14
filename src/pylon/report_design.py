@@ -42,13 +42,9 @@ OUT = "detections.html"
 def _technique_names() -> dict[str, str]:
     """ATT&CK id -> name. Read from the vendored index rather than the YAML
     catalogue so the page renders without the `design` extra installed."""
-    try:
-        text = (resources.files("pylon.catalog") / "mitre_index.json").read_text(
-            encoding="utf-8"
-        )
-    except (FileNotFoundError, OSError):
-        return {}
-    return {k: v.get("name", "") for k, v in json.loads(text)["techniques"].items()}
+    from .knowledge import technique_names
+
+    return technique_names()
 
 
 def _bases(table: str) -> dict[str, str]:

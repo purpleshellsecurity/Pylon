@@ -79,6 +79,8 @@ _PLACEHOLDER = re.compile(r"\[[A-Za-z][^\[\]\"'\n]{2,60}\]")
 #
 # Deliberately restricted to `let` bindings. An inline `coalesce(x, dynamic([]))`
 # is a legitimate default and is not this.
+_COMMENT_ONLY = re.compile(r"//[^\n]*")
+
 _EMPTY_LET = re.compile(
     r"\blet\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"
     r"(?:dynamic\s*\(\s*(?:\[\s*\]|\{\s*\})\s*\)|pack_array\s*\(\s*\))\s*;",
@@ -94,6 +96,37 @@ _CONSTANT_OVER_EMPTY: tuple[tuple[str, bool], ...] = (
     (r"set_has_element\s*\(\s*{name}\s*,", False),
     (r"\bin~?\s*\(\s*{name}\s*\)", False),
 )
+
+
+# A watchlist is the same defect wearing a different hat. Measured: on a tenant
+# with no watchlist called ApprovedAutomation,
+#     let A = _GetWatchlist('ApprovedAutomation') | project SearchKey;
+#     ... | where clientInfo_ObjectId_g !in (A)
+# does NOT error. It returns empty and the `!in` passes all 8 rows, so the
+# detection's own description promises an allowlist it does not apply. The
+# generator reaches for this shape on its own; it was never in a prompt.
+_WATCHLIST_LET = re.compile(
+    r"\blet\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*_GetWatchlist\s*\(\s*['\"]([^'\"]+)['\"]",
+    re.IGNORECASE)
+
+
+def _unverified_watchlists(kql: str) -> list[str]:
+    """Filters that silently pass everything when the watchlist is absent."""
+    bare = _blank_strings_and_comments(kql)
+    raw = _COMMENT_ONLY.sub(" ", kql)          # keep the literal name readable
+    problems: list[str] = []
+    for hit in _WATCHLIST_LET.finditer(raw):
+        name, watchlist = hit.group(1), hit.group(2)
+        if not re.search(rf"\bin~?\s*\(\s*{re.escape(name)}\s*\)", bare, re.IGNORECASE):
+            continue
+        problems.append(
+            f"filters on the watchlist {watchlist!r} through `{name}`. A watchlist "
+            f"that does not exist returns EMPTY rather than failing, so `in` "
+            f"matches nothing and `!in` matches everything -- either way the "
+            f"clause does not filter and the detection describes behaviour it "
+            f"does not have. Confirm the watchlist exists in the target tenant, "
+            f"or drop the clause and say so.")
+    return problems
 
 
 def _dead_empty_collections(kql: str) -> list[str]:
@@ -129,7 +162,8 @@ def _dead_empty_collections(kql: str) -> list[str]:
     return problems
 
 
-def _structural_issues(kql: str, *, allow_placeholders: bool = False) -> tuple[list[str], list[str]]:
+def _structural_issues(kql: str, *, allow_placeholders: bool = False,
+                       context: str = "detection") -> tuple[list[str], list[str]]:
     """Query-SHAPE checks independent of any table schema: an empty query, a
     guaranteed-empty result (``take 0`` / ``where false``), a non-KQL/SQL payload,
     or a missing time filter. These catch 'dead' queries that a column-only
@@ -155,6 +189,14 @@ def _structural_issues(kql: str, *, allow_placeholders: bool = False) -> tuple[l
             "Query has a contradictory predicate (`where false`) — it can never match."
         )
     errors.extend(_dead_empty_collections(kql))
+    errors.extend(_unverified_watchlists(kql))
+    # The rules whose severity means "do not ship this" -- a Sentinel analytics
+    # rule that cannot be CREATED (union/search), or one that deploys and cannot
+    # do what it claims. Stated to the model from the same file, so a detection
+    # is never rejected for a rule it was not shown.
+    from . import kql_rules
+
+    errors.extend(kql_rules.fatal(kql, context))
     left = [] if allow_placeholders else list(
         dict.fromkeys(m.group(0) for m in _PLACEHOLDER.finditer(kql))
     )
@@ -320,62 +362,27 @@ def _validate_azure_diagnostics(kql: str, expected_provider: str = "") -> Valida
 # casing varies between providers, and correctness outranks the scan cost. Since
 # warnings reach the correction prompt, warning here would instruct the model to
 # undo what the prompt mandates — a loop the tool would lose.
-_PERF_CHECKS: tuple[tuple[str, str], ...] = (
-    (
-        r"\|\s*where\s+[^|]*?\bcontains\b",
-        (
-            "Performance: `contains` scans for substrings. Use `has` when matching a whole "
-            "token \u2014 Microsoft: \"Use the has operator. Don't use contains ... has works "
-            "better, since it doesn't look for substrings.\""
-        ),
-    ),
-    (
-        # Any unscoped `search`, not just `search *`: a bare search term is still a
-        # full-text scan of every column. `search in (T)` / `Col has "x"` are the
-        # scoped forms and do not match.
-        r"(?:^|\|)\s*search\s+(?!in\s*\()",
-        (
-            "Performance: `search` runs a full-text search across every column. Filter a "
-            "named column instead \u2014 Microsoft: \"Look in a specific column. Don't use *.\""
-        ),
-    ),
-    (
-        r"\bunion\s+(?:\w+\s*=\s*\w+\s+)*\*",
-        (
-            "Performance: `union *` references every table in the workspace. Name the tables "
-            "the detection actually needs."
-        ),
-    ),
-    (
-        r"\btolower\s*\([^)]*\)\s*==",
-        (
-            "Performance: tolower(Col) == \"x\" converts every row before comparing. Use "
-            "Col =~ \"x\" \u2014 Microsoft: \"Use Col =~ 'lowercasestring'. Don't use "
-            "tolower(Col) == 'lowercasestring'.\""
-        ),
-    ),
-)
-
-# parse_json / dynamic access inside a where, with no term filter on the same
-# column first. Microsoft's documented pattern filters the rows down BEFORE
-# paying for JSON parsing: `| where DynamicColumn has "Rare value" | where
-# DynamicColumn.SomeKey == "Rare value"`.
-_JSON_IN_WHERE = re.compile(r"\|\s*where\s+[^|]*\bparse_json\s*\(", re.IGNORECASE)
+# `_PERF_CHECKS` and `_JSON_IN_WHERE` lived here and are gone. They quoted
+# Microsoft verbatim, and the PROMPT quoted Microsoft separately, so the same
+# sentence existed twice with nothing holding the copies together. Both the
+# words and the checks now come from catalog/kql-rules.yaml -- see
+# validation/kql_rules.py. `union *` and `search` moved with them and changed
+# severity on the way: Microsoft does not support CREATING an alert rule that
+# uses either, so they were never performance findings.
 
 
-def _performance_issues(kql: str) -> list[str]:
-    """Documented KQL performance anti-patterns present in `kql`, as warnings."""
-    bare = _blank_strings_and_comments(kql)  # never match inside a string literal
-    issues = [msg for pattern, msg in _PERF_CHECKS if re.search(pattern, bare, re.IGNORECASE)]
+def _performance_issues(kql: str, context: str = "detection") -> list[str]:
+    """Documented KQL anti-patterns present in `kql`, as warnings.
 
-    if _JSON_IN_WHERE.search(bare):
-        issues.append(
-            "Performance: parse_json() inside a `where` parses every row reaching it. "
-            "Filter with a term match on the raw column first, then parse \u2014 Microsoft: "
-            "`| where DynamicColumn has \"Rare value\" | where DynamicColumn.SomeKey == "
-            "\"Rare value\"`."
-        )
-    return issues
+    Sourced from `catalog/kql-rules.yaml` rather than from a list in this file.
+    The four checks that used to live here quoted Microsoft verbatim and the
+    prompt quoted Microsoft separately, so the same sentence existed twice with
+    nothing holding the copies together -- which is how a rule and its checker
+    came to contradict each other elsewhere in this module.
+    """
+    from . import kql_rules
+
+    return kql_rules.advisory(kql, context)
 
 
 def _operation_literals(kql: str, table: str) -> list[str]:
@@ -700,7 +707,8 @@ def _typed_columns(table: str) -> frozenset[str]:
 
 def validate_kql(kql: str, table_name: str, expected_provider: str = "",
                  *, allow_placeholders: bool = False,
-                 documented: frozenset[str] | None = None) -> ValidationResult:
+                 documented: frozenset[str] | None = None,
+                 context: str = "detection") -> ValidationResult:
     """Validate a generated KQL query against the table's known schema, returning a
     ValidationResult. Checks the query targets the expected table, catches per-table
     hallucination patterns (wrong/nonexistent fields, wrong types, wrong case,
@@ -717,7 +725,8 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
     requires. Named rather than inferred from the table: the same query text is
     right in one phase and wrong in the other, so the caller has to say which."""
     # Query-shape checks first — dead/non-KQL queries fail regardless of table.
-    errors, warnings = _structural_issues(kql, allow_placeholders=allow_placeholders)
+    errors, warnings = _structural_issues(kql, allow_placeholders=allow_placeholders,
+                                          context=context)
 
     # The query must target a table that actually exists. A query whose table is
     # neither the expected one nor any known Azure table is a hallucination — before
@@ -1325,7 +1334,7 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
     for issue in _unpinned_guid_extractions(kql):
         errors.append(issue)
 
-    warnings.extend(_performance_issues(kql))
+    warnings.extend(_performance_issues(kql, context))
 
     unique_errors = list(dict.fromkeys(errors))
     unique_warnings = list(dict.fromkeys(warnings))

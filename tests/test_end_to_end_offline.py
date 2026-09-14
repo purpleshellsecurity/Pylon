@@ -52,6 +52,7 @@ _RAW_FILL = {
                        "so soft-delete cannot bring it back. Every consumer "
                        "authenticating with it fails until it is reissued.",
         why_it_matters=["it cannot be undone", "every consumer is affected"],
+        true_positive_indicators=["first indicator", "second indicator"],
         containment_role="Key Vault Secrets Officer"),
     "AuditLogs": dict(
         what_happened="The actor gave itself a standing directory role.",
@@ -59,6 +60,7 @@ _RAW_FILL = {
                        "directory role outside PIM. The assignment persists "
                        "with no activation record and no expiry.",
         why_it_matters=["it outlives the session", "it bypasses PIM review"],
+        true_positive_indicators=["first indicator", "second indicator"],
         containment_role="Privileged Role Administrator"),
     "AzureActivity": dict(
         what_happened="The actor granted itself Owner through "
@@ -69,6 +71,7 @@ _RAW_FILL = {
                        "Microsoft.KeyVault/vaults. The grant survives until "
                        "someone removes it.",
         why_it_matters=["it spans the whole subscription", "it persists"],
+        true_positive_indicators=["first indicator", "second indicator"],
         containment_role="Owner"),
 }
 
@@ -160,7 +163,7 @@ def test_plan_then_detections_then_playbook(tmp_path, stub_model, target, table,
         "a blank first line on all three planes and nothing here noticed: "
         + repr(doc[:40]))
     heads = [h.strip() for h in re.findall(r"^## (.+)$", doc, re.M)]
-    assert len(heads) == 14, heads
+    assert len(heads) == 15, heads
     assert heads[0] == "Playbook Metadata"
     assert heads.index("Preserve Evidence") < heads.index("Containment")
     assert unfilled(doc) == [], "a blank with no stated source shipped"

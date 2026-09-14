@@ -38,7 +38,7 @@ AzureActivity
 | extend ActorUpn = Caller, ActorId = tostring(parse_json(Claims)["http://schemas.microsoft.com/identity/claims/objectidentifier"])
 | extend ActorName = iff(ActorUpn has "@", tostring(split(ActorUpn, "@")[0]), ""),
          ActorUpnSuffix = iff(ActorUpn has "@", tostring(split(ActorUpn, "@")[1]), "")
-| extend SrcIp = CallerIpAddress, TargetResource = ResourceId, Operation = OperationNameValue
+| extend SrcIp = CallerIpAddress, TargetResource = _ResourceId, Operation = OperationNameValue
 | project TimeGenerated, ActorUpn, ActorName, ActorUpnSuffix, ActorId, SrcIp,
           TargetResource, Operation, ActivityStatusValue, ResourceGroup, SubscriptionId
 | top 30 by TimeGenerated desc;
@@ -53,7 +53,7 @@ AzureActivity
 | extend Props = parse_json(Properties), Auth = parse_json(Authorization)
 | extend AuthAction = tostring(Auth.action), AuthScope = tostring(Auth.scope)
 | extend StatusCode = tostring(Props.statusCode)
-| extend ActorUpn = Caller, SrcIp = CallerIpAddress, TargetResource = ResourceId,
+| extend ActorUpn = Caller, SrcIp = CallerIpAddress, TargetResource = _ResourceId,
          Operation = OperationNameValue
 | project TimeGenerated, Operation, ActorUpn, SrcIp, TargetResource, ResourceGroup,
           SubscriptionId, AuthAction, AuthScope, StatusCode;
@@ -64,7 +64,7 @@ AzureActivity
 AzureActivity
 | where TimeGenerated between (AlertTime - TriageWindow .. AlertTime + TriageWindow)
 | where Caller == AlertActor
-| summarize Operations = dcount(OperationNameValue), Resources = dcount(ResourceId),
+| summarize Operations = dcount(OperationNameValue), Resources = dcount(_ResourceId),
             Subscriptions = dcount(SubscriptionId), Ops = make_set(OperationNameValue, 10)
   by Caller;
 ```

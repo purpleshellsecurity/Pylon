@@ -68,7 +68,7 @@ tables:
           rather than paired with it, because they are different acts: one is an
           attacker gaining reach, the other is a defender losing it, or an
           attacker locking responders out mid-incident.
-      - id: T1562.008
+      - id: T1685.002
         operations:
           - MICROSOFT.INSIGHTS/DIAGNOSTICSETTINGS/DELETE
           - MICROSOFT.INSIGHTS/DIAGNOSTICSETTINGS/WRITE
@@ -90,7 +90,7 @@ tables:
           Azure. The NSG-scoped one is listed separately because Azure emits it
           under the NSG's own resource type rather than under Microsoft.Insights,
           so a filter on the provider alone misses it.
-      - id: T1562.007
+      - id: T1686.001
         operations:
           - MICROSOFT.NETWORK/NETWORKSECURITYGROUPS/SECURITYRULES/WRITE
           - MICROSOFT.NETWORK/NETWORKSECURITYGROUPS/SECURITYRULES/DELETE
@@ -366,7 +366,7 @@ tables:
           Grants a principal access to the vault under the legacy permission model.
           The ARM twin of VaultPut/VaultPatch in AZKVAuditLogs -- same act, different
           door, and a tenant that reads only one of the two tables sees only one.
-      - id: T1562
+      - id: T1685
         operations:
           - MICROSOFT.KEYVAULT/VAULTS/WRITE
           - MICROSOFT.KEYVAULT/MANAGEDHSMS/WRITE
@@ -390,7 +390,7 @@ tables:
           Writing material INTO the vault through ARM. The control-plane twins of
           SecretSet and KeyImport, which are already mapped here on the data-plane
           side.
-      - id: T1562.008
+      - id: T1685.002
         operations:
           - MICROSOFT.KEYVAULT/VAULTS/PROVIDERS/MICROSOFT.INSIGHTS/DIAGNOSTICSETTINGS/WRITE
           - MICROSOFT.KEYVAULT/MANAGEDHSMS/PROVIDERS/MICROSOFT.INSIGHTS/DIAGNOSTICSETTINGS/WRITE
@@ -398,7 +398,7 @@ tables:
           Rewriting the vault's diagnostic setting is how its audit log stops. Every
           data-plane mapping in this repo assumes AZKVAuditLogs is receiving data;
           this operation is how that assumption is made false.
-      - id: T1562.007
+      - id: T1686.001
         operations: [MICROSOFT.KEYVAULT/VAULTS/PRIVATEENDPOINTCONNECTIONSAPPROVAL/ACTION]
         basis: >-
           Approving a private endpoint connection changes who can reach the vault over
@@ -473,7 +473,7 @@ tables:
           Both shapes are legitimate operations that a DBA performs. What makes
           them worth watching is the destination, so a detection here has to read
           the target and cannot rest on the operation name alone.
-      - id: T1562.007
+      - id: T1686.001
         operations:
           - MICROSOFT.SQL/SERVERS/WRITE
           - MICROSOFT.SQL/SERVERS/CONNECTIONPOLICIES/WRITE
@@ -506,7 +506,7 @@ tables:
 
           Deleting the network security perimeter association removes the perimeter
           from the server. The write direction adds protection and is rejected.
-      - id: T1562.008
+      - id: T1685.002
         operations:
           - MICROSOFT.SQL/SERVERS/AUDITINGSETTINGS/WRITE
           - MICROSOFT.SQL/SERVERS/DATABASES/AUDITINGSETTINGS/WRITE
@@ -530,7 +530,7 @@ tables:
           history to immutable storage, which is what makes ledger tamper-evident.
           Disabling the upload does not alter data -- it removes the ability to
           later prove that data was not altered.
-      - id: T1562
+      - id: T1685
         operations:
           - MICROSOFT.SQL/SERVERS/SECURITYALERTPOLICIES/WRITE
           - MICROSOFT.SQL/SERVERS/DATABASES/SECURITYALERTPOLICIES/WRITE
@@ -838,7 +838,7 @@ tables:
 
           config/write is here because it carries appCommandLine, the command the
           app launches with, and linuxFxVersion, the runtime image. It also carries
-          the IP restrictions, which is why it appears again under T1562.007. One
+          the IP restrictions, which is why it appears again under T1686.001. One
           operation, two meanings, and a detection on it MUST read the changed
           properties to say which.
       - id: T1546
@@ -855,7 +855,7 @@ tables:
           Scheduled Task/Job (T1053) would read better for the WebJob and is not
           available: ATT&CK lists it for Windows, Linux and containers with no cloud
           platform at all.
-      - id: T1562.007
+      - id: T1686.001
         operations:
           - MICROSOFT.WEB/SITES/CONFIG/WRITE
           - MICROSOFT.WEB/SITES/NETWORKSECURITYPERIMETERASSOCIATIONPROXIES/DELETE
@@ -1295,7 +1295,7 @@ tables:
           Turning it off does remove material that an investigator might want, and
           it is rejected anyway: it is a performance feature rather than a security
           control, no detection is built on it, and SQL auditing is unaffected. The
-          audit surface that DOES matter is under T1562.008.
+          audit surface that DOES matter is under T1685.002.
         # Workload and capacity management. Shrinking a pool or a workload group
         # can starve an application, which is a slow and unreliable denial of
         # service that ordinary resizing is indistinguishable from.
@@ -1313,7 +1313,7 @@ tables:
           Drops a classifier. Sessions fall back to the default group.
         # Sensitivity labels, the applying direction. Classification is the work a
         # data protection programme does; the disable and delete directions are
-        # mapped under T1562 instead.
+        # mapped under T1685 instead.
         MICROSOFT.SQL/SERVERS/DATABASES/SCHEMAS/TABLES/COLUMNS/SENSITIVITYLABELS/WRITE: >-
           Sets the label on a column. A write can downgrade a label as well as
           apply one, and the operation name cannot say which. Labelling runs
@@ -1327,7 +1327,7 @@ tables:
           Batch update of Azure's own label suggestions, which are advisory until
           someone applies them.
         # Running a vulnerability scan is defensive work. Suppressing its findings
-        # is the attack and that is mapped under T1562.
+        # is the attack and that is mapped under T1685.
         MICROSOFT.SQL/SERVERS/SQLVULNERABILITYASSESSMENTS/INITIATESCAN/ACTION: >-
           Starts a scan. Finding weaknesses is the defender's activity.
         MICROSOFT.SQL/SERVERS/DATABASES/SQLVULNERABILITYASSESSMENTS/INITIATESCAN/ACTION: >-
@@ -1426,7 +1426,7 @@ tables:
           Azure's network resource provider backfilling properties onto a
           connection it already created.
         # Network security perimeter, the tightening direction. Removing the
-        # association is mapped under T1562.007.
+        # association is mapped under T1686.001.
         MICROSOFT.SQL/SERVERS/JOINPERIMETER/ACTION: >-
           Adds the server to a network security perimeter, which restricts it.
         MICROSOFT.SQL/SERVERS/NETWORKSECURITYPERIMETERASSOCIATIONPROXIES/WRITE: >-
@@ -1608,7 +1608,7 @@ tables:
           network path lists a cloud platform, not because it does not matter.
         MICROSOFT.WEB/SITES/NETWORKSECURITYPERIMETERASSOCIATIONPROXIES/WRITE: >-
           Creates the association that puts the app inside a network security
-          perimeter, which restricts it. The delete is mapped under T1562.007.
+          perimeter, which restricts it. The delete is mapped under T1686.001.
         MICROSOFT.WEB/SITES/NETWORKSECURITYPERIMETERCONFIGURATIONS/ACTION: >-
           Re-applies the perimeter configuration the app already has.
         MICROSOFT.WEB/SITES/PREMIERADDONS/DELETE: >-
@@ -2108,7 +2108,7 @@ tables:
         basis: >-
           Signing with a vault key produces authentication material the attacker did
           not have to steal outright.
-      - id: T1562
+      - id: T1685
         # Impair Defenses
         operations:
           - KeyRotationPolicySet
@@ -2215,6 +2215,23 @@ tables:
   # ── Storage ─────────────────────────────────────────────────────────────────
   StorageBlobLogs:
     platform: IaaS
+    # An operation whose TECHNIQUE is early-chain but which is not something to
+    # bury. The tier floor lowers a discovery or reconnaissance technique out of
+    # critical and high, which is right for enumeration and wrong for the few
+    # operations that read an authorization boundary. Reading who may reach a
+    # container is the step before deciding to widen it.
+    #
+    # An exception must say why THIS operation differs from the rest of its
+    # technique. "It feels important" is not a reason; being the last read
+    # before a permission change is.
+    tier_exceptions:
+      GetContainerACL: >-
+        Reads the access policy on a container. The technique is Permission
+        Groups Discovery and most of it is enumeration, but this specific read
+        is the step immediately before a container is made public, and hearing
+        about it after the listing that preceded it is hearing about it late.
+      GetPathAccessControl: >-
+        The same read against an ADLS path. Same reasoning, same boundary.
     plane: data
     # Every operation Microsoft publishes for this table, mapped or rejected.
     # The list is theirs, not ours: the blob monitoring reference names Storage
@@ -2349,7 +2366,7 @@ tables:
 
           Rare in ordinary traffic and easy to miss, because it reads as a key
           retrieval rather than as a credential being created.
-      - id: T1562.008
+      - id: T1685.002
         operations:
           - SetBlobServiceProperties
         basis: >-
@@ -2470,7 +2487,7 @@ tables:
         Restores data. The delete it undoes is mapped under T1485.
       GetBlobServiceProperties: >-
         Reads the logging configuration rather than changing it. The write, which
-        is how logging is turned off, is mapped under T1562.008.
+        is how logging is turned off, is mapped under T1685.002.
       BlobPreflightRequest: >-
         A browser asking whether a cross-origin request is allowed. Issued by the
         browser, not by the caller, and it carries no identity.
@@ -2583,7 +2600,7 @@ tables:
           ATT&CK's technique for permission changes, T1222, lists no cloud platform,
           so Account Manipulation is the nearest available reading -- the same one
           this catalogue uses for Key Vault access policies and for container ACLs.
-      - id: T1562.008
+      - id: T1685.002
         operations:
           - SetFileServiceProperties
         basis: >-
@@ -2660,7 +2677,7 @@ tables:
         Progress of a copy already started. The copy is mapped.
       GetFileServiceProperties: >-
         Reads the logging configuration rather than changing it. The write, which
-        is how logging is turned off, is mapped under T1562.008.
+        is how logging is turned off, is mapped under T1685.002.
       GetFileShareUniqueId: >-
         An internal identifier used by the service. It reveals nothing about the
         share's contents or access.
@@ -2760,7 +2777,7 @@ tables:
           Finding out what queues exist and how much is in them before reading. The
           metadata read carries the approximate message count, which is how a caller
           picks the queue worth taking.
-      - id: T1562.008
+      - id: T1685.002
         operations:
           - SetQueueServiceProperties
         basis: >-
@@ -2796,7 +2813,7 @@ tables:
         service and change no access.
       GetQueueServiceProperties: >-
         Reads the logging configuration rather than changing it. The write, which
-        is how logging is turned off, is mapped under T1562.008.
+        is how logging is turned off, is mapped under T1685.002.
       UpdateMessage: >-
         The same judgment as PutMessage above. Extending a visibility timeout also
         hides a message from other readers, which is a delay rather than a loss.
@@ -2824,7 +2841,7 @@ tables:
           - QueryTables
         basis: >-
           Finding out what tables exist before reading them.
-      - id: T1562.008
+      - id: T1685.002
         operations:
           - SetTableServiceProperties
         basis: >-
@@ -2863,11 +2880,96 @@ tables:
         that overwrite existing rows are mapped under T1486.
       GetTableServiceProperties: >-
         Reads the logging configuration rather than changing it. The write, which
-        is how logging is turned off, is mapped under T1562.008.
+        is how logging is turned off, is mapped under T1685.002.
       TablePreflightRequest: >-
         A browser asking whether a cross-origin request is allowed. Issued by the
         browser, not by the caller, and it carries no identity.
   # ── Databases ───────────────────────────────────────────────────────────────
+  # Admitted to a run once each had a measured contract. No technique map yet:
+  # their operation vocabulary is the values counted in a workspace, which the
+  # contract owns, and mapping those to ATT&CK is separate work. `techniques`
+  # is empty and says so rather than being absent.
+  AppServiceAuditLogs:
+    platform: azure
+    plane: data
+    note: >-
+      Publishing-endpoint logons -- Kudu, FTP, WebDeploy. A row is somebody
+      authenticating to the path used to replace the app's own code.
+    techniques: []
+
+  AppServiceFileAuditLogs:
+    platform: azure
+    plane: data
+    note: >-
+      The web-shell surface. A row names the FILE that changed, the operation and
+      the writing process, and nobody at all -- the WHO comes from
+      AppServiceAuditLogs over the same window. Measured 2026-09-14 on a Windows
+      Premium app, the only place the platform offers this category.
+    techniques:
+      - id: T1505.003
+        operations: [Create/Update]
+        basis: >-
+          Writing content into the app's own storage through the publishing
+          endpoint. This is the primitive a web shell is planted with, and the
+          measured rows show it directly: Create/Update on
+          /site/wwwroot/shell1.aspx by Kudu/WebDeploy.
+        # WHY A HOST TECHNIQUE ON A CLOUD OPERATION, deliberately and with the
+        # rule's own exception. ATT&CK tags T1505.003 Linux/Windows/macOS and
+        # not IaaS, and Pylon's rule says never use a host technique for a cloud
+        # operation. The alternative in the cloud matrix is T1648 Serverless
+        # Execution, and its tactic is EXECUTION where this is PERSISTENCE.
+        #
+        # That is not a labelling technicality. A responder shown "Execution"
+        # looks for transient code-run activity; the actual situation is a
+        # backdoor sitting in the site waiting to be invoked. Trading a correct
+        # tactic for a correct platform tag makes the alert say the wrong thing
+        # about what is happening.
+        #
+        # Considered and rejected: T1648's own description does name "Web
+        # servers" among its examples, so the objection that it is FaaS-only is
+        # weaker than it first appears -- the tactic is the reason, not the
+        # resource type.
+        platform_exception: >-
+          App Service compute inherits host-platform techniques from its
+          underlying Windows or Linux runtime. A control-plane or data-plane LOG
+          SOURCE does not restrict which platform's techniques apply to what ran
+          on the host. Reusable for any PaaS-observed-via-cloud-logs case.
+      - id: T1485
+        operations: [Delete]
+        basis: >-
+          Deleting the app's own content. Measured: Delete on
+          /site/wwwroot/shell2.aspx and /site/wwwroot/pylon-probe.aspx. Cloud
+          tagged (IaaS) and tactic impact, so no exception is needed here.
+    # Measured, not assumed: every RenameTo and RenameFrom row was Kudu rotating
+    # its own request-trace XML under /LogFiles/kudu/trace/, seven of each and
+    # always in pairs. No site-content row carried either.
+    rejected:
+      RenameTo: R-kudu-trace
+      RenameFrom: R-kudu-trace
+    rejection_rules:
+      R-kudu-trace: >-
+        Kudu's own request-trace files, written once per API call under
+        /LogFiles/kudu/trace/. The trace FILENAME contains the path of the file
+        the call touched, so a detection matching a path without first filtering
+        `Path startswith "/site/wwwroot"` matches the trace as well as the write.
+        49 of 58 measured rows.
+
+  AppServiceIPSecAuditLogs:
+    platform: azure
+    plane: data
+    note: >-
+      One access-restriction decision per row. An empty table means restrictions
+      are unconfigured, not that nobody probed the app.
+    techniques: []
+
+  FunctionAppLogs:
+    platform: azure
+    plane: data
+    note: >-
+      Functions host lifecycle and invocation logs, including the app's own
+      logging calls. No caller on either kind of row.
+    techniques: []
+
   AuditLogs:
     platform: Identity Provider
     plane: identity
@@ -3470,7 +3572,7 @@ tables:
           Custom extensions are the other shape: an access package or a lifecycle
           workflow calls out to a Logic App at a URL the tenant nominates, and
           whoever controls that endpoint sits inside the approval path.
-      - id: T1562
+      - id: T1685
         operations:
           - Create access review
           - Create Filtering Policy
@@ -3607,7 +3709,7 @@ tables:
         The opposite direction is not covered by this rule and is mapped.
         Dismissing a risk, marking an account safe when it is not, and clearing a
         detection are how an attacker quiets Identity Protection, and those are
-        under T1562.
+        under T1685.
       R-lifecycle-admin: >-
         Ordinary directory administration that grants no access and destroys no
         data: licence assignment, group expiry policy, recommendation dismissal,

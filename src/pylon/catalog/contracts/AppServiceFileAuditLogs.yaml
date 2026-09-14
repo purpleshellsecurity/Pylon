@@ -1,0 +1,128 @@
+# How a detection reads App Service file-content changes. Measured against 58
+# real rows produced by writing, overwriting and deleting files through the Kudu
+# VFS API on a Windows Premium app.
+#
+# THE WEB-SHELL TABLE. AppServiceAuditLogs records that somebody authenticated to
+# the publishing endpoint; this records what they then wrote into the site. It is
+# the only App Service surface that names the file.
+table: AppServiceFileAuditLogs
+plane: data
+platform: azure
+columns: 9
+
+# WHY IT TOOK THIS LONG TO MEASURE, and what a customer has to do to have it.
+# Microsoft's own table: Windows "Yes", Linux "TBA", and "only available for
+# Premium tier and above". The lab app was Linux on a Y1 Consumption plan, so
+# the category was not offered at all -- `az monitor diagnostic-settings
+# categories list` returned four categories there and nine on a Windows Premium
+# app. Not a setting anyone forgot to enable.
+availability:
+  windows: yes
+  linux: "TBA -- not offered"
+  minimum_tier: Premium
+  consequence: >-
+    A Linux or Consumption app CANNOT produce this table. An empty result there
+    means the platform does not offer it, not that nothing was written.
+
+operation:
+  column: OperationName
+  operator: "=="
+  why: >-
+    Stable-cased and small. This is the one App Service data-plane table with a
+    real operation vocabulary -- the other three have a single value, an
+    outcome, or a .NET logger name -- which is what makes it mappable to a
+    technique at all.
+
+what_a_row_means: >-
+  A file under the app's own storage was created, overwritten, renamed or
+  deleted. Planting a web shell IS this event; AppServiceAuditLogs shows the
+  logon that preceded it.
+
+# EIGHTY-FIVE PERCENT OF THIS TABLE IS KUDU TALKING TO ITSELF. Measured: 49 of
+# 58 rows are Kudu's own request-trace XML under /LogFiles/kudu/trace/, written
+# once per API call, and the trace FILENAME contains the path of the file the
+# call touched -- so a naive `Path has "shell.aspx"` matches the trace as well
+# as the write and multiplies every finding.
+noise:
+  share: 49 of 58 rows
+  where: /LogFiles/kudu/trace/
+  rule: >-
+    Filter `Path startswith "/site/wwwroot"` before anything else. Without it a
+    detection is 85% Kudu trace files and its counts are meaningless.
+
+roles:
+  who: none -- this table names NOBODY, see attribution below
+  what: OperationName
+  target: Path
+  how: Process
+  scope: [_ResourceId]
+
+typing:
+  TimeGenerated: datetime
+  Category: string
+  OperationName: string
+  Path: string
+  Process: string
+
+# There is no identity column of any kind. Nine columns, and not one names a
+# principal. The WHO has to come from AppServiceAuditLogs over the same window
+# -- and that table only names a person when its own Protocol is Bearer, so on
+# a basic-auth publish the answer is "$sitename" and nobody at all.
+attribution:
+  # No `gate` key at all, because there is no condition under which this table
+  # names anybody. "gate: none" would be a STRING the checker then tries to
+  # split into a comparison; absence is the honest way to say there is none.
+  join_for_who: >-
+    AppServiceAuditLogs on _ResourceId and time. See that table's own
+    attribution gate: a Kudu or FTP publish names the site credential, not a
+    person, so a file write attributed through it is attributed to the app.
+
+observed_values:
+  OperationName: [Create/Update, Delete, RenameTo, RenameFrom]
+  Process: [Kudu/WebDeploy, WebApp]
+
+  OperationName_note: >-
+    All four measured. RenameTo and RenameFrom always appear as a PAIR, seven
+    of each, and both are Kudu rotating its own trace file rather than anything
+    touching site content -- no site-content row carried either.
+  Process_note: >-
+    Kudu/WebDeploy is a publish through the deployment endpoint: 53 rows across
+    18 paths. WebApp is the application writing its own files: 5 rows, and both
+    of its site-content rows were on the DIRECTORY `/site/wwwroot/` rather than
+    on a file. A write attributed to Kudu/WebDeploy on an executable extension
+    is the shape worth alerting on.
+
+# Neither set is closed. WebDeploy and FTP publishing were not exercised here,
+# and an app writing genuine content files would widen Process's meaning.
+vocabulary_complete: []
+
+shape:
+  - time filter is the first operator after the table name
+  - filter `Path startswith "/site/wwwroot"` SECOND, before any path matching
+  - no dedupe key is needed; one file operation writes one row
+  - project Process; a write by WebApp and a write by Kudu/WebDeploy are
+    different events and the path alone does not separate them
+
+recipes:
+  # The web-shell shape. Executable extensions written into site content
+  # through the publishing endpoint.
+  content_written_by_publish: |
+    AppServiceFileAuditLogs
+    | where TimeGenerated > ago({window})
+    | where Path startswith "/site/wwwroot"
+    | where Process == "Kudu/WebDeploy"
+    | where OperationName == "Create/Update"
+    | where Path has_any (".aspx", ".asp", ".php", ".jsp", ".ashx", ".asmx")
+    | project TimeGenerated, OperationName, Path, Process, _ResourceId
+  content_deleted: |
+    AppServiceFileAuditLogs
+    | where TimeGenerated > ago({window})
+    | where Path startswith "/site/wwwroot"
+    | where OperationName == "Delete"
+    | project TimeGenerated, OperationName, Path, Process, _ResourceId
+
+reference_query: |
+  AppServiceFileAuditLogs
+  | where TimeGenerated > ago({window})
+  | where Path startswith "/site/wwwroot"
+  | project TimeGenerated, OperationName, Path, Process, _ResourceId

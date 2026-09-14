@@ -38,23 +38,14 @@ __SERVICE__
 __NORMALISE_FULL__
 | where ActorUpn == AlertActor or ActorId == AlertActor
 | where ActorUpn !in (AllowedActors)
-| extend SrcIp = CallerIpAddress, Operation = OperationName, TargetResource = _ResourceId
+__NORMALISE_CONTEXT__
 | project TimeGenerated, ActorUpn, ActorId, SrcIp, UserAgent, Operation,
           TargetResource, IsFailure
 | top 30 by TimeGenerated desc;
 ```
 
 <!-- SLOT: investigation -->
-**Query 1 — Everything in the same correlated operation:**
-```kql
-let AlertCorrelationId = "[FROM ALERT: CorrelationId]";
-__SERVICE__
-| where TimeGenerated between (AlertTime - 1h .. AlertTime + 1h)
-// CorrelationId is what joins this data-plane action to the ARM change in
-// AzureActivity that enabled it.
-| where CorrelationId == AlertCorrelationId
-| project TimeGenerated, OperationName, CallerIpAddress, _ResourceId;
-```
+__CORRELATED_QUERY__
 
 <!-- SLOT: blast_radius -->
 ```kql
@@ -62,8 +53,8 @@ __SERVICE__
 | where TimeGenerated between (AlertTime - TriageWindow .. AlertTime + TriageWindow)
 __NORMALISE_ACTOR__
 | where ActorUpn == AlertActor
-| summarize Operations = dcount(OperationName), Resources = dcount(_ResourceId),
-            Ops = make_set(OperationName, 15);
+| summarize Operations = dcount(__OPERATION_COLUMN__), Resources = dcount(_ResourceId),
+            Ops = make_set(__OPERATION_COLUMN__, 15);
 ```
 For a secrets store, distinct objects read IS the exposure count.
 
@@ -81,7 +72,7 @@ let BaselineIps = toscalar(
     Events
     | where TimeGenerated between (LookbackStart .. WinStart)
     | where ActorUpn == AlertActor
-    | summarize make_set(CallerIpAddress, 500));
+    | summarize make_set(__SRC_IP__, 500));
 let BaselinePerHour = toscalar(
     Events
     | where TimeGenerated between (LookbackStart .. WinStart)
@@ -91,12 +82,12 @@ Events
 | where TimeGenerated between (WinStart .. WinEnd)
 | where ActorUpn == AlertActor
 | summarize Ops = count(),
-            Reads  = countif(OperationName has_any ([the read operations for this table])),
-            Writes = countif(OperationName has_any ([the write operations for this table])),
+            Reads  = countif(__OPERATION_COLUMN__ has_any ([the read operations for this table])),
+            Writes = countif(__OPERATION_COLUMN__ has_any ([the write operations for this table])),
             Succeeded = countif(not(IsFailure)),
             Failed    = countif(IsFailure),
-            Operations = make_set(OperationName, 100),
-            SrcIps = make_set(CallerIpAddress, 50)
+            Operations = make_set(__OPERATION_COLUMN__, 100),
+            SrcIps = make_set(__SRC_IP__, 50)
 | extend WindowPerHour = round(todouble(Ops) / ((WinEnd - WinStart) / 1h), 2),
          BaselinePerHour = round(BaselinePerHour, 2),
          NewSrcIps = set_difference(SrcIps, BaselineIps)
@@ -164,7 +155,7 @@ __SERVICE__
 __NORMALISE_ACTOR_FAIL__
 | where TimeGenerated > ContainmentTime
 | where ActorUpn == AlertActor
-| where OperationName __OPERATOR__ "[the operation from Phase 2]"
+| where __OPERATION_COLUMN__ __OPERATOR__ "[the operation from Phase 2]"
 | summarize Attempts = count(), Successes = countif(not(IsFailure))
     by bin(TimeGenerated, 5m);
 ```

@@ -1,14 +1,19 @@
 """A query is not confined to one table, and the column check assumed it was.
 
-The prompt REQUIRES this line, on every plane:
+The shape that exposed it:
 
     let AllowedActors = _GetWatchlist('ApprovedAutomation') | project SearchKey;
 
 `SearchKey` is a column of the WATCHLIST. The check walked every identifier in
-the query and measured each against the target table's schema, so it read the
-scaffolding the prompt mandates as a fabricated column. Harmless as a warning;
-once the finding became an error it killed 16 of 19 detections in a live Entra
-run, every one with the same message, and the run reported 17% yield.
+the query and measured each against the target table's schema, so it read that
+line as a fabricated column. Harmless as a warning; once the finding became an
+error it killed 16 of 19 detections in a live Entra run, every one with the same
+message, and the run reported 17% yield.
+
+The prompt no longer MANDATES this line -- the mandate was wrong advice on a
+privileged grant and impossible to satisfy besides -- but a detection may still
+read a watchlist, and a query may still bind a `let` that reads another table.
+Foreign-scope handling is what this file protects, and that is unchanged.
 
 A `let` binding whose body never names the target table is a foreign scope. A
 binding that DOES read the target table stays in scope, because that is where a
@@ -35,9 +40,13 @@ def _docs(table: str) -> frozenset[str]:
     ("AZKVAuditLogs", "OperationName"),
     ("StorageBlobLogs", "OperationName"),
 ])
-def test_the_scaffolding_the_prompt_mandates_validates(table, filter_col):
+def test_a_watchlist_binding_does_not_read_as_a_fabricated_column(table, filter_col):
+    # Terminated, because a let-form query must be: Sentinel appends its own
+    # operators to an alert rule and a missing semicolon is a deploy-time parse
+    # error. The rule that says so is in catalog/kql-rules.yaml, and this
+    # fixture used to break it.
     kql = (f'{_SCAFFOLD}{table}\n| where TimeGenerated > ago(1h)\n'
-           f'| where {filter_col} != ""\n| project TimeGenerated, {filter_col}')
+           f'| where {filter_col} != ""\n| project TimeGenerated, {filter_col};')
     result = validate_kql(kql, table, documented=_docs(table))
     assert result.valid, result.errors
     assert not any("SearchKey" in f for f in result.errors + result.warnings)

@@ -199,6 +199,132 @@ def verdict(expected: int | None, observed: int | None, *,
     return "exact", f"{observed} rows for {expected} events"
 
 
+# ── Why did it match nothing? ─────────────────────────────────────────────────
+#
+# `no-match` said "either the attack did not happen here or a filter is wrong,
+# and counting the operation cannot tell them apart". That was true of the
+# operation count and false of the query: rerunning it with one filter removed
+# at a time says exactly which line took the rows to zero, and it costs one
+# workspace query per filter and no model calls.
+#
+# Measured on a real run: a Key Vault deletion detection matched 0 of 32 events
+# because it required `ResourceGroup has "prod"`, and every resource group in
+# that tenant is named EDRLAB-SECRETS-RG or DETECTIONTEST-RG-985490. Finding
+# that by hand took four queries and reading the KQL. The reader of a verdict
+# should not have to do either.
+
+# Operators that SHAPE the output rather than filter it. Dropped from every
+# prefix: a `project` narrowing columns or a `top 30` is not why a query found
+# nothing, and keeping them makes the count answer a different question.
+_SHAPING = re.compile(
+    r"^\s*(project|project-away|project-keep|project-rename|project-reorder"
+    r"|top|order|sort|take|limit|render|distinct|serialize|getschema)\b",
+    re.IGNORECASE)
+
+# A dedupe is KEPT: it is how the query counts, and dropping it inflates every
+# row in the peel by the duplication factor of the workspace.
+_IS_DEDUPE = re.compile(
+    r"^\s*summarize\s+take_any\s*\(\s*\*\s*\)\s+by\b", re.IGNORECASE)
+
+_IS_WHERE = re.compile(r"^\s*where\b", re.IGNORECASE)
+
+# Peeling a query whose rows come from more than one source says nothing: the
+# prefix of a join is not the join, and removing a filter on one leg changes
+# what the other leg is joined to.
+_MULTI_SOURCE = re.compile(r"\|\s*(join|union|lookup)\b", re.IGNORECASE)
+
+
+def _segments(body: str) -> list[str]:
+    """`body` split on the pipes that separate operators.
+
+    Top level only. A `|` inside a string literal, a bracket or a parenthesis
+    belongs to an expression -- `iff(x, "a|b", "c")`, `set_difference(a, b)` --
+    and splitting there produces two fragments that are each invalid KQL.
+    """
+    out, depth, quote, current = [], 0, "", []
+    for ch in body:
+        if quote:
+            current.append(ch)
+            if ch == quote:
+                quote = ""
+            continue
+        if ch in "\"'":
+            quote = ch
+        elif ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth -= 1
+        elif ch == "|" and depth == 0:
+            out.append("".join(current))
+            current = []
+            continue
+        current.append(ch)
+    out.append("".join(current))
+    return out
+
+
+def peel(kql: str, count: "Callable[[str], int | None]") -> list[tuple[str, int | None]]:
+    """[(what was added, rows surviving)] as the query's filters go back on one
+    at a time. Empty when the query cannot be peeled.
+
+    The first row is the query with no filters at all, so a reader can see the
+    denominator the rest are measured against. The row where the count reaches
+    zero names the filter that killed it.
+    """
+    from .validate import _pipeable
+
+    body = _blank(kql)
+    if _MULTI_SOURCE.search(body):
+        return []
+    # `let` statements apply to every prefix and are not part of the pipeline.
+    lets, _, pipeline = body.rpartition(";")
+    lets = f"{lets};" if lets.strip() else ""
+    segments = _segments(pipeline)
+    if len(segments) < 2:
+        return []
+    source, rest = segments[0].strip(), segments[1:]
+    if not source:
+        return []
+
+    kept = [seg for seg in rest if not _SHAPING.match(seg)]
+    wheres = [i for i, seg in enumerate(kept) if _IS_WHERE.match(seg)]
+    if len(wheres) < 2:
+        # One filter and no rows is already unambiguous: that filter is the one.
+        return []
+
+    out: list[tuple[str, int | None]] = []
+    for stop in [None] + wheres:
+        if stop is None:
+            prefix = [seg for seg in kept if not _IS_WHERE.match(seg)
+                      and not _IS_DEDUPE.match(seg)]
+            label = f"{source} (no filters)"
+        else:
+            prefix = kept[:stop + 1]
+            label = " ".join(kept[stop].split())
+        # NO `| count` here. `count` is documented as "runs a query and
+        # returns a row count" and every caller appends its own `| count`;
+        # appending a second one counts the count, so every line of the peel
+        # came back 1 -- a table of 1s that runs clean and says nothing.
+        query = _pipeable(lets + source + "".join(f" |{seg}" for seg in prefix))
+        out.append((label, count(query)))
+    return out
+
+
+def killed_by(rows: list[tuple[str, int | None]]) -> str:
+    """The filter where the count reached zero, or "" when none did.
+
+    Named separately from `peel` because the table is worth printing whole --
+    a filter that drops 28 rows to 1 is worth seeing even when the one that
+    reaches zero is further down.
+    """
+    previous = None
+    for label, n in rows:
+        if n == 0 and previous not in (0, None):
+            return label
+        previous = n
+    return ""
+
+
 def measure(kql: str, table: str, operation: str, window: str,
             count: "Callable[[str], int | None]") -> "DetectionVerification":
     """Grade one detection against real events. `count` runs a query and
@@ -218,7 +344,7 @@ def measure(kql: str, table: str, operation: str, window: str,
     OperationNameValue and leaves OperationName empty -- so it is resolved per
     table rather than hardcoded.
     """
-    from .models import DetectionVerification
+    from .models import DetectionVerification, NarrowingStep
     from .services import operation_column
     from .validate import _pipeable
 
@@ -228,9 +354,25 @@ def measure(kql: str, table: str, operation: str, window: str,
     observed = count(_pipeable(widened))
     call, detail = verdict(expected, observed, groups=aggregates(kql),
                            narrowed=narrows(kql))
+
+    # Only when there is something to explain, and only when the events exist:
+    # peeling a query with no ground truth measures how the tenant is quiet,
+    # not how the query is wrong.
+    steps: list[NarrowingStep] = []
+    cause = ""
+    if observed == 0 and expected:
+        rows = peel(widened, count)
+        steps = [NarrowingStep(filter=f, rows=n) for f, n in rows]
+        cause = killed_by(rows)
+        if cause:
+            detail = (f"{detail}. The filter that took it to zero: {cause}"
+                      if call == "no-match"
+                      else f"{detail}. Rows reached zero at: {cause}")
+
     return DetectionVerification(
         vector_name="", operation=operation, expected=expected,
-        observed=observed, verdict=call, detail=detail, widened=was_widened)
+        observed=observed, verdict=call, detail=detail, widened=was_widened,
+        narrowing=steps, killed_by=cause)
 
 
 # The verdicts that mean something is wrong, as opposed to unproven.

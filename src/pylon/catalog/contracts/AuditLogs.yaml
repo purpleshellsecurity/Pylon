@@ -61,7 +61,15 @@ outcome_values:
 
 # Present in the schema, never carrying a value here. A filter on one matches
 # nothing and projecting one implies a field that was never there.
-never_populated: [Level, Location, ResourceProvider, ResultSignature, ResultType]
+never_populated: [Level, Location, ResourceProvider, ResultType]
+
+# Populated, and worthless. ResultSignature carries the literal string "None" on
+# all 412 rows. It was recorded as never-populated because the measuring script
+# treated the string "None" as absence -- a column holding "None" IS populated,
+# `isnotempty()` is true for every row, and a filter on it neither narrows nor
+# excludes anything.
+useless_columns:
+  ResultSignature: always the literal string "None"
 
 # The principal is not a column. It is a dynamic object with TWO mutually
 # exclusive branches, and which one is present says what kind of actor it was.

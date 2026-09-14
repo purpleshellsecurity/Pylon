@@ -104,7 +104,15 @@ def test_every_hand_written_table_has_a_harvest_to_check_it_against():
     hand-written vocabularies with nothing to compare them to, for tables no
     target can fire on. Every remaining table has two sources, so every name in
     the judged layer is one a script can check against Microsoft's own list."""
-    only_hand = sorted(set(_hand_written()) - set(_harvested()))
+    # A vocabulary declared `source: measured` is exempt, because the thing it
+    # would be checked against does not exist: Microsoft publishes no operation
+    # list for AppServiceFileAuditLogs, so there is no harvest to disagree with.
+    # The exemption is earned, not granted -- verify-contracts.py re-measures
+    # those values against a live workspace on every run, which is a stronger
+    # check than agreeing with a documentation page.
+    doc = yaml.safe_load((_CATALOG / "data-plane-operations.yaml").read_text(encoding="utf-8"))
+    measured = {t for t, b in doc["tables"].items() if b.get("source") == "measured"}
+    only_hand = sorted(set(_hand_written()) - set(_harvested()) - measured)
     assert only_hand == [], (
         f"these have no harvest to check against: {only_hand}. Either the harvest "
         f"is missing the table, or the vocabulary is unverifiable and should not "

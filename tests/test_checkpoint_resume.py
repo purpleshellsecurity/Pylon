@@ -51,7 +51,7 @@ def _stub_agent(counters):
                 )
             else:
                 from pylon.playbook import PlaybookFill
-                r.value = PlaybookFill(what_happened="The actor reached the object.", why_it_matters=["The material is now disclosed", "The actor still holds the access"], attack_context="The actor reached the object. It matters because the material is now disclosed.", containment_role="Key Vault Secrets Officer")
+                r.value = PlaybookFill(what_happened="The actor reached the object.", why_it_matters=["The material is now disclosed", "The actor still holds the access"], attack_context="The actor reached the object. It matters because the material is now disclosed.", true_positive_indicators=["The principal has no prior data-plane history", "The read was followed by an export"], containment_role="Key Vault Secrets Officer")
             return r
 
         m.run = run

@@ -15,10 +15,29 @@ operation:
     It exists in the schema and is NEVER populated. Measured: 0 of 2000 rows.
     Filtering on it parses, runs, and matches nothing.
 
-# Eight columns are in the schema and never carry a value. Projecting one puts
+# Seven columns are in the schema and never carry a value. Projecting one puts
 # an empty column in the output and implies the field was absent on that event.
-never_populated: [ActivityStatus, ActivitySubstatus, Category, OperationId,
+never_populated: [ActivityStatus, ActivitySubstatus, Category,
                   OperationName, Resource, ResourceId, ResourceProvider]
+
+# OperationId WAS on that list and the verifier caught it. Re-measured over 90
+# days: 14 rows of 35,274 carry it -- 0.04% -- and all fourteen are
+# Microsoft.Security/locations/alerts/activate/action with status Active, where
+# it repeats CorrelationId exactly. A Defender for Cloud alert activation, not
+# an ARM operation anyone writes a detection against.
+#
+# Kept out of never_populated because the claim is false, and kept out of the
+# usable columns because 0.04% is not attribution. A detection reaching for a
+# correlation key uses CorrelationId, which every row carries.
+effectively_empty:
+  OperationId:
+    rows: 14
+    of: 35274
+    only_on: Microsoft.Security/locations/alerts/activate/action
+    duplicates: CorrelationId
+    guidance: >-
+      Treat as empty. If you need a correlation key use CorrelationId, which is
+      populated on every row and is the same value where both exist.
 
 roles:
   who: Caller

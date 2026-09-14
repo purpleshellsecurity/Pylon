@@ -108,7 +108,54 @@ def test_a_narrowed_query_can_reach_no_match_from_verify():
 def test_the_same_query_without_narrowing_is_still_dead():
     plain = ('AzureActivity\n| where TimeGenerated > ago(1h)\n'
              '| where OperationNameValue =~ "X"')
-    counts = iter([110, 0])
-    graded = verification.measure(plain, "AzureActivity", "X", "30d",
-                                  lambda _kql: next(counts))
+    # Answers by CONTENT rather than by call order. `measure` used to make
+    # exactly two calls and a two-element iterator encoded that; it now also
+    # peels the filters when a query matched nothing, so a fixed-length
+    # iterator made this test assert the call count rather than the verdict.
+    def count(kql: str) -> int:
+        return 110 if "| count" not in kql and kql.count("where") <= 1 else 0
+
+    graded = verification.measure(plain, "AzureActivity", "X", "30d", count)
     assert graded.verdict == "dead"
+
+
+def test_the_peel_does_not_count_the_count():
+    """`count` is "run this and tell me how many rows", and every caller
+    appends its own `| count`. The peel appended a second one, so each line
+    counted the one-row output of the first and the whole table came back 1s --
+    valid KQL, a clean run, and no information."""
+    seen: list[str] = []
+
+    def count(kql: str) -> int:
+        seen.append(kql)
+        return 0
+
+    verification.peel(
+        'AzureActivity\n| where TimeGenerated > ago(1h)\n'
+        '| where OperationNameValue =~ "X"\n| where ResourceGroup has "prod"',
+        count)
+    assert seen, "the peel ran nothing"
+    assert not any("| count" in q for q in seen), seen
+
+
+def test_the_peel_names_the_filter_that_reached_zero():
+    rows = [("T (no filters)", 900), ("where a", 32), ("where b", 28),
+            ("where c", 0)]
+    assert verification.killed_by(rows) == "where c"
+
+
+def test_a_query_that_never_reaches_zero_names_nothing():
+    """Guards the off-by-one shape: a peel whose first line is already zero has
+    no filter to blame, and neither does one that keeps rows throughout."""
+    assert verification.killed_by([("T", 0), ("where a", 0)]) == ""
+    assert verification.killed_by([("T", 9), ("where a", 4)]) == ""
+
+
+def test_a_joined_query_is_not_peeled():
+    """The prefix of a join is not the join. Removing a filter on one leg
+    changes what the other leg joins to, so the counts would describe a query
+    nobody wrote."""
+    joined = ('AzureActivity | where TimeGenerated > ago(1h)\n'
+              '| where OperationNameValue =~ "X"\n'
+              '| join kind=inner (AzureActivity | where Caller != "") on CorrelationId')
+    assert verification.peel(joined, lambda _k: 0) == []

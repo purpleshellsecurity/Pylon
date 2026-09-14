@@ -35,6 +35,26 @@ def for_table(table: str) -> dict:
     return next((v for k, v in _tables().items() if k.lower() == tl), {})
 
 
+def table_name(key: str) -> str:
+    """The table a correlation key actually reads.
+
+    For every ordinary entry the key IS the table. For a shared-table entry the
+    key is a composite -- "AzureDiagnostics/MICROSOFT.SQL/SQLSecurityAuditEvents"
+    -- because "which column holds the caller" has one answer per service there,
+    and the query still has to say `AzureDiagnostics`.
+    """
+    return for_table(key).get("table") or key
+
+
+def scope(key: str) -> str:
+    """The predicate that narrows a shared table to one service, or "".
+
+    Without it a query on AzureDiagnostics returns every service in the tenant
+    that writes there -- the contract's defining warning about this table.
+    """
+    return for_table(key).get("scope", "")
+
+
 def has_table(table: str) -> bool:
     """True if `table` is covered by the correlation map (case-insensitive)."""
     return bool(for_table(table))

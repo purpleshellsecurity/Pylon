@@ -43,10 +43,25 @@ def test_case_and_inner_whitespace_fold_too():
     assert is_known("ADD CONDITIONAL ACCESS POLICY")
 
 
-def test_a_name_that_is_genuinely_absent_stays_absent():
-    """Normalising must not turn a real gap into a false match. `Update
-    PasswordProfile` is emitted by this tenant and is in no catalogue entry."""
-    assert not is_known("Update PasswordProfile")
+def test_a_name_that_is_in_neither_source_stays_absent():
+    """Normalising must not turn a real gap into a false match."""
+    assert not is_known("Update PasswordProfilee")
+    assert not is_known("Add member to roles")
+
+
+def test_a_name_the_directory_writes_and_the_docs_omit_is_known_but_not_documented():
+    """Microsoft's reference publishes 922 names. This tenant emitted three that
+    appear nowhere on it, including a password reset. They are carried under
+    their own key so the two claims stay separable: the directory writes this,
+    and Microsoft does not say so."""
+    from pylon.entra_audit_activities import is_documented
+
+    for observed in ("Update PasswordProfile",
+                     "Add app role assignment grant to user"):
+        assert is_known(observed), f"{observed} was measured in a live directory"
+        assert not is_documented(observed), (
+            f"{observed} is on the reference page after all -- move it")
+    assert is_documented("Add member to role"), "a documented name must stay so"
 
 
 def test_normalisation_only_merges_names_that_were_already_the_same():

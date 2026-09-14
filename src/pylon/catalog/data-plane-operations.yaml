@@ -16,6 +16,53 @@
 # sensitive: true marks exfil/tamper/recon-relevant operations for detection.
 
 tables:
+  AppServiceFileAuditLogs:
+    service: Azure App Service (file content)
+    field: OperationName
+    # A THIRD kind of source. Every other vocabulary here is hand-written from
+    # Microsoft's published operation list and checked against a harvest of that
+    # list. Microsoft publishes no operation list for this table, so there is
+    # nothing to harvest and nothing to compare against -- but the workspace can
+    # be asked directly, which is a stronger source than either.
+    #
+    # The exemption is earned rather than granted: scripts/verify-contracts.py
+    # re-measures the distinct values for a table declaring `source: measured`
+    # and fails if the catalogue names one the workspace has never produced, or
+    # the workspace produces one the catalogue lacks.
+    source: measured
+    measured:
+      rows: 58
+      workspace_note: >-
+        Windows Premium app, Kudu VFS writes and deletes, 2026-09-14. Windows
+        and Premium are both required: Microsoft lists this category as "TBA" on
+        Linux and "Premium tier and above" everywhere.
+    # MEASURED rather than curated from documentation: 58 rows produced by
+    # writing, overwriting and deleting files through the Kudu VFS API on a
+    # Windows Premium app, which is the only place the platform offers this
+    # category at all.
+    operations:
+      Create/Update:
+        verb: write
+        sensitive: true
+        desc: >-
+          A file was created or overwritten in the app's storage. Through the
+          publishing endpoint on an executable extension this is how a web shell
+          is planted.
+      Delete:
+        verb: delete
+        sensitive: true
+        desc: A file was removed from the app's storage.
+      RenameTo:
+        verb: write
+        sensitive: false
+        desc: >-
+          Half of a rename pair. Measured seven times, every one of them Kudu
+          rotating its own request-trace XML rather than site content.
+      RenameFrom:
+        verb: write
+        sensitive: false
+        desc: The other half of the same rename pair, and the same caveat.
+
   AZKVAuditLogs:
     service: Azure Key Vault
     field: OperationName

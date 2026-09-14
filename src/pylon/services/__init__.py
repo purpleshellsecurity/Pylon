@@ -213,10 +213,33 @@ def _surface_refusal(surface: LogSurface, resource_type: str) -> str:
             return f"AzureActivity: no operation partition for {resource_type}"
         return ""
     facts = _table_facts(surface.table)
-    if not facts.has_schema_asset:
+    # A CONTRACT is grounding, and stronger grounding than a schema asset. The
+    # asset lists columns; a contract carries which column holds the caller,
+    # which columns exist and are always empty, the typing that cannot be
+    # guessed from the values, and query shapes that have been executed against
+    # a real workspace. This gate predates contracts, so it refused four App
+    # Service tables for lacking the weaker of the two after the stronger had
+    # been written and verified.
+    from .. import contracts as _contracts
+
+    if not facts.has_schema_asset and surface.table not in _contracts.tables():
         return f"{surface.table}: no schema asset, so its KQL cannot be grounded"
     if not facts.operations:
-        return f"{surface.table}: no operation vocabulary"
+        # A contract's MEASURED values are a vocabulary. Not the harvested kind
+        # -- those come from a published reference and are closed by
+        # construction -- but counted in a real workspace, which is what the
+        # check downstream actually needs: something to compare a generated
+        # literal against. It caught `OperationName == "JobStreams"` on a table
+        # where every row says "Job".
+        #
+        # Whether the set is CLOSED is a separate and stronger claim, recorded
+        # per column in `vocabulary_complete`. An access-restriction outcome is
+        # closed; a publishing protocol nobody exercised is not.
+        from .. import contracts as _contracts
+
+        measured, _complete = _contracts.vocabulary(surface.table)
+        if not measured:
+            return f"{surface.table}: no operation vocabulary"
     if facts.unaccounted:
         n = len(facts.unaccounted)
         return (f"{surface.table}: {n} operation{'s' if n != 1 else ''} with no "

@@ -75,12 +75,34 @@ def normalise(activity: str) -> str:
 
 @lru_cache(maxsize=1)
 def _by_activity() -> dict[str, str]:
-    """activity (normalised) -> the service that writes it."""
+    """activity (normalised) -> the Category it belongs to.
+
+    Two sources, kept apart in the file and unioned here. `activities` is what
+    Microsoft's reference documents. `observed` is what a real directory was
+    seen to write and the reference omits -- measured on a quiet lab, 3 of the
+    42 activities it emitted in a month appear nowhere on that page, including
+    a password reset. Callers asking "can this name occur" want both; callers
+    asking "did Microsoft document this" want `is_documented`.
+    """
     out: dict[str, str] = {}
     for service, activities in (_data().get("activities") or {}).items():
         for activity in activities:
             out.setdefault(normalise(activity), service)
+    for activity, detail in (_data().get("observed") or {}).items():
+        out.setdefault(normalise(activity), (detail or {}).get("category", ""))
     return out
+
+
+def is_documented(activity: str) -> bool:
+    """Whether Microsoft's reference page lists this name.
+
+    False with `is_known` True means the directory writes it and the reference
+    does not say so. That is a real state and worth being able to name.
+    """
+    documented = {normalise(a)
+                  for block in (_data().get("activities") or {}).values()
+                  for a in block}
+    return bool(activity) and normalise(activity) in documented
 
 
 def categories() -> tuple[str, ...]:

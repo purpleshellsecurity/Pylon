@@ -78,11 +78,17 @@ def test_indexed_tables_are_ones_the_tool_actually_grounds():
     # nothing about (which would produce gaps nobody could act on).
     from importlib import resources
 
+    from pylon import contracts
+
+    # Two ways to be grounded. A schema asset lists the columns. A CONTRACT
+    # carries the columns, which of them are always empty, the typing that
+    # cannot be guessed from the values, and query shapes executed against a
+    # real workspace -- strictly more, and the newer of the two.
     grounded = {
         f.name[:-3]
         for f in (resources.files("pylon.prompts") / "assets" / "tables").iterdir()
         if f.name.endswith(".md")
-    }
+    } | set(contracts.tables())
     assert tti.indexed_tables() <= grounded
 
 
@@ -420,6 +426,16 @@ _PLATFORM_EXCEPTIONS: dict[tuple[str, str], str] = {
         "for Identity Provider -- while Entra is the identity provider BEHIND "
         "both. Kept, because swapping to Account Manipulation would name the act "
         "less accurately in order to satisfy a list."
+    ),
+    ("AuditLogs", "T1685"): (
+        "Inherited from the revocation, not chosen. T1562 listed Identity "
+        "Provider and Office Suite; T1685, the technique MITRE replaced it "
+        "with, lists neither -- while T1685.002, its own sub-technique, still "
+        "lists Identity Provider. The parent lost platforms its child kept, "
+        "which is an inconsistency in ATT&CK rather than a claim about Entra. "
+        "The operations mapped here are Conditional Access filtering policies, "
+        "security provider policies and access reviews: deleting one impairs a "
+        "defence, and T1685.002 would be wrong because none of them is a log."
     ),
 }
 

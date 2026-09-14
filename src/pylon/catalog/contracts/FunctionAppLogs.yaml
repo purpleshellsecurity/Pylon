@@ -1,0 +1,108 @@
+# How a detection reads Function App host logs. Measured against 151 real rows
+# from a Python consumption app.
+table: FunctionAppLogs
+plane: data
+platform: azure
+columns: 23
+
+operation:
+  column: Category
+  operator: "=~"
+  why: >-
+    There is no operation column. `Category` holds the .NET logger name that
+    emitted the line -- Host.Startup,
+    Microsoft.Azure.WebJobs.Hosting.JobHostService, and so on -- so it is the
+    closest thing to a subject and it is a logger, not an action.
+
+# WHAT THIS TABLE ACTUALLY CARRIES, which is not what its name suggests.
+what_a_row_means: >-
+  A line the Functions HOST wrote. Measured: 151 rows across an app start, a
+  deployment and five invocations, and every one was host lifecycle -- warmup,
+  JobHost starting and stopping, options being loaded. Not one carried a
+  function name.
+
+# The four columns a detection would reach for first are the four that were
+# never populated in the measured window. Naming a function, correlating an
+# invocation, or reading an exception are all things this table looked capable
+# of and did not do.
+never_populated: [ActivityId, ExceptionType, ExceptionMessage, ExceptionDetails]
+never_populated_note: >-
+  Nothing threw in the measured window, so the exception columns are unmeasured
+  rather than unreal.
+
+# A WARNING ABOUT MEASURING THIS TABLE. Host lifecycle rows appear within a
+# minute; invocation rows take materially longer. Measured once at 151 rows,
+# none carrying FunctionName, and that was written into this contract as "never
+# populated". Re-measured later: 64 rows carry it, including the app's own
+# logging calls. The claim was a timing artefact and the verifier caught it the
+# same afternoon.
+ingestion:
+  host_lifecycle: about a minute
+  invocations: materially slower
+  lesson: >-
+    An emptiness claim about this table needs a window covering a COMPLETED
+    invocation, not just a host start.
+
+categories:
+  host: "Host.Startup and Microsoft.Azure.WebJobs.* -- no FunctionName"
+  invocation: "Function.<name> -- the host's record of the call"
+  user_code: "Function.<name>.User -- the app's own logging calls"
+
+roles:
+  who: none -- neither a host log nor an invocation log carries a caller
+  what: Category
+  function: FunctionName
+  correlate: FunctionInvocationId
+  severity: Level
+  detail: Message
+  host: HostInstanceId
+  scope: [_ResourceId, AppName]
+
+typing:
+  Level: string
+  LevelId: int
+  Message: string
+  Category: string
+  # int, not string. Confirmed twice: `getschema` on a live workspace, and
+  # Microsoft's own table reference ("EventId | int | The event ID."). A
+  # detection comparing it as `EventId == "5"` does not compile, and the model
+  # is told the type by this block.
+  EventId: int
+
+observed_values:
+  Level: [Information, Warning]
+
+  Level_note: >-
+    Information and Warning were observed. Error and Critical are real values
+    this table can carry and nothing failed in the measured window, so their
+    absence is unmeasured rather than unreal.
+
+# The set is open, for the reason above.
+vocabulary_complete: []
+
+shape:
+  - time filter is the first operator after the table name
+  - no dedupe key is needed; one log line writes one row
+  - carry HostInstanceId; a host restart is the unit of correlation here, since
+    there is no invocation id to group by
+
+recipes:
+  host_lifecycle: |
+    FunctionAppLogs
+    | where TimeGenerated > ago({window})
+    | where Level in ("Error", "Critical", "Warning")
+    | project TimeGenerated, Level, Category, Message, HostInstanceId,
+              AppName, _ResourceId
+  restarts: |
+    FunctionAppLogs
+    | where TimeGenerated > ago({window})
+    | where Category startswith "Host."
+    | summarize lines = count(), firstSeen = min(TimeGenerated),
+                lastSeen = max(TimeGenerated)
+        by HostInstanceId, AppName, _ResourceId
+    | where lines > {threshold}
+
+reference_query: |
+  FunctionAppLogs
+  | where TimeGenerated > ago({window})
+  | project TimeGenerated, Level, Category, Message, HostInstanceId, _ResourceId

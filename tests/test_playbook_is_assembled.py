@@ -32,6 +32,10 @@ FILL = PlaybookFill(
                    "path, so every application still reading it is failing now.",
     why_it_matters=["The secret cannot be recovered by any means",
                     "Every consumer is failing until a replacement is issued"],
+    true_positive_indicators=[
+        "The purge followed a soft-delete by the same principal within minutes",
+        "The principal has never issued a Key Vault data-plane call before",
+    ],
     containment_role="Key Vault Secrets Officer",
 )
 
@@ -58,7 +62,7 @@ def _target(table: str) -> ValidatedDetection:
 
 
 @pytest.mark.parametrize("table", TABLES)
-def test_every_plane_renders_all_fourteen_sections(table):
+def test_every_plane_renders_all_fifteen_sections(table):
     """The structure is the same on every plane and in every run, because no run
     is in a position to change it."""
     doc = render(document_template("dataplane", table, "X"), _target(table), table, FILL)
@@ -68,7 +72,12 @@ def test_every_plane_renders_all_fourteen_sections(table):
     # Evidence before containment is the procedure, not a preference.
     assert headings.index("Preserve Evidence") < headings.index("Containment")
     assert headings.index("Containment") < headings.index("Eradication")
-    assert len(headings) == 14, headings
+    # Fifteen since Current State was added between the cross-log pivots and
+    # evidence preservation. Everything above it reads history; it reads the
+    # present, and it has to run before containment changes the present.
+    assert "Current State" in headings
+    assert headings.index("Current State") < headings.index("Preserve Evidence")
+    assert len(headings) == 15, headings
 
 
 @pytest.mark.parametrize("table", TABLES)
@@ -137,7 +146,9 @@ def test_the_fill_prompt_keeps_the_grounding_and_drops_the_document():
 def test_the_field_counts_are_checked_not_suggested():
     """A count in a prompt is a suggestion; a count on a field is a check."""
     base = dict(what_happened="It happened.", attack_context="A. B.",
-                why_it_matters=["one", "two"], containment_role="Reader")
+                why_it_matters=["one", "two"],
+                true_positive_indicators=["one", "two"],
+                containment_role="Reader")
     PlaybookFill(**base)
     with pytest.raises(ValueError):
         PlaybookFill(**{**base, "why_it_matters": ["only one"]})
@@ -147,6 +158,10 @@ def test_the_field_counts_are_checked_not_suggested():
         PlaybookFill(**{**base, "containment_role": "a b c d e f g h i j"})
     with pytest.raises(ValueError):
         PlaybookFill(**{**base, "attack_context": "A. B. C. D. E."})
+    with pytest.raises(ValueError):
+        PlaybookFill(**{**base, "true_positive_indicators": ["only one"]})
+    with pytest.raises(ValueError):
+        PlaybookFill(**{**base, "true_positive_indicators": ["a b " * 20, "b"]})
 
 
 def test_one_blank_means_one_thing_on_every_plane():

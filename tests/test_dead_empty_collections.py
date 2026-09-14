@@ -101,3 +101,56 @@ def test_a_real_generated_detection_that_is_clean_stays_clean():
         "| where tobool(entry.enabled) == false\n"
         "| project TimeGenerated, Caller, entry")
     assert _dead_empty_collections(kql) == []
+
+
+# --- the same defect wearing a different hat --------------------------------
+#
+# The generator reaches for a Sentinel watchlist on its own; it was never in a
+# prompt. Measured on a tenant with no watchlist called ApprovedAutomation:
+#
+#     let A = _GetWatchlist('ApprovedAutomation') | project SearchKey;
+#     ... | where clientInfo_ObjectId_g !in (A)
+#
+# does NOT error. It returns empty, the `!in` passes all 8 rows, and the
+# detection promises an allowlist it never applies. `dynamic([])` at least looks
+# empty on the page; this looks like configuration someone did.
+
+from pylon.validation.validate_kql import _unverified_watchlists
+
+
+def test_a_watchlist_filter_is_flagged():
+    kql = ("let Allowed = _GetWatchlist('ApprovedAutomation') | project SearchKey;\n"
+           + _q("| where Caller !in (Allowed)"))
+    problems = _unverified_watchlists(kql)
+    assert problems, "a watchlist the query cannot verify must be called out"
+    assert "ApprovedAutomation" in problems[0], "name the watchlist"
+    assert "!in" in problems[0] or "in" in problems[0]
+
+
+def test_both_directions_are_covered():
+    """`in` matches nothing and `!in` matches everything. Both are wrong and
+    neither fails, so the message has to cover the pair."""
+    for op in ("in", "!in"):
+        kql = (f"let A = _GetWatchlist('Approved') | project SearchKey;\n"
+               + _q(f"| where Caller {op} (A)"))
+        assert _unverified_watchlists(kql), f"{op} not caught"
+
+
+def test_it_reaches_the_validator():
+    kql = ("let Allowed = _GetWatchlist('Approved') | project SearchKey;\n"
+           + _q("| where Caller !in (Allowed)\n| project TimeGenerated, Caller"))
+    result = validate_kql(kql, "AzureActivity")
+    assert not result.valid
+    assert any("watchlist" in e for e in result.errors), result.errors
+
+
+def test_a_watchlist_that_is_bound_and_never_filtered_on_is_left_alone():
+    """Enriching with a watchlist is legitimate -- joining to add context does
+    not silently change what matches. Only a membership filter does."""
+    kql = ("let Owners = _GetWatchlist('Owners');\n"
+           + _q("| join kind=leftouter (Owners) on $left.Caller == $right.SearchKey"))
+    assert _unverified_watchlists(kql) == []
+
+
+def test_a_query_with_no_watchlist_is_untouched():
+    assert _unverified_watchlists(_q("| project TimeGenerated, Caller")) == []

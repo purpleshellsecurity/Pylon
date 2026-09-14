@@ -311,8 +311,14 @@ def check_playbook(markdown: str, table: str) -> PlaybookCheck:
             # detection-only fill-in rule does not apply here. Said in the call
             # rather than filtered out of the result: a rule that does not apply
             # should not run.
+            # A playbook query is NOT a Sentinel analytics rule, and three of
+            # the KQL rules are constraints on one. A responder running a
+            # triage query by hand may `take 20`; an alert rule may not. Saying
+            # which kind of KQL this is here is what keeps those rules strict
+            # for detections without rejecting a correct playbook.
             verdict = validate_kql(
-                body, _block_table(body, table), allow_placeholders=True
+                body, _block_table(body, table), allow_placeholders=True,
+                context="playbook",
             )
             # Only real faults. A pivot query naming another table is expected.
             result.errors.extend(

@@ -1,0 +1,390 @@
+# What a detection's KQL must and must not do.
+#
+# ONE object, two consumers -- the same discipline the table contracts use, for
+# the thing the table contracts do not cover. A table contract says what is IN a
+# table; this says what a query over any table is allowed to look like.
+#
+# The defect this file exists to prevent, measured on 2026-09-13: the prompt
+# carried ~68 rule bullets and the validator carried 43 checks, with no mapping
+# between them. Nothing could say which bullet a check enforced, which bullets
+# were never enforced, or -- the case that actually shipped -- which check
+# CONTRADICTED a bullet. The exclusion-scaffolding rule was stated as REQUIRED in
+# four copies of the prompt while two separate gates rejected both forms of it,
+# so the only output the gates would accept was one that broke the rule.
+#
+# Every rule here carries:
+#   says       the sentence the MODEL is shown. There is no second copy.
+#   applies_to detection | playbook | any. NOT decoration: three of the rules
+#              below are constraints on a SENTINEL ANALYTICS RULE, and a
+#              playbook query is not one. A responder running a triage query by
+#              hand may absolutely `take 20`; an alert rule may not, because it
+#              would alert on a different arbitrary subset every run. Applying
+#              the alert-rule constraints to playbook KQL rejected a playbook
+#              that was correct, which is how this field came to exist.
+#   check      the id of the function in validation/kql_rules.py that enforces it
+#   severity   blocks-deployment | error | warning | guidance
+#   provenance published (Microsoft says so) | measured (a workspace says so)
+#              | decided (a written human judgement)
+#   accepts    KQL that must pass THIS rule and every other rule in this file
+#   rejects    KQL that must fail THIS rule
+#
+# `accepts` is the field that would have caught the contradiction: an example one
+# rule requires is run through EVERY other rule's checker, so a rule that rejects
+# another rule's mandated shape fails the suite. See
+# tests/test_kql_rules_agree_with_each_other.py.
+#
+# severity, in the order a reader should care:
+#   blocks-deployment  Sentinel refuses to create the rule. Not slow -- absent.
+#   error              the rule deploys and cannot do what it claims.
+#   warning            it works and costs more than it needs to.
+#   guidance           prose for the model, with no checker. Counted, so the
+#                      number of unchecked rules is visible rather than assumed.
+
+version: 1
+sources:
+  alert_query: https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-log-query
+  kql_best_practices: https://learn.microsoft.com/en-us/kusto/query/best-practices
+  query_optimization: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/query-optimization
+
+rules:
+
+  # ── Deployment blockers ────────────────────────────────────────────────────
+  # These are not performance opinions. Microsoft states them as unsupported,
+  # which means the analytics rule cannot be created at all.
+
+  - id: no-union-in-alert-rule
+    applies_to: detection
+    severity: blocks-deployment
+    provenance: published
+    source: alert_query
+    says: >-
+      Start the query with a table name. Do NOT use `union` or `search`:
+      Microsoft does not support creating or modifying a log search alert rule
+      that uses either, so a detection built on one cannot be deployed as a
+      Sentinel analytics rule at all. Name the tables the detection needs and
+      query them directly.
+    check: union_or_search
+    # `union *` was already caught as a PERFORMANCE warning, which is the wrong
+    # severity and the wrong shape: a union of two named tables is what a model
+    # actually writes, and it sailed through with zero errors and zero warnings.
+    accepts:
+      - |
+        AzureActivity
+        | where TimeGenerated > ago(1d)
+        | where OperationNameValue =~ "MICROSOFT.KEYVAULT/VAULTS/DELETE"
+        | project TimeGenerated, Caller
+    rejects:
+      - |
+        union AzureActivity, AuditLogs
+        | where TimeGenerated > ago(1d)
+        | project TimeGenerated
+      - |
+        union *
+        | where TimeGenerated > ago(1d)
+        | project TimeGenerated
+      - |
+        search "delete"
+        | where TimeGenerated > ago(1d)
+        | project TimeGenerated
+
+  - id: no-trailing-count
+    applies_to: detection
+    severity: blocks-deployment
+    provenance: published
+    source: alert_query
+    says: >-
+      Do NOT end the query with `| count`. The alerting service appends its own
+      count to whatever you write, so a query ending in `count` becomes a count
+      of a count and returns 1 on every run -- the rule fires forever, or never,
+      depending on the threshold, and never on the thing it was written for.
+    check: trailing_count
+    accepts:
+      - |
+        AzureActivity
+        | where TimeGenerated > ago(1d)
+        | where OperationNameValue =~ "MICROSOFT.KEYVAULT/VAULTS/DELETE"
+        | project TimeGenerated, Caller
+      - |
+        AzureActivity
+        | where TimeGenerated > ago(1d)
+        | summarize Attempts = count() by Caller
+        | where Attempts > 5
+    rejects:
+      - |
+        AzureActivity
+        | where TimeGenerated > ago(1d)
+        | count
+
+  # ── Correctness ────────────────────────────────────────────────────────────
+
+  - id: no-take-or-limit
+    applies_to: detection
+    severity: error
+    provenance: published
+    source: alert_query
+    says: >-
+      Do NOT use `take` or `limit` in a detection. Microsoft: they increase the
+      latency and load of an alert because the results are not consistent over
+      time. A rule that returns an arbitrary subset fires on a different subset
+      each run, so the same attack is caught once and missed twice.
+    check: take_or_limit
+    accepts:
+      - |
+        AzureActivity
+        | where TimeGenerated > ago(1d)
+        | where OperationNameValue =~ "MICROSOFT.KEYVAULT/VAULTS/DELETE"
+        | project TimeGenerated, Caller
+    rejects:
+      - |
+        AzureActivity
+        | where TimeGenerated > ago(1d)
+        | take 50
+      - |
+        AzureActivity
+        | where TimeGenerated > ago(1d)
+        | limit 100
+
+  # ── Performance, quoting Microsoft ─────────────────────────────────────────
+  # Migrated from `_PERF_CHECKS`, which already quoted these verbatim and had
+  # no example that proved the check matched the words.
+
+  - id: has-not-contains
+    severity: warning
+    provenance: published
+    source: kql_best_practices
+    says: >-
+      Use `has`, not `contains`, when matching a whole token. Microsoft: "Use
+      the has operator. Don't use contains ... has works better, since it
+      doesn't look for substrings."
+    check: contains_operator
+    accepts:
+      - |
+        AzureActivity
+        | where TimeGenerated > ago(1d)
+        | where Caller has "svc"
+        | project TimeGenerated, Caller
+    rejects:
+      - |
+        AzureActivity
+        | where TimeGenerated > ago(1d)
+        | where Caller contains "svc"
+
+  - id: no-tolower-equality
+    severity: warning
+    provenance: published
+    source: kql_best_practices
+    says: >-
+      Compare case-insensitively with `Col =~ "lowercasestring"`, never
+      `tolower(Col) == "lowercasestring"`. Microsoft states it directly, and the
+      second form converts every row before it can compare one.
+    check: tolower_equality
+    accepts:
+      - |
+        AzureActivity
+        | where TimeGenerated > ago(1d)
+        | where Caller =~ "svc@example.com"
+        | project TimeGenerated, Caller
+    rejects:
+      - |
+        AzureActivity
+        | where TimeGenerated > ago(1d)
+        | where tolower(Caller) == "svc@example.com"
+
+  - id: term-match-before-parsing
+    severity: warning
+    provenance: published
+    source: kql_best_practices
+    says: >-
+      When reaching into a dynamic column, filter on the raw column with a term
+      match FIRST and parse afterwards. Microsoft: `| where DynamicColumn has
+      "Rare value" | where DynamicColumn.SomeKey == "Rare value"`. Calling
+      parse_json() inside a `where` parses every row that reaches it.
+    check: json_in_where
+    accepts:
+      - |
+        AzureActivity
+        | where TimeGenerated > ago(1d)
+        | where Properties has "roleDefinitionId"
+        | extend Props = parse_json(Properties)
+        | where tostring(Props.roleDefinitionId) != ""
+        | project TimeGenerated, Caller
+    rejects:
+      - |
+        AzureActivity
+        | where TimeGenerated > ago(1d)
+        | where tostring(parse_json(Properties).statusCode) == "200"
+
+  # ── Judgement, not published ───────────────────────────────────────────────
+
+  - id: no-name-substring-scoping
+    applies_to: detection
+    severity: error
+    provenance: decided
+    says: >-
+      Do NOT decide whether a resource matters by matching a substring of its
+      NAME -- no `ResourceGroup has "prod"`, no `Resource contains "sql"`. A
+      naming convention is not a security control and does not survive contact
+      with another tenant. If the detection is meant to be scoped, scope it on a
+      resource id, a subscription, or a tag, and if it is not, leave it
+      unscoped.
+    check: name_substring_scope
+    # MEASURED, 2026-09-13: a generated Key Vault deletion detection matched 0
+    # of 32 real deletions because it required `ResourceGroup has "prod"`, and
+    # every resource group in that tenant is named EDRLAB-SECRETS-RG or
+    # DETECTIONTEST-RG-985490. Every column it named was real, populated and
+    # correctly typed, so the contract checker passed it and only a search
+    # against the workspace revealed it.
+    accepts:
+      - |
+        AzureActivity
+        | where TimeGenerated > ago(1d)
+        | where OperationNameValue =~ "MICROSOFT.KEYVAULT/VAULTS/DELETE"
+        | where ActivityStatusValue =~ "Success"
+        | project TimeGenerated, Caller, _ResourceId
+    rejects:
+      - |
+        AzureActivity
+        | where TimeGenerated > ago(1d)
+        | where ResourceGroup has "prod" or ResourceGroup has "prd"
+      - |
+        AzureActivity
+        | where TimeGenerated > ago(1d)
+        | where Resource contains "sql"
+
+  - id: let-query-ends-with-a-semicolon
+    # Detection only, and the rule's own rationale says why: Sentinel appends
+    # operators to an ALERT RULE's query. A playbook query is pasted into the
+    # portal by a responder and terminates itself. Applied everywhere it
+    # rejected seven blocks in every playbook.
+    applies_to: detection
+    severity: error
+    provenance: decided
+    says: >-
+      A query that opens with one or more `let` statements must END WITH A
+      SEMICOLON. Sentinel appends its own operators to an alert rule's query,
+      and appending to a let-form query with no terminator is a parse error the
+      analyst sees at deploy time rather than at review time.
+    check: unterminated_let_query
+    # Was stated three times across the plane rule sets and enforced nowhere.
+    # No table contract mentions it, so unlike the time-filter rule it could not
+    # simply be deleted -- it needed a checker instead.
+    accepts:
+      - |
+        AzureActivity
+        | where TimeGenerated > ago(1d)
+        | where OperationNameValue =~ "MICROSOFT.KEYVAULT/VAULTS/DELETE"
+      - |
+        let Window = 1d;
+        AzureActivity
+        | where TimeGenerated > ago(Window)
+        | where OperationNameValue =~ "MICROSOFT.KEYVAULT/VAULTS/DELETE";
+    rejects:
+      - |
+        let Window = 1d;
+        AzureActivity
+        | where TimeGenerated > ago(Window)
+        | where OperationNameValue =~ "MICROSOFT.KEYVAULT/VAULTS/DELETE"
+
+  # ── What the TUNING NOTES may recommend ────────────────────────────────────
+  # Not a rule about the query. `tuning_guidance` is free text the model writes
+  # and nothing checked it, so the advice a SOC acts on was the least verified
+  # thing in the output.
+
+  - id: no-actor-suppression-on-a-privilege-grant
+    applies_to: tuning-guidance
+    needs: technique
+    severity: error
+    provenance: decided
+    says: >-
+      For a detection on a technique that GRANTS or ELEVATES privilege, do NOT
+      recommend allowlisting or excluding by actor in the tuning notes. Every
+      occurrence is meant to be reviewed, including the break-glass account and
+      the deployment pipeline -- those are the highest-value identities in the
+      tenant, and an attacker who reaches one becomes invisible to the rule.
+      Tune these by SCOPE instead: which role, whether it went through PIM,
+      whether it is permanent, which directory object it targets.
+    check: actor_suppression_advice
+    # Measured, 2026-09-13: a generated detection for "Permanent Directory Role
+    # Assignment (Outside PIM)", T1098.003, advised "Allowlist ActorUPN for
+    # break-glass or approved automation accounts". Nothing decided that and
+    # nothing checked it -- the model wrote it, and it would have shipped
+    # identically had it said something reckless.
+    #
+    # The list is a JUDGEMENT about consequence and cannot be derived. ATT&CK's
+    # kill-chain tier does not separate these: "Add member to role" and "App
+    # Service config write" are both `mid` and want opposite advice. Edit it to
+    # match what your organization treats as always-review.
+    techniques:
+      - T1098        # Account Manipulation
+      - T1098.001    # Additional Cloud Credentials
+      - T1098.003    # Additional Cloud Roles
+      - T1548.005    # Temporary Elevated Cloud Access
+      - T1136.003    # Cloud Account -- creating one
+      - T1078.004    # Cloud Accounts
+    accepts:
+      - "- Start tenant-wide; alert on any permanent role assignment within 1 hour.\n- Narrow by RoleName to the privileged directory roles first."
+    rejects:
+      - "- Allowlist ActorUPN for break-glass or approved automation accounts."
+      - "- Exclude known automation service principals by InitiatedBy."
+      - "- Suppress the deployment pipeline identity."
+
+  - id: technique-is-cloud-tagged-or-excepted
+    applies_to: detection
+    needs: technique
+    severity: warning
+    provenance: published
+    says: >-
+      Map to the MITRE ATT&CK CLOUD matrix -- IaaS, SaaS, Identity Provider,
+      Office Suite. A host or endpoint technique on a cloud operation is
+      normally wrong. The EXCEPTION, and it is written down rather than
+      implied: PaaS compute inherits host-platform techniques from the runtime
+      underneath it, so a file written into an App Service site is T1505.003
+      Web Shell even though ATT&CK tags that technique Windows/Linux/macOS. A
+      log source being a cloud log does not restrict which platform's
+      techniques apply to what ran on the host. If you rely on that exception,
+      the catalogue entry must carry a `platform_exception` saying so.
+    check: technique_not_cloud_tagged
+    # The checker reads the TECHNIQUE, not the query. Without this it was handed
+    # the empty query string and passed everything.
+    checks: technique
+    # This rule was stated in two prompt builders and enforced by nothing, so
+    # the catalogue could map a host technique and no gate would notice -- which
+    # is what made the AppServiceFileAuditLogs decision look like a rule
+    # violation rather than a documented exception.
+    #
+    # A WARNING, not an error. The exception is legitimate and a gate that
+    # blocked it would force the wrong mapping, which is the trade this rule
+    # exists to stop anyone making by accident.
+    techniques: []
+    accepts:
+      - "T1485"
+      - "T1098.003"
+    rejects:
+      - "T1505.003"
+
+  # ── Guidance with no checker ───────────────────────────────────────────────
+  # Stated to the model, not enforced. Listed here rather than left in prose so
+  # the number of unchecked rules is a number somebody can look at.
+
+  - id: filter-early
+    severity: guidance
+    provenance: published
+    source: query_optimization
+    says: >-
+      Apply `where` immediately after the table name, datetime predicates
+      first, then the most selective string or dynamic predicates. Kusto indexes
+      datetime columns and can eliminate whole shards before reading them.
+    check: ""
+
+  - id: prefer-case-sensitive
+    severity: guidance
+    provenance: published
+    source: kql_best_practices
+    says: >-
+      Prefer `==` to `=~` where the values are known to be stably cased.
+      DEPARTURE, and deliberate: this repo's table contracts override this rule
+      per table, because whether a column's values are stably cased is a
+      measured fact and not a preference. AZKVAuditLogs is contracted to `==`
+      because its values were counted and are stable; AuditLogs is contracted to
+      `=~` because its are not. Follow the table's contract, not this line.
+    check: ""

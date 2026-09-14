@@ -62,9 +62,20 @@ def test_key_vault_is_one_target_carrying_both_planes():
 def test_the_gated_surfaces_reach_the_engine_not_just_the_resource(monkeypatch):
     request = _run(monkeypatch, "Microsoft.Web/sites")
     assert request.resource == "Microsoft.Web/sites"
-    assert [s.table for s in request.surfaces] == ["AzureActivity"], (
-        "the six ungrounded App Service tables must not reach the engine"
-    )
+    # The point of this test is that the GATE decides what reaches the engine,
+    # not the resource type. When all six App Service tables were ungrounded,
+    # that meant AzureActivity alone; three earned a contract, and
+    # AppServiceFileAuditLogs became the fourth once it could be measured --
+    # which needed a WINDOWS PREMIUM app, because Microsoft offers the category
+    # on Windows only and above Premium tier, and the lab app was Linux on
+    # Consumption. Measuring a table is what moves it across this line.
+    reached = [s.table for s in request.surfaces]
+    assert reached[0] == "AzureActivity"
+    assert set(reached) == {"AzureActivity", "AppServiceAuditLogs",
+                            "AppServiceIPSecAuditLogs", "FunctionAppLogs",
+                            "AppServiceFileAuditLogs"}
+    for refused in ("AppServiceHTTPLogs", "AppServiceAuthenticationLogs"):
+        assert refused not in reached, f"{refused} is ungrounded and must not reach the engine"
 
 
 def test_a_two_plane_target_sends_both_tables(monkeypatch):

@@ -71,25 +71,57 @@ def _predicate(table: str) -> tuple[str, list[str]] | None:
                 f'let {_ACTOR_VAR} = "[object ID from the alert]";',
                 f'let {_ACTOR_UPN_VAR} = "[actor UPN from the alert]";',
             ]
-        return f"{_actor_expr(preferred)} == {_ACTOR_VAR}", [
-            f'let {_ACTOR_VAR} = "[object ID from the alert]";'
+        # The blank has to name what the COLUMN holds. Every covered table used
+        # to prefer an object-id column, so "[object ID from the alert]" was
+        # always right and the label was hard-coded. The shared table broke that:
+        # AzureDiagnostics SQL audit and Automation job logs carry a UPN and
+        # nothing else, and a responder handed a box marked "object ID" above a
+        # column holding tenant@example.com pastes the wrong value into a query
+        # that then runs and returns nothing.
+        label = {"upn": "actor UPN", "appid": "application (client) ID"}.get(
+            preferred.get("kind", ""), "object ID")
+        var = _ACTOR_UPN_VAR if preferred.get("kind") == "upn" else _ACTOR_VAR
+        return f"{_actor_expr(preferred)} == {var}", [
+            f'let {var} = "[{label} from the alert]";'
         ]
     ip = co.ip_field(table)
     if ip:
         let = f'let {_IP_VAR} = "[source IP from the alert]";'
         if ip.get("array"):  # e.g. AKS SourceIps
             return f"{ip['field']} has {_IP_VAR}", [let]
-        return f"{ip['field']} == {_IP_VAR}", [let]
+        # Some columns are not a bare address. AppServiceIPSecAuditLogs.CIp is
+        # "address:ephemeral port", a different port on every row, so comparing
+        # it to an address never matches -- valid KQL, zero rows, forever. The
+        # correlation entry records how to get the address out and this is
+        # where that has to be honoured, not in prose beside it.
+        expr = ip.get("extract") or ip["field"]
+        return f"{expr} == {_IP_VAR}", [let]
     return None
 
 
 def _project(table: str) -> str:
     """Comma-joined project columns for a hop: TimeGenerated plus the table's
-    actor and (non-array) IP fields, deduped."""
+    actor and (non-array) IP fields, deduped.
+
+    Plus the column that decides whether the actor field means anything, where
+    the contract records one. The storage family only names a principal when
+    `AuthenticationType == "OAuth"` -- 38 rows of 196 measured -- and its own
+    contract says to state the auth type in the output or filter on it. The
+    pivot did neither, and the contract checker said so on every storage hop.
+    """
+    from . import contracts
+
     cols = ["TimeGenerated"]
     fields = co.actor_fields(table)
     if fields:
         cols.append(fields[0]["field"])
+        gate = (contracts.for_table(co.table_name(table)) or {}).get(
+            "attribution", {}).get("gate", "")
+        # The gate is an expression ("AuthenticationType == \"OAuth\""); the
+        # column is its first identifier.
+        column = gate.split()[0] if gate else ""
+        if column:
+            cols.append(column)
     ip = co.ip_field(table)
     if ip and not ip.get("array"):
         cols.append(ip["field"])
@@ -108,10 +140,18 @@ def _hop(label: str, table: str, tier: str, *, scope_resource: bool) -> dict | N
         if res:
             where.append(f"{res['field']} == {_RESOURCE_VAR}")
             lets.append(f'let {_RESOURCE_VAR} = "[resource ID from the alert]";')
-    query = f"{table} | where {' and '.join(where)} | project {_project(table)}"
+    # A shared-table entry reads AzureDiagnostics and must narrow to its own
+    # service FIRST. Appending the scope to the actor predicate instead would
+    # still be correct KQL and would read as though the actor filter were the
+    # point; leading with it says what this query is looking at.
+    scope = co.scope(table)
+    query = (f"{co.table_name(table)} | where "
+             f"{' and '.join(([scope] if scope else []) + where)} "
+             f"| project {_project(table)}")
     return {
         "label": label,
-        "table": table,
+        "table": co.table_name(table),
+        "key": table,
         "tier": tier,
         "kql": "\n".join(lets + [query]),
         "actor_joined": bool(co.actor_fields(table)),
@@ -125,11 +165,15 @@ def _context_hop(table: str) -> dict:
     if res:
         where.insert(0, f"{res['field']} == {_RESOURCE_VAR}")
         lets.append(f'let {_RESOURCE_VAR} = "[resource ID from the alert]";')
+    scope = co.scope(table)
+    if scope:
+        where.insert(0, scope)
     return {
         "label": f"Additional context — {table} (not actor-joined; resource/time scoped)",
-        "table": table,
+        "table": co.table_name(table),
+        "key": table,
         "tier": "context",
-        "kql": "\n".join(lets + [f"{table} | where {' and '.join(where)}"]),
+        "kql": "\n".join(lets + [f"{co.table_name(table)} | where {' and '.join(where)}"]),
         "actor_joined": False,
     }
 
@@ -140,6 +184,27 @@ def pivot_plan(fired_table: str) -> list[dict]:
     if not co.has_table(fired_table):
         return []
     hops: list[dict] = []
+
+    # A table with no actor column cannot start an identity pivot. Every hop
+    # below begins "take the object ID from the alert", and an alert on a
+    # front-door access decision or a function host log has no object ID to
+    # take -- the row names nobody. Offering those hops hands a responder a
+    # query they cannot fill in, which is worse than offering none.
+    #
+    # Measured: AppServiceIPSecAuditLogs decides before authentication, and
+    # FunctionAppLogs records what the runtime did rather than who asked.
+    if not co.actor_fields(fired_table):
+        # What a responder CAN do here: the same address, if the row carries
+        # one, and the same resource over the same window. `_context_hop` is
+        # already the resource/time-scoped, never-actor-joined shape, so it is
+        # exactly right and does not need reinventing.
+        if co.ip_field(fired_table):
+            hop = _hop("Same source address — what else did it reach?",
+                       fired_table, "address", scope_resource=False)
+            if hop:
+                hops.append(hop)
+        hops.append(_context_hop(fired_table))
+        return hops
 
     # Identity — how did they authenticate / what did they change in the directory?
     for t in _IDENTITY_HOPS:

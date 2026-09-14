@@ -237,9 +237,21 @@ Then:
 
 ```bash
 pylon design list
+pylon design tuning Microsoft.KeyVault/vaults
 pylon design plan Microsoft.KeyVault/vaults --out ./output
 pylon design detections --from ./output --pick all
 ```
+
+`design tuning` costs nothing and makes no model call. It prints, per target,
+the fields an analyst actually filters on, the activities the catalogue
+excluded and the written reason for each, a baseline query taken from the
+table contract that was measured against a live workspace, the columns this
+table can be tuned on, and a severity floor derived from ATT&CK's own tactics.
+
+Its false-positive line is identical on every target, and deliberately so:
+whether an actor is authorized is a fact about one organization, not a property
+of the log data, so the field asks the question rather than inventing an
+answer.
 
 You get one `.kql` per detection, a `detections.html` page carrying each query
 beside the technique it claims, a `plan.json` recording what was enumerated, and

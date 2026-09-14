@@ -76,8 +76,16 @@ def test_the_table_rules_map_is_exactly_the_tables_on_offer():
     that could ask for them was gone."""
     from pylon.services import all_tables
 
-    assert set(prompts._TABLE_RULES_KEY) == all_tables(), (
-        f"map has {sorted(set(prompts._TABLE_RULES_KEY) ^ all_tables())} that the "
+    # AzureDiagnostics is the one legitimate exception and it is not drift.
+    # `all_tables()` is "every table a REGISTERED TARGET can query", and the
+    # shared table is not reached that way -- it is reached through the dynamic
+    # resource route, which resolves a resource type to its surfaces at run time
+    # and lands on AzureDiagnostics whenever the service has no dedicated table
+    # or is left on the default destination mode. SQL and Automation both get
+    # there and neither is in `targets()`.
+    on_offer = all_tables() | {"AzureDiagnostics"}
+    assert set(prompts._TABLE_RULES_KEY) == on_offer, (
+        f"map has {sorted(set(prompts._TABLE_RULES_KEY) ^ on_offer)} that the "
         f"catalogue and the map disagree about"
     )
 
@@ -101,7 +109,10 @@ def test_no_prompt_names_a_table_no_target_can_select(key, target, table):
         "AADServicePrincipalSignInLogs", "AADManagedIdentitySignInLogs",
         "MicrosoftGraphActivityLogs", "AADGraphActivityLogs",
         "SQLSecurityAuditEvents", "CDBDataPlaneRequests", "AZMSRunTimeAuditLogs",
-        "FunctionAppLogs", "AppServiceAuditLogs", "AKSAudit", "AKSAuditAdmin",
+        # FunctionAppLogs and AppServiceAuditLogs were withdrawn for having no
+        # grounding and are back: both now have a measured contract and values
+        # counted from real rows, which is what the withdrawal was about.
+        "AKSAudit", "AKSAuditAdmin",
         "DeviceProcessEvents", "DeviceNetworkEvents", "DeviceLogonEvents",
     )
     for phase in ("threat", "detection", "playbook"):

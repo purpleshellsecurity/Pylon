@@ -20,10 +20,47 @@ def test_arm_threat_prompt_contains_service_and_rules():
     assert "__SERVICE__" not in prompt
 
 
-def test_arm_detection_prompt_injects_query_rules():
-    prompt = build_system_prompt("arm", "Key Vault", "detection")
-    assert "KQL Rules for AzureActivity" in prompt
-    assert "__QUERY_RULES__" not in prompt
+def test_no_prompt_ships_an_unsubstituted_token():
+    for plane, service in (("arm", "Key Vault"), ("entra", "AuditLogs"),
+                           ("dataplane", "AZKVAuditLogs")):
+        prompt = build_system_prompt(plane, service, "detection")
+        assert "__QUERY_RULES__" not in prompt, plane
+        assert "__SERVICE__" not in prompt, plane
+
+
+# The claims that survived the merge, one per plane, quoted from the set that
+# used to carry them. Two rule sets both reached the SAME detection prompt and
+# stated the same rules in different words -- eight topics twice on ARM, eight
+# on Entra, four on the data plane -- so a correctness fix had to be made in two
+# files and sometimes was not. The duplicates are gone; these are the claims
+# that existed in only one of the two, and losing them silently is the risk this
+# guards.
+MOVED = {
+    "arm": ["Claims is a JSON STRING", "NORMALIZE OUTPUT"],
+    "dataplane": ["never substitute AzureDiagnostics", "NORMALIZE OUTPUT"],
+    "entra": ["OperationName MUST be matched", "NORMALIZE OUTPUT"],
+}
+
+
+@pytest.mark.parametrize("plane,service", [("arm", "Key Vault"),
+                                           ("entra", "AuditLogs"),
+                                           ("dataplane", "AZKVAuditLogs")])
+def test_every_claim_that_survived_the_merge_still_reaches_a_prompt(plane, service):
+    prompt = build_system_prompt(plane, service, "detection")
+    for claim in MOVED[plane]:
+        assert claim in prompt, f"{plane} lost {claim!r} in the merge"
+
+
+@pytest.mark.parametrize("plane,service", [("arm", "Key Vault"),
+                                           ("entra", "AuditLogs"),
+                                           ("dataplane", "AZKVAuditLogs")])
+def test_no_rule_is_stated_twice_in_one_prompt(plane, service):
+    """The condition that made the merge necessary, asserted so it cannot come
+    back. Each phrase below was in both rule sets, worded differently."""
+    prompt = build_system_prompt(plane, service, "detection")
+    for phrase in ("End let-statement queries with a semicolon",
+                   "Time filter FIRST"):
+        assert prompt.count(phrase) <= 1, f"{plane} states {phrase!r} twice"
 
 
 def test_playbook_requires_target():
