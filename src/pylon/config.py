@@ -198,8 +198,25 @@ def write(values: dict[str, str], path: Path | None = None) -> Path:
     ]
     lines += [f"{k}={v}" for k, v in values.items() if k in _ALLOWED and v]
 
+    # CREATED RESTRICTED, never widened-then-narrowed. `Path.write_text` makes
+    # the file at 0666 & ~umask -- measured 0644 on a default umask -- so the
+    # API key sat world-readable on disk until the chmod one line later. Short
+    # window, real one: on a shared host any local user could read it there.
+    #
+    # O_EXCL closes a second, smaller thing for free: `config.tmp` is a
+    # predictable name, so a pre-created symlink at that path would otherwise be
+    # followed. The directory is owner-controlled, so this was minor.
+    #
+    # The mode argument is a no-op on Windows, which has no POSIX mode bits at
+    # all -- `_restrict_to_owner` still runs, and does the ACL there.
     tmp = target.with_suffix(".tmp")
-    tmp.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_TRUNC, 0o600)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write("\n".join(lines) + "\n")
+    except BaseException:
+        tmp.unlink(missing_ok=True)   # never leave a half-written secret behind
+        raise
     _restrict_to_owner(tmp)
     tmp.replace(target)
     return target

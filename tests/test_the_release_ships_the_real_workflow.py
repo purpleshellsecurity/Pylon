@@ -91,3 +91,62 @@ def test_the_leak_scan_also_checks_the_setting_not_the_word():
     assert 'grep -rn "self-hosted" "$DEST"' not in body, (
         "the bare-word scan is back; it refuses to publish over its own "
         "documentation")
+
+
+def test_the_release_ships_dependabot():
+    """A security reviewer reading the public repo reported "no Dependabot".
+    Correct about the artifact: `make-release.sh` wrote only
+    `.github/workflows`, so the config never left this repo. The fourth thing
+    this step dropped, and the same root cause as the other three."""
+    body = _script()
+    assert ".github/dependabot.yml" in body, (
+        "the release ships no dependabot config, so the public repo gets no "
+        "dependency alerts")
+
+
+# ── the artifact, not the recipe ─────────────────────────────────────────────
+# Every test above reads make-release.sh's TEXT. A reviewer pointed out that
+# none of them looks at the tree it produces, so a release that runs a correct
+# script and still drops something passes all of them -- and they skip in a
+# release tree, which is the one place a drop is observable. That is how five
+# things shipped missing with a green suite behind them.
+#
+# These assert the script contains the two checks that DO look at the tree.
+# The checks themselves run at release time, where the tree exists.
+
+def test_the_release_diffs_itself_against_the_source():
+    """An include list fails silently when an entry is forgotten. The produced
+    tree is diffed against the source and every difference must be declared on
+    release-excludes.txt, so forgetting fails the release instead."""
+    body = _script()
+    assert "release-excludes.txt" in body, "nothing declares what may differ"
+    assert "the release DROPPED files" in body
+    assert "the release ADDED files" in body
+
+
+def test_the_exclusion_list_exists_and_explains_itself():
+    path = ROOT / "release-excludes.txt"
+    if not path.is_file():
+        pytest.skip("release-excludes.txt is not shipped in a release tree")
+    body = path.read_text(encoding="utf-8")
+    rules = [ln.strip() for ln in body.splitlines()
+             if ln.strip() and not ln.startswith("#")]
+    assert rules, "the list is empty, so every drop is declared by default"
+    # Each entry is a deliberate decision and the reason belongs beside it.
+    assert body.count("#") >= len(rules), "entries outnumber explanations"
+    assert "release-excludes.txt" in rules, (
+        "the list does not exclude itself, so the release ships this repo's "
+        "release tooling")
+
+
+@pytest.mark.parametrize("prop", [
+    "follow_redirects=False",   # SSRF: a redirect must not leave the allowlist
+    "O_EXCL",                   # the API key is created restricted
+    "^permissions:",            # least privilege in CI
+    "dependabot.yml",           # dependency alerts reach the public repo
+])
+def test_the_release_asserts_named_properties_of_the_built_tree(prop):
+    """Each of these shipped missing at least once while this repo's suite was
+    green. The release now greps the produced tree for them."""
+    assert prop in _script(), (
+        f"the release does not check the built tree for {prop!r}")

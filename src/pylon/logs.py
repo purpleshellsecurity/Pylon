@@ -51,6 +51,10 @@ _ROOT = "pylon"
 EVENTS: frozenset[str] = frozenset({
     # The invocation itself.
     "command",
+    # A remote grounding file differed from the one last accepted. DOCS_BASE
+    # tracks a branch and its markdown reaches the model's context, so a change
+    # upstream changes this tool's output; this is the signal, not a gate.
+    "grounding_drift",
     # The invocation ending badly. Emitted once, from the top of `main`, so a
     # crash leaves a structured record beside the trace the user is pointed at.
     "crash",

@@ -19,6 +19,9 @@ from urllib.parse import urlparse
 import httpx
 
 from .validation.sanitize import is_allowed_doc_url
+from .logs import get_logger
+
+log = get_logger(__name__)
 
 DOCS_BASE = (
     "https://raw.githubusercontent.com/MicrosoftDocs/azure-monitor-docs/"
@@ -54,6 +57,37 @@ def _is_allowed_fetch_url(url: str) -> bool:
     return url.startswith(_ALLOWED_FETCH_PREFIXES)
 
 
+# What each remote file hashed to when it was last accepted.
+#
+# DOCS_BASE tracks `main` and the markdown behind it is fetched at RUN TIME and
+# appended to the model's context inside <live_documentation> -- it is grounding,
+# not verification, so a change upstream changes this tool's output with no
+# signal. Pinning to a commit would freeze documentation we want current; a hash
+# keeps it current and makes the change visible.
+#
+# NOT a gate. A doc page legitimately changes, and refusing to run because
+# Microsoft edited a table reference would be worse than the drift. It is a line
+# in the run log, which is the thing that was missing.
+_SEEN: dict[str, str] = {}
+
+
+def _note_drift(url: str, body: str) -> None:
+    """Log when a remote grounding file differs from the last one accepted."""
+    import hashlib
+
+    digest = hashlib.sha256(body.encode("utf-8", "replace")).hexdigest()
+    previous = _SEEN.get(url)
+    _SEEN[url] = digest
+    if previous and previous != digest:
+        log.warning(
+            "grounding source changed since this run last read it: %s "
+            "(%s -> %s). It tracks a branch, so this is expected occasionally "
+            "and worth a look when a detection changes shape.",
+            url, previous[:12], digest[:12],
+            extra={"event": "grounding_drift", "url": url,
+                   "sha256_was": previous, "sha256_now": digest})
+
+
 async def _fetch_cached(url: str) -> str:
     """GET `url` with a 24h TTL cache. Returns the body text, or '' on a non-200
     status or any HTTP error. Refuses any URL outside the pinned doc/MITRE paths
@@ -64,10 +98,23 @@ async def _fetch_cached(url: str) -> str:
     if hit and time.time() - hit[0] < _TTL_SECONDS:
         return hit[1]
     try:
-        async with httpx.AsyncClient(timeout=8.0, follow_redirects=True) as client:
+        # NO REDIRECTS. `_is_allowed_fetch_url` runs once, above, against the
+        # URL we are about to request -- a 30x would leave BOTH layers behind
+        # and fetch whatever the redirect names. OWASP's SSRF sheet is explicit:
+        # "disable the support for the following of the redirection in your web
+        # client in order to prevent the bypass of the input validation".
+        #
+        # raw.githubusercontent.com does not redirect valid paths off-host
+        # today, so this was a hole in the guard rather than a live hole. It is
+        # the guard that has to hold, not the current behaviour of one host.
+        #
+        # If a redirect is ever needed, follow it manually and re-run
+        # `_is_allowed_fetch_url` on every hop.
+        async with httpx.AsyncClient(timeout=8.0, follow_redirects=False) as client:
             res = await client.get(url)
             if res.status_code != 200:
                 return ""
+            _note_drift(url, res.text)
             _cache[url] = (time.time(), res.text)
             return res.text
     except httpx.HTTPError:

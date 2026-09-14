@@ -6,6 +6,16 @@ on:
   pull_request:
   workflow_dispatch:
 
+# LEAST PRIVILEGE, at the top. Without a `permissions:` block a workflow gets
+# the default GITHUB_TOKEN scopes, which on many repositories includes write.
+# OWASP's GitHub Actions sheet: "Always set `permissions: {}` at the workflow
+# level to disable all permissions by default. Then, grant only the specific
+# permissions needed at the job level."
+#
+# `contents: read` rather than `{}` because every job here checks the repo out.
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -40,10 +50,10 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -82,10 +92,10 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
         with:
           python-version: "3.11"
 
@@ -120,6 +130,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
       - run: uvx ruff check .
