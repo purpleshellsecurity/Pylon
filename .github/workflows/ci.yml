@@ -1,9 +1,31 @@
 name: CI
 
+# COST. This repo is PRIVATE, so Actions minutes are metered, and the
+# multipliers are not close: Linux 1x, Windows 2x, macOS 10x. A full 3x3 matrix
+# plus the install jobs bills about 103 minutes a push -- of which macOS is
+# HALF, for the three fastest jobs on the board. That is ~19 pushes on a 3,000
+# minute allowance, and it ran out.
+#
+# So the matrix is sized by where the bugs were, not by symmetry:
+#
+#   pull request   Ubuntu on the ends of `requires-python`. ~10 min. Catches
+#                  the ordinary mistake on every push, cheaply.
+#   push to main   adds Windows, every version. ~48 min. Windows is where most
+#                  Sentinel operators are and where the real defects were --
+#                  the ACL on the API key file, the checkpoint encoding.
+#   weekly         adds macOS. It is the platform we DEVELOP on, so a break
+#                  shows up locally before CI could tell us; it needs the least
+#                  coverage and costs ten times the most.
+#
+# Docs-only commits skip all of it.
 on:
   push:
     branches: [main]
+    paths-ignore: ["**/*.md", "docs/**", "LICENSE"]
   pull_request:
+    paths-ignore: ["**/*.md", "docs/**", "LICENSE"]
+  schedule:
+    - cron: "0 6 * * 1"      # 06:00 UTC Mondays, the full board
   workflow_dispatch:
 
 # LEAST PRIVILEGE, at the top. Without a `permissions:` block a workflow gets
@@ -43,17 +65,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.11", "3.12", "3.13"]
+        # Built from the event. `fromJSON` because a matrix value has to be a
+        # real list, not a string that looks like one.
+        os: ${{ fromJSON(github.event_name == 'pull_request'
+                         && '["ubuntu-latest"]'
+                         || (github.event_name == 'schedule'
+                             && '["ubuntu-latest","windows-latest","macos-latest"]'
+                             || '["ubuntu-latest","windows-latest"]')) }}
+        python-version: ${{ fromJSON(github.event_name == 'pull_request'
+                                     && '["3.11","3.13"]'
+                                     || '["3.11","3.12","3.13"]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4  # v10.1.0
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -86,16 +116,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        # Same reasoning. A wheel that is missing its catalogues is missing them
+        # everywhere; the OS spread here is about path handling, and Windows is
+        # the one that differs.
+        os: ${{ fromJSON(github.event_name == 'pull_request'
+                         && '["ubuntu-latest"]'
+                         || '["ubuntu-latest","windows-latest","macos-latest"]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4  # v10.1.0
         with:
           python-version: "3.11"
 
@@ -130,6 +165,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
-      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4  # v10.1.0
       - run: uvx ruff check .

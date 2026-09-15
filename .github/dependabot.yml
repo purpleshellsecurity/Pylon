@@ -14,8 +14,11 @@ updates:
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
+      # MONTHLY. Each PR triggers a CI run, and on a private repo that is
+      # metered: seven open Dependabot PRs is a third of the monthly allowance
+      # before anyone has written a line. Grouped and monthly is one run.
+      interval: "monthly"
+    open-pull-requests-limit: 3
     groups:
       # One PR for routine bumps rather than five. Security updates are not
       # grouped: those should arrive on their own and be read on their own.

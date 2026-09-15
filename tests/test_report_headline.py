@@ -293,3 +293,4 @@ def test_a_gap_with_no_basis_recorded_counts_as_assumed():
     gaps = [{"resource_id": rows[0]["resource_id"], "expected_table": "T",
              "categories_to_enable": ["C"]}]
     assert gap_facts(rows, gaps, {})[STORAGE]["assumed"] is True
+

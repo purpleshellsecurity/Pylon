@@ -1283,11 +1283,29 @@ async def run_detection_phase(
 
             if not result.valid:
                 retried = True
-                issues = "\n".join(f"- {e}" for e in result.errors + result.warnings)
+                # Errors and warnings, kept apart. They were one list under
+                # "Fix every listed error", and only the errors are things the
+                # query got wrong. A warning is often the validator saying a
+                # CHECK could not run -- "Microsoft's column list could not be
+                # fetched, so this was NOT checked against it" fires on
+                # `CategoryValue`, a real AzureActivity column -- and the model
+                # obliges by deleting a correct filter. The run gets one retry;
+                # spending it undoing right answers is worse than not retrying.
+                must_fix = "\n".join(f"- {m}" for m in result.errors)
+                advisory = "\n".join(f"- {m}" for m in result.warnings)
+                instruction = (
+                    f"{prompt}\n\nYour previous query failed validation.\n\n"
+                    f"These are errors. Fix every one:\n{must_fix}\n"
+                )
+                if advisory:
+                    instruction += (
+                        "\nThese did NOT fail the query and several of them say a "
+                        "check could not be RUN rather than that the query is "
+                        "wrong. Act on one only where the change cannot alter what "
+                        f"the query matches:\n{advisory}\n")
+                instruction += "\nReturn the corrected detection."
                 response = await _run_with_retry(
-                    agent,
-                    f"{prompt}\n\nYour previous query failed validation:\n{issues}\n"
-                    "Fix every listed error and return the corrected detection.",
+                    agent, instruction,
                     options={"response_format": Detection},
                 )
                 detection = response.value

@@ -34,6 +34,7 @@ from collections.abc import Callable
 
 import re
 
+from . import kqltext
 from .models import DetectionVerification
 
 # A detection carries its own time bound, almost always an hour. The workspace
@@ -151,7 +152,7 @@ def narrows(kql: str) -> bool:
 
 def _blank(kql: str) -> str:
     """`kql` with line comments removed, so a comment cannot read as a filter."""
-    return re.sub(r"//[^\n]*", "", kql)
+    return kqltext.strip_comments(kql)
 
 
 def verdict(expected: int | None, observed: int | None, *,

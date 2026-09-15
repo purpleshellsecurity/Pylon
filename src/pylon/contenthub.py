@@ -250,6 +250,34 @@ def _unfed(needed: list[str], emits: dict[str, dict],
                      + (f"; switch on {', '.join(cats)}" if cats else ""))
 
 
+# How many category names a piece of advice may recite before the count is the
+# more useful sentence. Three read as the whole job when there were 53.
+CATEGORIES_IN_A_SENTENCE = 3
+
+
+def switch_on(cats: list[str]) -> str:
+    """What to tick, for a solution whose logs are not arriving.
+
+    `cats` is every diagnostic category the resource type offers, sorted
+    alphabetically. This said `", ".join(cats[:3])` -- an instruction naming an
+    arbitrary prefix of the alphabet. Twenty-four of the 48 catalogue entries
+    have more than three categories and Azure Databricks has 53, so on half of
+    them the sentence was wrong and the rest of the list appeared nowhere.
+
+    `report.headline` names every category in its equivalent sentence, and that
+    is right there: it renders at most three steps. This renders on every
+    installed solution, so the count carries the sentence, three are an example
+    said to be one, and the whole list rides on the row as
+    `categories_to_enable`.
+    """
+    if len(cats) <= CATEGORIES_IN_A_SENTENCE:
+        what = ", ".join(cats)
+    else:
+        what = (f"the {len(cats)} diagnostic categories it offers, including "
+                + ", ".join(cats[:CATEGORIES_IN_A_SENTENCE]))
+    return f"Switch on {what}, and point the diagnostic setting at this workspace."
+
+
 def build(workspace_arm_id: str, live_tables: set[str],
           templates: list[dict], coverage_gaps: list[dict] | None = None,
           resources: list[dict] | None = None,
@@ -500,11 +528,17 @@ def build(workspace_arm_id: str, live_tables: set[str],
                 # type. Naming the categories beats naming a shared table:
                 # "9 resources would emit AzureDiagnostics" told the NSG row
                 # nothing an operator could go and tick.
+                #
+                # What it must NOT do is name three of them as if they were the
+                # job. `cats` is every category the type offers, sorted
+                # alphabetically, and half the catalogue has more than three --
+                # Databricks has 53. `cats[:3]` read as an instruction and was
+                # the first three letters of the alphabet. The count is the
+                # honest headline, a few are an example, and the full list goes
+                # on the row where a renderer or a script can use all of it.
                 detail = ("The solution is installed and " + why_present
-                          + " is not sending its logs here. Switch on "
-                          + ", ".join(cats[:3])
-                          + " and point the diagnostic setting at this "
-                            "workspace." + unverified)
+                          + " is not sending its logs here. "
+                          + switch_on(cats) + unverified)
                 tally[action] += 1
                 rows.append({
                     "solution_id": cid, "display_name": name,
@@ -516,6 +550,7 @@ def build(workspace_arm_id: str, live_tables: set[str],
                     "analytics_rules": ships.get(cid, collections.Counter()).get("AnalyticsRule", 0),
                     "rules_enabled": n_enabled,
                     "collects_from": why_present,
+                    "categories_to_enable": cats,
                     "action": action, "action_detail": detail,
                 })
                 continue

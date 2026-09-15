@@ -538,8 +538,21 @@ def run(workspace: str) -> int:
             role_assignments=ReadState(ran=role_read["ran"],
                                        detail=role_read["detail"]),
             platforms=ReadState(ran=plat_read["ran"], detail=plat_read["detail"]),
+            # BOTH halves, not just the control-plane call. `defender["ran"]`
+            # says `az security pricing list` answered; the assessment that
+            # turns that into rows lives inside `if workspace_guid:` and is
+            # stubbed out when the guid does not resolve. So a run that read
+            # the plans and assessed none of them reported ran=True with a
+            # detail reading "not assessed", wrote an empty
+            # defender_plans.json, dropped the Defender section from the
+            # report, and left this question out of "what this scan could not
+            # answer" -- the summary said 10 unanswered checks when it was 11.
+            #
+            # Exactly what the note above `diagnostic_settings` describes
+            # fixing for its own field: a reader of the sentence was fine and a
+            # reader of the flag was misled.
             defender_plans=ReadState(
-                ran=defender["ran"],
+                ran=defender["ran"] and plan_read["ran"],
                 detail=(plan_read["detail"] + ". " + product_read["detail"])),
             sentinel_health=ReadState(ran=health_read2["ran"],
                                       detail=health_read2["detail"]),
@@ -688,12 +701,24 @@ def run(workspace: str) -> int:
     def count(value) -> str:
         return NOT_MEASURED if value is None else f"{len(value):,}"
 
+    def number(value) -> str:
+        """A count the document already computed, rather than a length."""
+        return NOT_MEASURED if value is None else f"{value:,}"
+
     def row(label: str, value: str, note: str = "") -> None:
         print(f"  {label:<28}{value:>12}" + (f"   {note}" if note else ""))
 
     print()
     print(console.heading("MEASURED"))
-    row("resources", count(resources))
+    # From the SUMMARY, not from `resources`. That list is every verdict row,
+    # and the scope rows ride in it -- tenant, subscription, Sentinel
+    # monitoring, the XDR families -- so a tenant with three storage accounts
+    # was told it had seven resources, on the first line of the screen. The
+    # document and the report both filtered to `scope == "resource"` the whole
+    # time and said three. The comment above this block already states the
+    # rule: every number comes from the document, not from the loose lists.
+    row("resources", number(analysis.summary.resources
+                            if analysis.summary is not None else None))
     row("analytics rules", count(analysis.rules))
     row("tables ingesting", count(analysis.tables))
     # Said with the caveat attached. A tenant with 36 tables holding data can

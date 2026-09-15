@@ -49,7 +49,7 @@ QUERY_RULES: dict[str, str] = {
 - Filter on OperationName plus ResourceProvider/Category — this generic path is
   lower fidelity than a curated table, so keep filters conservative and documented
 - End let-statement queries with a semicolon
-- NORMALIZE OUTPUT (required): before the final project, map this table's fields to the shared entity schema — `| extend ActorUpn from the caller-identity column (e.g. identity_claim_upn_s), SrcIp from the client-IP column, TargetResource = _ResourceId, Operation = OperationName` — then `| project TimeGenerated, ActorUpn, ActorId, SrcIp, TargetResource, Operation` plus any raw columns useful for triage. Leave a field = "" when the table has no such value. This makes entity mapping and cross-table correlation uniform.""",
+- NORMALIZE OUTPUT (required): before the final project, map this table's fields to the shared entity schema — `| extend ActorUpn from the caller-identity column (e.g. identity_claim_upn_s), SrcIp from the client-IP column, TargetResource = _ResourceId, Operation from the operation column this table's own rules name above (it is NOT always `OperationName`)` — then `| project TimeGenerated, ActorUpn, ActorId, SrcIp, TargetResource, Operation` plus any raw columns useful for triage. Leave a field = "" when the table has no such value. This makes entity mapping and cross-table correlation uniform.""",
 }
 
 CONTAINMENT_CMD: dict[str, str] = {

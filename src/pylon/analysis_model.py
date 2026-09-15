@@ -624,6 +624,11 @@ class Solution(Strict):
     # vendored service catalogue plus a presence test for the products that
     # are not ARM resources.
     collects_from: str | None = None
+    # Every diagnostic category the resource type offers, when the row's advice
+    # is to switch logging on. The prose cannot carry 53 of them, and an
+    # operator following the advice needs the whole list rather than the three
+    # that happen to sort first.
+    categories_to_enable: list[str] = Field(default_factory=list)
     action: SolutionAction
     action_detail: str
 

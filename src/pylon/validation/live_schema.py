@@ -26,7 +26,8 @@ import re
 import sys
 
 from ..grounding import DOCS_BASE, _fetch_cached
-from .validate_kql import _STRING_OR_COMMENT, ValidationResult
+from .. import kqltext
+from .validate_kql import ValidationResult
 
 # ── Layer 3: fetch + parse the live table schema ──────────────────────────────
 
@@ -84,7 +85,7 @@ def referenced_columns(kql: str, table: str) -> set[str]:
     # combined pattern consumes a whole "..."/'...' span before any inner `//`
     # can match as a comment (same string-vs-comment precedence validate_kql
     # relies on).
-    s = _STRING_OR_COMMENT.sub(" ", kql)
+    s = kqltext.blank(kql, string=" ", comment=" ")
     # Names the query itself defines (single '=' assignment, or '... as X').
     defined = set(re.findall(r"([A-Za-z_]\w*)\s*=(?![=~])", s))
     defined |= set(re.findall(r"\bas\s+([A-Za-z_]\w*)", s))

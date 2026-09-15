@@ -177,7 +177,7 @@ _KQL_RULES: dict[str, str] = {
 - KQL: project the table's row id (`Id` on the data-plane audit tables) in the
   final output, so an alert can be traced back to the record that raised it
 - Use the exact service-specific table provided — never substitute AzureDiagnostics
-- NORMALIZE OUTPUT (required): before the final project, map this table's fields to the shared entity schema — `| extend ActorUpn/ActorId from the table's identity field(s), SrcIp from its client-IP field, TargetResource from the object/resource field, Operation = OperationName` — then `| project TimeGenerated, ActorUpn, ActorId, SrcIp, TargetResource, Operation` plus any raw columns useful for triage. Leave a field = "" when the table has no such value. This makes entity mapping and cross-table correlation uniform.
+- NORMALIZE OUTPUT (required): before the final project, map this table's fields to the shared entity schema — `| extend ActorUpn/ActorId from the table's identity field(s), SrcIp from its client-IP field, TargetResource from the object/resource field, Operation from the operation column this table's own rules name above (it is NOT always `OperationName` -- FunctionAppLogs has none, and its contract names `Category`)` — then `| project TimeGenerated, ActorUpn, ActorId, SrcIp, TargetResource, Operation` plus any raw columns useful for triage. Leave a field = "" when the table has no such value. This makes entity mapping and cross-table correlation uniform.
 """,
     "entra": """- KQL: extract InitiatedBy fields BEFORE mv-expand
 - KQL: always wrap dynamic field access in tostring()

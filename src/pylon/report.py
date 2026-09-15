@@ -153,21 +153,33 @@ def group_dead_rules(rule_detail: list[dict], with_data: set[str]) -> list[dict]
             continue
         tables = list(rule.get("tables_referenced") or [])
         empty = tuple(sorted(t for t in tables if t not in with_data))
-        slot = groups.setdefault(empty, {"tables": list(empty), "names": []})
+        # Whether the scan RESOLVED any table, which is a different question
+        # from whether the ones it resolved hold data. Both produced an empty
+        # `empty` tuple and shared a group, so a rule whose query calls a saved
+        # KQL function -- an ASIM parser, which Microsoft's own guidance says to
+        # write -- was filed under "every table it reads holds data". The scan
+        # does not open function bodies and had identified no table at all. That
+        # is a limit of the scan reported as a fact about the tenant, which the
+        # rules table one section above is careful not to do.
+        slot = groups.setdefault((empty, bool(tables)),
+                                 {"tables": list(empty), "names": [],
+                                  "unresolved": not tables})
         slot["names"].append(rule.get("name") or "(unnamed)")
 
     out = []
-    for key, slot in groups.items():
+    for (key, resolved), slot in groups.items():
         slot["names"].sort()
         slot["count"] = len(slot["names"])
         # No empty table among the ones it reads: everything it needs is
-        # arriving and it still matched nothing.
-        slot["unexplained"] = not key
+        # arriving and it still matched nothing. Only claimable when a table
+        # was resolved in the first place.
+        slot["unexplained"] = resolved and not key
         out.append(slot)
-    # Biggest group first; the unexplained one last, because it is the one
-    # with no shared fix behind it.
-    return sorted(out, key=lambda g: (g["unexplained"], -g["count"],
-                                      g["tables"]))
+    # Biggest group first. The unexplained one after those, because it has no
+    # shared fix behind it, and the unresolved one last, because nothing was
+    # established about it at all.
+    return sorted(out, key=lambda g: (g["unresolved"], g["unexplained"],
+                                      -g["count"], g["tables"]))
 
 
 def coverage_of_reads(reads: dict) -> list[tuple[str, bool, str]]:
@@ -300,13 +312,15 @@ def headline(res_rows: list[dict], by_type: dict, rule_detail: list[dict],
             alt = ("A disabled Defender plan covers these too, with no "
                    "diagnostic setting to configure.")
 
-        # What to switch on. Capped, because a step listing twenty categories
-        # is a step nobody reads -- the table below carries the full set.
+        # What to switch on, every one of it. This was capped at four with a
+        # "+5 more", on the reasoning that a long line is a line nobody reads.
+        # Wrong for a step: somebody following it has to tick each category in
+        # the portal, and the five it hid were five they would not switch on.
+        # `test_every_category_to_switch_on_is_named` holds it.
         cats = sorted(fact.get("cats") or ())
         how = ""
         if cats:
             shown = ", ".join(cats)
-            more = ""
             tables = sorted(fact.get("tables") or ())
             into = f" → {tables[0]}" if len(tables) == 1 else ""
             # The table name is the documented default when no setting exists
@@ -317,7 +331,7 @@ def headline(res_rows: list[dict], by_type: dict, rule_detail: list[dict],
             # as three lines of the same caveat. "assumed" beside a table name
             # says the thing; the Method section carries the why.
             note = " (assumed)" if into and fact.get("assumed") else ""
-            how = f"Enable {shown}{more}{into}{note}"
+            how = f"Enable {shown}{into}{note}"
 
         # Nothing to switch on means nothing was mapped for this type. Say
         # that, rather than leaving a bare count under a heading promising a
@@ -341,6 +355,20 @@ def headline(res_rows: list[dict], by_type: dict, rule_detail: list[dict],
                          "below says whether data is arriving — only whether "
                          "logging is switched on.")
     return out
+
+
+def clip(text: str, limit: int) -> str:
+    """`text`, and an ellipsis if this cut it short.
+
+    Four places sliced a string with a bare `[:n]`. A reason cut mid-word reads
+    as a reason that ended there, and the reader has no way to tell the
+    document dropped the rest. One character says so.
+
+    Identifiers are not clipped at all -- see the rule table, where a name cut
+    at 52 characters made two rules sharing a long prefix indistinguishable in
+    the one column a reader uses to go and find them.
+    """
+    return text if len(text) <= limit else text[:limit].rstrip() + "\u2026"
 
 
 def stat(value) -> str:
@@ -678,12 +706,13 @@ def build(a: dict, plans: list[dict] | None,
                 gap += ('<div class="stack"><div>Enabled: '
                         f'{e(", ".join(sorted(on)))}</div></div>')
             if missing:
-                shown = ", ".join(missing)
-                more = f" +{len(missing) - 6} more" if len(missing) > 6 else ""
-                # Append: the enabled list is already in `gap` and assigning
-                # here would drop it.
+                # Every one of them, and no "+N more". This listed six and
+                # appended a count of the rest; when the truncation went, the
+                # tail did not, so a tenant with ten unticked categories read
+                # all ten names followed by "+4 more" -- the document claiming
+                # to hide something it had just shown.
                 gap += ('<div class="stack"><div>Not enabled: '
-                        f"{e(shown)}{e(more)}</div></div>")
+                        f'{e(", ".join(missing))}</div></div>')
             return (f"<strong>{e(label)}</strong>"
                     f'<span class="more">{e(head)}</span>{gap}')
         return f'<code>{e(short(r["resource_id"]))}</code>'
@@ -814,11 +843,11 @@ def build(a: dict, plans: list[dict] | None,
 
     rule_rows_html = "".join(f"""
       <tr>
-        <td>{e(r['name'][:52])}</td>
+        <td>{e(r['name'])}</td>
         <td class="detail">{'From template' if r.get('_template') else 'Yours'}</td>
         <td><span class="chip chip--{HEALTH_CLASS.get(r['rule_health_status'], 'void')}">
             {e(HEALTH_LABEL.get(r['rule_health_status'], 'Not tested'))}</span>
-            {f'<div class="rule-names">{e(r["health_detail"][:110])}</div>' if r.get('health_detail') else ''}</td>
+            {f'<div class="rule-names">{e(clip(r["health_detail"], 110))}</div>' if r.get('health_detail') else ''}</td>
         <td class="cats">{", ".join(f'<code>{e(t)}</code>' for t in r['tables_referenced']) or _reads_cell(r)}</td>
       </tr>""" for r in sorted(rule_detail,
                               key=lambda x: (HEALTH_ORDER.get(x['rule_health_status'], 9),
@@ -826,7 +855,16 @@ def build(a: dict, plans: list[dict] | None,
     def dead_group(g: dict) -> str:
         shown = ", ".join(g["names"])
         plural = "" if g["count"] == 1 else "s"
-        if g["unexplained"]:
+        if g.get("unresolved"):
+            head = (f'{g["count"]} analytics rule{plural} matched nothing, and the '
+                    f'scan could not tell which '
+                    f'table{"" if g["count"] == 1 else "s"} '
+                    f'{"it reads" if g["count"] == 1 else "they read"}')
+            why = ("The query names no table directly, so it most likely calls a "
+                   "saved KQL function such as an ASIM parser. This scan reads "
+                   "rule text and does not open function bodies, so whether the "
+                   "underlying tables hold data was never established.")
+        elif g["unexplained"]:
             head = (f'{g["count"]} analytics rule{plural} matched nothing, and every '
                     f'table '
                     f'{"it reads holds" if g["count"] == 1 else "they read holds"} '
@@ -872,7 +910,7 @@ def build(a: dict, plans: list[dict] | None,
         # nobody can act on.
         why = (rule.get("_description") or "").strip()
         return (f'<div class="rule-names">{e(rule.get("name") or "(unnamed)")}'
-                + (f'<span class="more">: {e(why[:160])}</span>' if why else "")
+                + (f'<span class="more">: {e(clip(why, 160))}</span>' if why else "")
                 + '</div>')
 
     off_block = "" if not auto_off else (
@@ -1008,10 +1046,24 @@ def build(a: dict, plans: list[dict] | None,
                       and not any(t in live_tables for t in r["tables_referenced"])}
         wasted = [r for r in runs if r["rule"] in dead_names]
         wasted_runs = sum(r["runs"] for r in wasted)
-        # Rules that ran but are not in the deployed list, and deployed rules
-        # that wrote no execution record. Fusion is the second kind by design:
-        # it has no KQL, so the service decides its health and it emits nothing.
-        silent = [r for r in rule_detail if r["name"] not in {x["rule"] for x in runs}]
+        # Deployed rules that wrote no execution record, split by whether the
+        # reason is known.
+        #
+        # This was one list under one sentence -- "A Fusion rule has no KQL of
+        # its own and the service decides its health, so it reports none. That
+        # is expected, not a gap." True of Fusion, and asserted over every rule
+        # in the list. A rule someone switched off writes no record either, and
+        # so does one created after the window began, or any rule at all when
+        # health monitoring was switched on partway through it. Naming one cause
+        # for all of them tells a reader there is nothing here to look at.
+        ran = {x["rule"] for x in runs}
+        silent = [r for r in rule_detail if r["name"] not in ran]
+        # No KQL of its own: Fusion and the other service-decided kinds. The
+        # service runs these and emits no execution record, by design.
+        service_run = [r for r in silent if not r.get("_query")]
+        switched_off = [r for r in silent if r.get("_query") and not r.get("_enabled")]
+        unexplained_silence = [r for r in silent
+                               if r.get("_query") and r.get("_enabled")]
 
         def run_row(r: dict) -> str:
             rule = by_name.get(r["rule"]) or {}
@@ -1029,21 +1081,44 @@ def build(a: dict, plans: list[dict] | None,
                     f'<td class="num">{e(str(r["newest"])[:16].replace("T", " ")) if r["newest"] else ""}</td>'
                     f'<td class="detail">{chip}</td></tr>')
 
+        # The share is only worth stating when there is execution to take a
+        # share of. Records exist with a run count of zero, and dividing by the
+        # total ends the whole report in a ZeroDivisionError rather than in a
+        # section.
+        share = ("" if not total_runs else
+                 f" &mdash; {wasted_runs / total_runs * 100:,.0f}% of all rule "
+                 f"execution in the window")
         wasted_finding = "" if not wasted else (
             f'<div class="deadlist"><div class="dead"><h4>{wasted_runs:,} of those '
-            f'runs &mdash; {wasted_runs / total_runs * 100:,.0f}% of all rule execution '
-            f'in the window &mdash; searched a table with no data</h4>'
+            f'runs{share} &mdash; searched a table with no data</h4>'
             f'<div class="rule-names">{e(", ".join(sorted(x["rule"] for x in wasted)))}</div>'
             '<div class="more">Success here means the query ran, not that the '
             'rule can ever fire. Either the data these were written for is not '
             'arriving, or this tenant does not run the product they watch.'
             '</div></div></div>')
 
-        silent_note = "" if not silent else (
-            f'<p class="note">{plural(len(silent), "deployed rule")} wrote no '
-            f'execution record: {e(", ".join(sorted(r["name"] for r in silent)))}. '
-            'A Fusion rule has no KQL of its own and the service decides its '
-            'health, so it reports none. That is expected, not a gap.</p>')
+        def _silent_note(rows: list[dict], why: str) -> str:
+            if not rows:
+                return ""
+            return (f'<p class="note">{plural(len(rows), "deployed rule")} wrote no '
+                    f'execution record: '
+                    f'{e(", ".join(sorted(r["name"] for r in rows)))}. {why}</p>')
+
+        silent_note = (
+            _silent_note(service_run,
+                         "These have no KQL of their own — the service runs them "
+                         "and decides their health, so they report none. That is "
+                         "expected, not a gap.")
+            + _silent_note(switched_off,
+                           "These are switched off in the workspace, so they did "
+                           "not run.")
+            + _silent_note(unexplained_silence,
+                           "These are enabled and have a query, and nothing "
+                           "recorded them running in this window. A rule created "
+                           "after the window began, or any rule at all if health "
+                           "monitoring was switched on partway through it, looks "
+                           "the same here — this scan cannot tell those from a "
+                           "rule that is not being scheduled."))
 
         exec_heading = (f'{len(runs)} of {len(rule_detail)} analytics rules ran '
                         f'{total_runs:,} times. '
@@ -1269,12 +1344,10 @@ def build(a: dict, plans: list[dict] | None,
     def step(action: dict) -> str:
         bits = []
         if action["blocks"]:
-            names = ", ".join(action["blocks"])
-            rest = ""
             bits.append(f'<span class="lead__cost">Blocks '
                         f'{len(action["blocks"])} analytics rule'
                         f'{"" if len(action["blocks"]) == 1 else "s"}: '
-                        f'{e(names)}{e(rest)}</span>')
+                        f'{e(", ".join(action["blocks"]))}</span>')
         if action["how"]:
             bits.append(f'<span>{e(action["how"])}</span>')
         if action["alt"]:
@@ -1412,7 +1485,7 @@ def build(a: dict, plans: list[dict] | None,
         f"""
       <tr>
         <td>{e(question)}</td>
-        <td class="detail">{e(why[:150]) if why else 'no reason recorded'}</td>
+        <td class="detail">{e(clip(why, 150)) if why else 'no reason recorded'}</td>
       </tr>""" for question, why in unanswered)
     method_block = "" if not unanswered else f"""
 <section class="block">

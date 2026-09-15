@@ -9,7 +9,7 @@ import re
 from dataclasses import dataclass, field
 from functools import lru_cache
 
-from .. import column_values, roles
+from .. import column_values, kqltext, roles
 from .operation import validate_operation
 from .schemas import FLAT_TABLES, PLAIN_STRING_FIELDS, TABLE_SCHEMAS
 
@@ -79,8 +79,6 @@ _PLACEHOLDER = re.compile(r"\[[A-Za-z][^\[\]\"'\n]{2,60}\]")
 #
 # Deliberately restricted to `let` bindings. An inline `coalesce(x, dynamic([]))`
 # is a legitimate default and is not this.
-_COMMENT_ONLY = re.compile(r"//[^\n]*")
-
 _EMPTY_LET = re.compile(
     r"\blet\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"
     r"(?:dynamic\s*\(\s*(?:\[\s*\]|\{\s*\})\s*\)|pack_array\s*\(\s*\))\s*;",
@@ -113,7 +111,7 @@ _WATCHLIST_LET = re.compile(
 def _unverified_watchlists(kql: str) -> list[str]:
     """Filters that silently pass everything when the watchlist is absent."""
     bare = _blank_strings_and_comments(kql)
-    raw = _COMMENT_ONLY.sub(" ", kql)          # keep the literal name readable
+    raw = kqltext.strip_comments(kql)          # keep the literal name readable
     problems: list[str] = []
     for hit in _WATCHLIST_LET.finditer(raw):
         name, watchlist = hit.group(1), hit.group(2)
@@ -226,11 +224,23 @@ class ValidationResult:
 # String literals and line comments, so identifier scans can blank them out.
 # A column-lookalike inside a value ("MICROSOFT.AUTHORIZATION/...") or a comment
 # is not a column reference and must not be graded as one.
-_STRING_OR_COMMENT = re.compile(
-    r'"(?:[^"\\]|\\.)*"'   # double-quoted string (handles \" escapes)
-    r"|'(?:[^'\\]|\\.)*'"  # single-quoted string
-    r"|//[^\n]*"            # line comment
-)
+
+
+def _blank_comments(kql: str) -> str:
+    """Line comments removed, string literals KEPT.
+
+    Most per-table checks match a column name or an operator and must not see a
+    comment. But several read what is INSIDE the quotes -- `OperationName ==
+    "..."`, `LoggedByService == "..."` -- so they cannot run on a source whose
+    strings have been emptied. This is the version for those.
+
+    A gate that fires on correct output is worse than no gate: it gets ignored,
+    and then it is ignored when it is right. A query carrying
+    `// there is no UserPrincipalName on this table` was rejected for naming the
+    column it was warning against, and the corrective retry told the model to
+    fix a query that was already correct.
+    """
+    return kqltext.strip_comments(kql)
 
 
 def _blank_strings_and_comments(kql: str) -> str:
@@ -238,7 +248,7 @@ def _blank_strings_and_comments(kql: str) -> str:
     keeping the surrounding clause shape. Used only where a check inspects
     identifier *positions* (e.g. the column-case scan); value-based checks that
     read inside quotes must run on the raw query."""
-    return _STRING_OR_COMMENT.sub(lambda m: '""' if m.group(0)[0] in "\"'" else "", kql)
+    return kqltext.blank(kql)
 
 
 # Names bound by a `let` statement. A query may legitimately open on one of
@@ -722,6 +732,17 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
     errors, warnings = _structural_issues(kql, allow_placeholders=allow_placeholders,
                                           context=context)
 
+    # EVERY PER-TABLE CHECK BELOW READS THIS, not `kql`. A comment is not a
+    # defect, and 34 of the 38 regex checks in this function scanned the raw
+    # query -- so a correct detection carrying
+    # `// there is no UserPrincipalName on this table` was rejected for naming
+    # the column it was warning against, and the corrective retry told the model
+    # to fix something already right.
+    #
+    # Comments only. String literals are KEPT, because several checks read what
+    # is inside the quotes.
+    scan = _blank_comments(kql)
+
     # The query must target a table that actually exists. A query whose table is
     # neither the expected one nor any known Azure table is a hallucination — before
     # F2 this was total silence (only known-but-wrong tables warned).
@@ -736,7 +757,7 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
     # keeps the shared table selective rather than column-checking it, and don't
     # penalize it for being AzureDiagnostics — it is the intended table here.
     if table_name == "AzureDiagnostics":
-        diag = _validate_azure_diagnostics(kql, expected_provider)
+        diag = _validate_azure_diagnostics(_blank_comments(kql), expected_provider)
         errors.extend(diag.errors)
         warnings.extend(diag.warnings)
         unique_errors = list(dict.fromkeys(errors))
@@ -769,34 +790,34 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
 
     # --- Check 2: AzureActivity-specific hallucinations ---
     if table_name == "AzureActivity":
-        if re.search(r"\|\s*where\s+OperationName\s*(==|=~|!=|has|contains|startswith)", kql, re.IGNORECASE):
+        if re.search(r"\|\s*where\s+OperationName\s*(==|=~|!=|has|contains|startswith)", scan, re.IGNORECASE):
             errors.append(
                 'AzureActivity: Filtering on "OperationName" — use "OperationNameValue" '
                 "instead. OperationName is a display name and is unreliable for filtering."
             )
-        if re.search(r"\|\s*where\s+Result\s*(==|=~|!=|has|contains)", kql, re.IGNORECASE):
+        if re.search(r"\|\s*where\s+Result\s*(==|=~|!=|has|contains)", scan, re.IGNORECASE):
             errors.append('AzureActivity: "Result" does not exist — use "ActivityStatusValue" instead.')
-        if re.search(r"tostring\(\s*(Caller|CallerIpAddress)\s*\)", kql, re.IGNORECASE):
+        if re.search(r"tostring\(\s*(Caller|CallerIpAddress)\s*\)", scan, re.IGNORECASE):
             warnings.append(
                 "AzureActivity: Unnecessary tostring() on plain string field. "
                 "Caller and CallerIpAddress are already strings."
             )
-        if re.search(r"\bInitiatedBy\b", kql):
+        if re.search(r"\bInitiatedBy\b", scan):
             errors.append(
                 'AzureActivity: "InitiatedBy" does not exist — use "Caller" and '
                 '"CallerIpAddress" directly.'
             )
-        if re.search(r"\bTargetResources\b", kql):
+        if re.search(r"\bTargetResources\b", scan):
             errors.append(
                 'AzureActivity: "TargetResources" does not exist — use "ResourceId", '
                 '"ResourceGroup", "SubscriptionId".'
             )
-        if re.search(r"\bUserPrincipalName\b", kql):
+        if re.search(r"\bUserPrincipalName\b", scan):
             errors.append('AzureActivity: "UserPrincipalName" does not exist — use "Caller" directly.')
 
     # --- Check 3: AuditLogs-specific checks ---
     if table_name == "AuditLogs":
-        if re.search(r"\bActivityStatusValue\b", kql):
+        if re.search(r"\bActivityStatusValue\b", scan):
             errors.append(
                 'AuditLogs: "ActivityStatusValue" does not exist — use "Result" '
                 '(lowercase values: "success"/"failure").'
@@ -816,7 +837,7 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
 
         _CATEGORY_VALUES = _categories()
         for _m in re.finditer(
-            r'LoggedByService\s*(?:==|=~|in~?)\s*\(?\s*"([^"]+)"', kql
+            r'LoggedByService\s*(?:==|=~|in~?)\s*\(?\s*"([^"]+)"', scan
         ):
             if _m.group(1) in _CATEGORY_VALUES:
                 errors.append(
@@ -833,14 +854,14 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
         # parses, validates, executes and matches nothing for ever. AzureActivity
         # has had this rule for OperationNameValue all along; AuditLogs did not,
         # and 41 of 41 generated detections used `==`.
-        for _m in re.finditer(r'OperationName\s*(==|!=)\s*"([^"]+)"', kql):
+        for _m in re.finditer(r'OperationName\s*(==|!=)\s*"([^"]+)"', scan):
             errors.append(
                 f'AuditLogs: OperationName {_m.group(1)} "{_m.group(2)}" is '
                 f'CASE-SENSITIVE. Documented activity names and the casing a tenant '
                 f'actually logs differ, so this can match nothing. Use '
                 f'{"=~" if _m.group(1) == "==" else "!~"} instead.'
             )
-        if re.search(r'\|\s*where\s+Result\s*(==|!=)\s*"(Success|Failure)"', kql):
+        if re.search(r'\|\s*where\s+Result\s*(==|!=)\s*"(Success|Failure)"', scan):
             warnings.append(
                 'AuditLogs: Result values are lowercase — use "success"/"failure", '
                 'not "Success"/"Failure".'
@@ -869,11 +890,11 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
     # --- Check 4: Azure Storage data-plane checks (blob/file/queue/table share
     # one schema — same StatusCode-is-STRING and CallerIpAddress-casing rules) ---
     if table_name in ("StorageBlobLogs", "StorageFileLogs", "StorageQueueLogs", "StorageTableLogs"):
-        if re.search(r"\bCallerIPAddress\b", kql):
+        if re.search(r"\bCallerIPAddress\b", scan):
             errors.append(
                 f'{table_name}: "CallerIPAddress" is wrong — use "CallerIpAddress" (lowercase p).'
             )
-        if re.search(r"\|\s*where\s+StatusCode\s*(>=|<=|>|<)\s*\d+", kql):
+        if re.search(r"\|\s*where\s+StatusCode\s*(>=|<=|>|<)\s*\d+", scan):
             errors.append(
                 f"{table_name}: StatusCode is a STRING — use string comparison "
                 '(e.g. == "200"), not numeric.'
@@ -887,18 +908,18 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
     # and asserting them here taught the generator to write queries the workspace
     # then rejected with "Failed to resolve scalar expression named 'identity_s'".
     if table_name == "AZKVAuditLogs":
-        if re.search(r"\bCallerIPAddress\b", kql):
+        if re.search(r"\bCallerIPAddress\b", scan):
             errors.append(
                 'AZKVAuditLogs: "CallerIPAddress" is wrong — the dedicated table uses '
                 '"CallerIpAddress" (lowercase p). The capital-IP spelling is '
                 "AzureDiagnostics, and KQL column names are case-sensitive."
             )
-        if re.search(r"parse_json\(\s*Identity\s*\)", kql):
+        if re.search(r"parse_json\(\s*Identity\s*\)", scan):
             warnings.append(
                 "AZKVAuditLogs: Identity is already dynamic — parse_json() around it is "
                 "redundant. Index it directly: tostring(Identity.claim.upn)."
             )
-        if re.search(r"\|\s*where\s+HttpStatusCode\s*(?:==|!=|>=|<=|>|<)\s*['\"]", kql):
+        if re.search(r"\|\s*where\s+HttpStatusCode\s*(?:==|!=|>=|<=|>|<)\s*['\"]", scan):
             errors.append(
                 "AZKVAuditLogs: HttpStatusCode is an INT — compare numerically "
                 "(e.g. >= 300), not against a string."
@@ -910,7 +931,7 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
     if table_name == "FunctionAppLogs":
         absent = re.search(
             r"\b(OperationName|CallerIpAddress|CallerIPAddress|StatusCode|AuthenticationType)\b",
-            kql,
+            scan,
         )
         if absent:
             errors.append(
@@ -923,7 +944,7 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
     # It records successful logons only (no ResultType/ResultDescription/StatusCode)
     # and its source IP is UserAddress, not CallerIpAddress.
     if table_name == "AppServiceAuditLogs":
-        absent = re.search(r"\b(ResultDescription|ResultType|StatusCode|CallerIpAddress|CallerIPAddress)\b", kql)
+        absent = re.search(r"\b(ResultDescription|ResultType|StatusCode|CallerIpAddress|CallerIPAddress)\b", scan)
         if absent:
             col = absent.group(1)
             hint = (
@@ -936,22 +957,22 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
     # --- Check 5d: Azure Firewall — table-specific column absences + INT ports ---
     if table_name.startswith("AZFW"):
         # Ports/Severity are INT — quoting them is a type error.
-        if re.search(r"\|\s*where\s+(SourcePort|DestinationPort|Severity)\s*(==|!=|>=|<=|>|<)\s*\"", kql):
+        if re.search(r"\|\s*where\s+(SourcePort|DestinationPort|Severity)\s*(==|!=|>=|<=|>|<)\s*\"", scan):
             errors.append(
                 f"{table_name}: SourcePort/DestinationPort/Severity are INT — use "
                 "numeric comparison (e.g. == 443), not a quoted string."
             )
-        if table_name == "AZFWApplicationRule" and re.search(r"\bDestinationIp\b", kql):
+        if table_name == "AZFWApplicationRule" and re.search(r"\bDestinationIp\b", scan):
             errors.append(
                 "AZFWApplicationRule: no DestinationIp column — application rules are "
                 "FQDN/URL based. Use Fqdn (or TargetUrl for TLS-inspected requests)."
             )
-        if table_name in ("AZFWNatRule", "AZFWDnsQuery") and re.search(r"\bAction\b", kql):
+        if table_name in ("AZFWNatRule", "AZFWDnsQuery") and re.search(r"\bAction\b", scan):
             errors.append(
                 f"{table_name}: no Action column — this table is not a rule allow/deny "
                 "match. Use TranslatedIp/Port (NAT) or ResponseCode/QueryName (DNS)."
             )
-        if table_name == "AZFWDnsQuery" and re.search(r"\bDestinationIp\b", kql):
+        if table_name == "AZFWDnsQuery" and re.search(r"\bDestinationIp\b", scan):
             errors.append(
                 "AZFWDnsQuery: no DestinationIp column — the query target is QueryName; "
                 "the client is SourceIp."
@@ -959,7 +980,7 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
 
     # --- Check 5e: Container Registry — DurationMs is a STRING, not int ---
     if table_name.startswith("ContainerRegistry") and re.search(
-        r"\|\s*where\s+DurationMs\s*(>=|<=|>|<)\s*\d+", kql
+        r"\|\s*where\s+DurationMs\s*(>=|<=|>|<)\s*\d+", scan
     ):
         errors.append(
             f"{table_name}: DurationMs is a STRING — do not use numeric comparison."
@@ -967,7 +988,7 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
 
     # --- Check 6: Graph Activity (modern + legacy) — ResponseStatusCode is INT ---
     if table_name in ("MicrosoftGraphActivityLogs", "AADGraphActivityLogs") and re.search(
-        r'\|\s*where\s+ResponseStatusCode\s*(==|!=)\s*"', kql
+        r'\|\s*where\s+ResponseStatusCode\s*(==|!=)\s*"', scan
     ):
         errors.append(
             f"{table_name}: ResponseStatusCode is INT — use numeric "
@@ -986,7 +1007,7 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
     # work against the absolute URL and are what the asset already recommends.
     if table_name in ("MicrosoftGraphActivityLogs", "AADGraphActivityLogs"):
         for _m in re.finditer(
-            r'\b(RequestUri|BasePath)\s*(==|!=)\s*"(/[^"]*)"', kql
+            r'\b(RequestUri|BasePath)\s*(==|!=)\s*"(/[^"]*)"', scan
         ):
             errors.append(
                 f'{table_name}: {_m.group(1)} {_m.group(2)} "{_m.group(3)}" matches '
@@ -1017,7 +1038,7 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
         _member = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
         for _m in re.finditer(
             r"\b(" + "|".join(map(re.escape, _closed)) + r")\s*(==|!=|=~|!~)\s*\"([^\"]*)\"",
-            kql,
+            scan,
         ):
             _col, _op, _lit = _m.group(1), _m.group(2), _m.group(3)
             if not _member.match(_lit):
@@ -1047,14 +1068,14 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
         "AADManagedIdentitySignInLogs",
     )
     if table_name in _SIGNIN_TABLES:
-        if re.search(r"\|\s*where\s+ResultType\s*(==|!=)\s*\d+\b", kql) and not re.search(
-            r'\|\s*where\s+ResultType\s*(==|!=)\s*"', kql
+        if re.search(r"\|\s*where\s+ResultType\s*(==|!=)\s*\d+\b", scan) and not re.search(
+            r'\|\s*where\s+ResultType\s*(==|!=)\s*"', scan
         ):
             errors.append(
                 f'{table_name}: ResultType is a STRING code — compare to a quoted '
                 'value (e.g. == "0" for success), not a bare number.'
             )
-        if re.search(r"\bActivityStatusValue\b", kql):
+        if re.search(r"\bActivityStatusValue\b", scan):
             errors.append(
                 f'{table_name}: "ActivityStatusValue" does not exist — use ResultType '
                 '(string; "0" = success).'
@@ -1073,8 +1094,8 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
     # the copy being queried.
 
     # --- Check 6d: AKSAuditAdmin excludes get/list (reads) ---
-    if table_name == "AKSAuditAdmin" and re.search(r"\bVerb\b", kql) and re.search(
-        r'"(get|list)"', kql, re.IGNORECASE
+    if table_name == "AKSAuditAdmin" and re.search(r"\bVerb\b", scan) and re.search(
+        r'"(get|list)"', scan, re.IGNORECASE
     ):
         errors.append(
             'AKSAuditAdmin excludes get/list verbs (reads) — those events are not in '
@@ -1093,7 +1114,7 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
     # parsed payload, a locally extended name, a function result -- is allowed.
     if table_name in FLAT_TABLES:
         for operand in re.findall(
-                r"\|\s*mv-expand\s+(?:\w+\s*=\s*)?([^|\n]+)", kql, re.IGNORECASE):
+                r"\|\s*mv-expand\s+(?:\w+\s*=\s*)?([^|\n]+)", scan, re.IGNORECASE):
             target = operand.strip().split()[0].rstrip(",")
             if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", target):
                 continue          # dotted path, call, or expression: derived
@@ -1107,7 +1128,7 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
 
     # --- Check 8: AzureDiagnostics inline references ---
     if (
-        re.search(r"\bAzureDiagnostics\b", kql)
+        re.search(r"\bAzureDiagnostics\b", scan)
         and table_name != "AzureDiagnostics"
         and detected_table != "AzureDiagnostics"
     ):
@@ -1119,7 +1140,7 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
     # --- Check 9: tostring() on plain string fields ---
     plain_strings = PLAIN_STRING_FIELDS.get(table_name)
     if plain_strings:
-        for m in re.finditer(r"tostring\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)", kql):
+        for m in re.finditer(r"tostring\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)", scan):
             if m.group(1) in plain_strings:
                 warnings.append(
                     f'{table_name}: Unnecessary tostring({m.group(1)}) — "{m.group(1)}" '
@@ -1206,7 +1227,9 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
     from ..services import vocabulary_is_closed
 
     closed = vocabulary_is_closed(table_name)
-    for literal in _operation_literals(kql, table_name):
+    # `scan`, not `kql`: this reads operation names out of the query, and a
+    # comment naming an operation is not a filter on one.
+    for literal in _operation_literals(scan, table_name):
         # A playbook is a runbook the responder completes at the console, so the
         # operation it filters on is a slot the template hands over on purpose.
         # `allow_placeholders` already stands the structural fill-in check down
@@ -1270,7 +1293,7 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
     # The split(...) args may themselves contain one level of parens (a nested
     # call like tolower(x), or a delimiter of ")"), so match balanced-ish args
     # rather than [^)]* which would stop at the first inner ).
-    if re.search(r"tostring\(\s*split\((?:[^()]|\([^()]*\))*\)\s*\)\s*\[", kql):
+    if re.search(r"tostring\(\s*split\((?:[^()]|\([^()]*\))*\)\s*\)\s*\[", scan):
         errors.append(
             "Malformed extraction: tostring(split(...))[i] applies the index to the "
             "stringified array, not the element — downstream filters silently never "
@@ -1309,10 +1332,10 @@ def validate_kql(kql: str, table_name: str, expected_provider: str = "",
             errors.append(issue)
 
     # --- Check 14: a GUID extraction that will return the subscription id ---
-    for issue in _unpinned_guid_extractions(kql):
+    for issue in _unpinned_guid_extractions(scan):
         errors.append(issue)
 
-    warnings.extend(_performance_issues(kql, context))
+    warnings.extend(_performance_issues(scan, context))
 
     unique_errors = list(dict.fromkeys(errors))
     unique_warnings = list(dict.fromkeys(warnings))

@@ -28,6 +28,8 @@ from typing import Any
 
 import yaml
 
+from . import kqltext
+
 _DIR = "catalog/contracts"
 
 
@@ -180,14 +182,10 @@ def render(table: str) -> str:
     return "\n".join(out)
 
 
-# `//` to end of line, and both string forms, so a column named only inside a
-# comment or a literal is not mistaken for one the query reads.
-_COMMENT = re.compile(r"//[^\n]*")
-_STRING = re.compile(r"@?\"(?:\"\"|[^\"])*\"|@?'(?:''|[^'])*'")
-
-
 def _code(kql: str) -> str:
-    return _STRING.sub(" ", _COMMENT.sub(" ", kql))
+    """The query with comments gone and every string literal emptied, so a
+    column named only inside one is not mistaken for a column the query reads."""
+    return kqltext.blank(kql, string=" ", comment=" ")
 
 
 def conforms(kql: str, table: str) -> list[str]:
@@ -203,7 +201,7 @@ def conforms(kql: str, table: str) -> list[str]:
     # Comments gone, string literals KEPT. `code` blanks strings so a column
     # named inside one is not mistaken for a read; the operation-literal check
     # below needs the opposite, because the literal IS the thing being checked.
-    literals = _COMMENT.sub(" ", kql)
+    literals = kqltext.strip_comments(kql)
     problems: list[str] = []
 
     def used(name: str) -> bool:
