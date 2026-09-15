@@ -39,8 +39,8 @@ dependencies = [
 # Everything `design` needs. Installing this is the moment the tool starts
 # costing money, and the separation is deliberate rather than tidy.
 design = [
-    "agent-framework-core==1.13.0",
-    "agent-framework-openai==1.12.0",
+    "agent-framework-core==1.18.0",
+    "agent-framework-openai==1.14.3",
     "httpx",
     # `sentinel.py` came across in the generation closure and reaches the
     # workspace through the SDK rather than `az rest`, so the engine needs the
