@@ -1,0 +1,88 @@
+{
+ "resource_type": "Microsoft.ContainerRegistry/registries",
+ "service_name": "Azure Container Registry",
+ "logging_docs": {
+  "monitor_page": "https://learn.microsoft.com/en-us/azure/container-registry/monitor-container-registry",
+  "dedicated_logging_page": null,
+  "monitoring_data_reference": "https://learn.microsoft.com/en-us/azure/container-registry/monitor-container-registry-reference",
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-containerregistry-registries-logs"
+ },
+ "tables": {
+  "ContainerRegistryLoginEvents": {
+   "schema_mode": "resource-specific",
+   "operations_status": "not enumerated in Azure docs (checked https://learn.microsoft.com/en-us/azure/container-registry/monitor-container-registry-reference); columns below are the verified allowlist",
+   "operations_note": "Read all three service/monitoring docs: monitor-container-registry (how-to-monitor), monitor-container-registry-reference (monitoring data reference), and the Azure Monitor supported-logs page microsoft-containerregistry-registries-logs. None enumerates operation/action values for the Login Events table. In monitor-container-registry-reference the 'Azure Monitor Logs tables' section describes ContainerRegistryLoginEvents only as 'Registry authentication events and status, including the incoming identity and IP address' with no value list; by contrast, the SAME section explicitly enumerates logged operations for the OTHER table, ContainerRegistryRepositoryEvents ('push, pull, untag, delete (including repository delete), purge tag, and purge manifest') - no comparable list exists for LoginEvents. On the monitor-container-registry page OperationName appears only as a projected column in example KQL queries (e.g. 'ContainerRegistryLoginEvents | where ResultDescription != \"200\"'), not as an enumerated set of values. The supported-logs reference lists only the log category and table (columns), not operation values.",
+   "columns": {
+    "_BilledSize": "real",
+    "CallerIpAddress": "string",
+    "Category": "string",
+    "CorrelationId": "string",
+    "DurationMs": "string",
+    "Identity": "string",
+    "_IsBillable": "string",
+    "JwtId": "string",
+    "LoginServer": "string",
+    "OperationName": "string",
+    "Region": "string",
+    "_ResourceId": "string",
+    "ResultDescription": "string",
+    "ResultType": "string",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string",
+    "UserAgent": "string"
+   },
+   "diagnostic_category": "ContainerRegistryLoginEvents"
+  },
+  "ContainerRegistryRepositoryEvents": {
+   "schema_mode": "resource-specific",
+   "operation_field": "OperationName",
+   "operations": [
+    "push",
+    "pull",
+    "untag",
+    "delete",
+    "purge tag",
+    "purge manifest"
+   ],
+   "columns": {
+    "ArtifactType": "string",
+    "_BilledSize": "real",
+    "CallerIpAddress": "string",
+    "Category": "string",
+    "CorrelationId": "string",
+    "Digest": "string",
+    "DurationMs": "string",
+    "Identity": "string",
+    "_IsBillable": "string",
+    "LoginServer": "string",
+    "MediaType": "string",
+    "OperationName": "string",
+    "Region": "string",
+    "Repository": "string",
+    "_ResourceId": "string",
+    "ResultDescription": "string",
+    "ResultType": "string",
+    "Size": "int",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "Tag": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string",
+    "UserAgent": "string",
+    "UserTenantId": "string"
+   },
+   "diagnostic_category": "ContainerRegistryRepositoryEvents"
+  }
+ },
+ "api_references": {
+  "operations_source": "https://learn.microsoft.com/en-us/azure/container-registry/monitor-container-registry-reference"
+ },
+ "resource_log_categories": [
+  "ContainerRegistryLoginEvents",
+  "ContainerRegistryRepositoryEvents"
+ ]
+}

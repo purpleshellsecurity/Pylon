@@ -1,0 +1,104 @@
+# How a detection reads App Service access-restriction decisions. Measured
+# against 32 real rows, sixteen allowed and sixteen denied, on an app carrying
+# an explicit allow rule and the implicit default deny.
+table: AppServiceIPSecAuditLogs
+plane: data
+platform: azure
+columns: 14
+
+operation:
+  column: Result
+  operator: "=~"
+  why: >-
+    There is no operation column. A row is one access-restriction DECISION, and
+    Result is the decision. Filter on it, not on a verb.
+
+what_a_row_means: >-
+  The front door evaluated a request against this app's access restrictions and
+  allowed or denied it. A row exists only when restrictions are configured: an
+  app left on the default "Allow all" evaluates nothing and writes nothing, so
+  an empty table means unconfigured, NOT unattacked.
+
+roles:
+  who: none -- the front door decides before any identity is established
+  from_where: CIp
+  what: Result
+  # Result is BOTH on this table, and it has to be named twice or the half that
+  # is not named goes missing. A row here is a decision, so the thing that
+  # happened and how it turned out are one column -- measured values Allowed and
+  # Denied, and the set is complete. Recording only `what` left the playbook's
+  # IsFailure expression with nothing to read and it rendered `false`, which
+  # says every blocked request succeeded.
+  outcome: Result
+  why_decided: Details
+  target_host: CsHost
+  scope: [_ResourceId, ServiceEndpoint]
+
+typing:
+  Result: string
+  CIp: string
+  Details: string
+  CsHost: string
+
+# CIp carries the PORT. Measured: every value is address:port, "172.59.64.140:18135",
+# and the port differs on every row. Grouping by CIp counts one client as N
+# clients, and comparing it to a bare address never matches.
+address_format:
+  column: CIp
+  shape: "<address>:<ephemeral port>"
+  extract: tostring(split(CIp, ":")[0])
+  consequence: >-
+    A summarize by CIp produces one group per request. Split the port off first
+    or every count is wrong.
+
+# Present in the schema, empty on every measured row. XForwardedFor is the one
+# that matters: behind Front Door or a proxy it carries the real client, and on
+# a directly-reached app it is blank, so a detection must not depend on it.
+never_populated: [XForwardedFor, XForwardedHost, XAzureFDID, XFDHealthProbe]
+
+observed_values:
+  Result: [Allowed, Denied]
+
+# Which measured sets are the WHOLE set. An access-restriction decision has two
+# outcomes and there is no third, so a value outside this list is an error. Say
+# so explicitly: every other contract here records absence as unmeasured, and a
+# reader cannot tell the two apart from the values alone.
+vocabulary_complete: [Result]
+
+# Details says WHICH rule decided, in prose. It is the only field that
+# distinguishes "denied because a rule named it" from "denied because nothing
+# matched and the default is deny", and those are very different events.
+details_forms:
+  matched_allow: "Allowed by <cidr> rule."
+  default_deny: "No matching rule found.  Denied by '' default action"
+  note: >-
+    Two spaces after the full stop in the default-deny form, exactly as the
+    platform writes it. Match on a substring rather than on equality.
+
+shape:
+  - time filter is the first operator after the table name
+  - no dedupe key is needed; one decision writes one row
+  - split the port off CIp before grouping or counting
+
+recipes:
+  denied_requests: |
+    AppServiceIPSecAuditLogs
+    | where TimeGenerated > ago({window})
+    | where Result =~ "Denied"
+    | extend ClientIp = tostring(split(CIp, ":")[0])
+    | project TimeGenerated, ClientIp, CsHost, Details, ServiceEndpoint, _ResourceId
+  denied_by_source: |
+    AppServiceIPSecAuditLogs
+    | where TimeGenerated > ago({window})
+    | where Result =~ "Denied"
+    | extend ClientIp = tostring(split(CIp, ":")[0])
+    | summarize attempts = count(), hosts = dcount(CsHost),
+                firstSeen = min(TimeGenerated), lastSeen = max(TimeGenerated)
+        by ClientIp, _ResourceId
+    | where attempts > {threshold}
+
+reference_query: |
+  AppServiceIPSecAuditLogs
+  | where TimeGenerated > ago({window})
+  | extend ClientIp = tostring(split(CIp, ":")[0])
+  | project TimeGenerated, Result, ClientIp, CsHost, Details, _ResourceId

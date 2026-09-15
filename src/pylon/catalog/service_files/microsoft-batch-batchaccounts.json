@@ -1,0 +1,20 @@
+{
+ "resource_type": "Microsoft.Batch/batchaccounts",
+ "service_name": "Azure Batch",
+ "logging_docs": {
+  "monitor_page": "https://learn.microsoft.com/en-us/azure/batch/monitor-batch",
+  "dedicated_logging_page": null,
+  "monitoring_data_reference": "https://learn.microsoft.com/en-us/azure/batch/monitor-batch-reference",
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-batch-batchaccounts-logs"
+ },
+ "tables": {},
+ "routing": "AzureDiagnostics",
+ "azure_diagnostics_categories": [
+  "Audit Logs",
+  "Service Logs"
+ ],
+ "resource_log_categories": [
+  "AuditLog",
+  "ServiceLog"
+ ]
+}

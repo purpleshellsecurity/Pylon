@@ -1,0 +1,88 @@
+{
+ "resource_type": "Microsoft.EventGrid/topics",
+ "service_name": "Azure Event Grid",
+ "logging_docs": {
+  "monitor_page": "https://learn.microsoft.com/en-us/azure/event-grid/monitor-event-delivery",
+  "dedicated_logging_page": "https://learn.microsoft.com/en-us/azure/event-grid/enable-diagnostic-logs-topic",
+  "monitoring_data_reference": "https://learn.microsoft.com/en-us/azure/event-grid/monitor-push-reference",
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-eventgrid-topics-logs"
+ },
+ "tables": {
+  "AegDataPlaneRequests": {
+   "schema_mode": "resource-specific",
+   "operation_field": "OperationName",
+   "operations": [
+    "Microsoft.EventGrid/events/send"
+   ],
+   "columns": {
+    "Authentication": "string",
+    "_BilledSize": "real",
+    "ClientIpAddress": "string",
+    "_IsBillable": "string",
+    "NetworkAccess": "string",
+    "OperationName": "string",
+    "OperationResult": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "TlsVersion": "string",
+    "TotalOperations": "string",
+    "Type": "string"
+   },
+   "diagnostic_category": "DataPlaneRequests"
+  },
+  "AegDeliveryFailureLogs": {
+   "schema_mode": "resource-specific",
+   "operation_field": "OperationName",
+   "operations": [
+    "Deliver"
+   ],
+   "columns": {
+    "_BilledSize": "real",
+    "Category": "string",
+    "EventSubscriptionName": "string",
+    "_IsBillable": "string",
+    "Message": "string",
+    "OperationName": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "SubResourceName": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string"
+   },
+   "diagnostic_category": "DeliveryFailures"
+  },
+  "AegPublishFailureLogs": {
+   "schema_mode": "resource-specific",
+   "operations_status": "not enumerated in Azure docs (checked https://learn.microsoft.com/en-us/azure/event-grid/monitor-push-reference); columns below are the verified allowlist",
+   "operations_note": "Read the service's own logging docs: enable-diagnostic-logs-topic (diagnostic settings how-to) and monitor-push-reference (monitor data reference / diagnostic log schema). AegPublishFailureLogs corresponds to the 'PublishFailures' log category. The 'Schema for publish/delivery failure logs' table describes the OperationName column generically as 'The name of the operation caused the failure' with 'Example Values: \"Deliver\" for delivery failures' -- i.e. the only example value given is for delivery failures, not publish failures. No page enumerates a fixed list of OperationName values for the publish-failure table; the description is a generic/example value, not an enumeration. The supported-logs column reference lists columns only. Therefore no operation values are enumerable for AegPublishFailureLogs.",
+   "columns": {
+    "_BilledSize": "real",
+    "Category": "string",
+    "_IsBillable": "string",
+    "Message": "string",
+    "OperationName": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "SubResourceName": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string"
+   },
+   "diagnostic_category": "PublishFailures"
+  }
+ },
+ "api_references": {
+  "operations_source": "https://learn.microsoft.com/en-us/azure/event-grid/monitor-push-reference"
+ },
+ "resource_log_categories": [
+  "DataPlaneRequests",
+  "DeliveryFailures",
+  "PublishFailures"
+ ]
+}

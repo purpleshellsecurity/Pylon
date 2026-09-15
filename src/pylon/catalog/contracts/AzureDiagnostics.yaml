@@ -1,0 +1,219 @@
+# How a detection reads the SHARED table. Measured against 50 real rows from two
+# providers. This one is unlike the others: AzureDiagnostics is not a service's
+# table, it is every service's table, and a contract for it has to be written per
+# provider and category or it describes nothing.
+table: AzureDiagnostics
+plane: shared
+platform: azure
+
+# THE defining property. One filter on the table name returns every service in
+# the tenant that writes here -- Automation, SQL, network security groups, Key
+# Vault in default mode, and anything added later. A detection that does not
+# narrow by provider AND category is reading other people's events.
+scoping:
+  required: [ResourceProvider, Category]
+  why: >-
+    Measured: 50 rows carried 4 categories from 2 providers, and the workspace
+    holds 231 columns because of what happens to be sending into it. Neither
+    number is a property of any one service.
+
+operation:
+  column: OperationName
+  operator: "=~"
+  note: >-
+    OperationName here is the service's own operation string and its shape
+    differs per provider. Scope by ResourceProvider and Category first; treat
+    OperationName as a narrowing filter within that, not as the primary one.
+
+# Columns present on every category. Everything else depends on who is sending.
+envelope: [TimeGenerated, ResourceProvider, ResourceType, Resource, ResourceId,
+           _ResourceId, ResourceGroup, SubscriptionId, Category, OperationName]
+
+# Every column is typed STRING, including the ones whose suffix says otherwise.
+# `_g` means the value is a guid and the COLUMN is a string. `_s` is a string.
+# `succeeded_s` holds "true"/"false" as text, so `succeeded_s == true` does not
+# compile and `tobool(succeeded_s)` is required to compare it as a boolean.
+typing:
+  suffix_g: string          # guid-shaped value, string column
+  suffix_s: string
+  suffix_d: real
+  suffix_b: bool
+
+column_existence: >-
+  A column only exists here once some resource has sent it. This workspace has
+  231; another has a different set. A detection naming a column no resource in
+  THAT tenant has sent fails to resolve, so a query for one service must not
+  reference another service's columns even in a projection.
+
+# One section per provider and category, because the same concept has a
+# different column name in each. The caller is clientInfo_PrincipalName_s on an
+# Automation audit event, Caller_s on a job log, and server_principal_name_s on
+# a SQL audit event.
+services:
+  MICROSOFT.AUTOMATION/AuditEvent:
+    what: changes to the automation account itself
+    # Measured. OperationName here is a VERB, not the category name. A
+    # generated detection filtered OperationName == "JobStreams" and matched
+    # nothing, because the model assumed the column repeats the Category.
+    observed_values:
+      OperationName: [Create, Update, Delete]
+      ResultType: [Completed]
+      # What was acted on. This is the column that separates a credential being
+      # created from a runbook being deleted; OperationName only gives the verb.
+      targetResources_Resource_s:
+        [Runbook, Job, Variable, Credential, Schedule, RubbookDraftMedia]
+      targetResources_Resource_s_note: >-
+        RubbookDraftMedia is Microsoft's own typo and is the literal value in
+        the log. Webhook and Connection are real kinds that have not been
+        triggered in the measured tenant, so their absence here is unmeasured
+        rather than unreal.
+    roles:
+      # The obvious caller column is REDACTED. Measured across every audit
+      # event in this tenant: clientInfo_PrincipalName_s and
+      # clientInfo_IpAddress_s both hold the literal string "{scrubbed}", and
+      # only the object id carries a real value. A detection projecting the
+      # principal name renders "{scrubbed}" for every row and names nobody.
+      who: clientInfo_ObjectId_g
+      who_name: clientInfo_PrincipalName_s -- REDACTED, always "{scrubbed}"
+      who_app: clientInfo_AppId_g
+      from_where: none -- clientInfo_IpAddress_s is redacted the same way
+      outcome: ResultType
+      target: targetResources_RunbookName_s
+      target_kind: targetResources_Resource_s
+    redacted: [clientInfo_PrincipalName_s, clientInfo_IpAddress_s]
+    resource_id_note: >-
+      _ResourceId is the automation ACCOUNT, not the runbook. A filter like
+      `_ResourceId has "/runbooks/"` matches nothing. The object acted on is
+      named in targetResources_RunbookName_s and its kind in
+      targetResources_Resource_s, which holds Runbook, Job or RubbookDraftMedia
+      -- Microsoft's own typo included.
+    columns: [Tenant_s, clientInfo_AppId_g, clientInfo_ClientRequestId_g,
+              clientInfo_IpAddress_s, clientInfo_Issuer_s, clientInfo_ObjectId_g,
+              clientInfo_PrincipalName_s, clientInfo_TenantId_g,
+              targetResources_JobId_g, targetResources_JobName_g,
+              targetResources_Resource_s, targetResources_RunbookId_g,
+              targetResources_RunbookName_s, targetResources_Uri_s,
+              CorrelationId, ResultType, ResultDescription]
+  MICROSOFT.AUTOMATION/JobLogs:
+    what: runbook job lifecycle -- created, started, completed, failed
+    observed_values:
+      OperationName: [Job]
+      ResultType: [Created, Started, Completed]
+      ResultType_note: >-
+        Failed, Stopped and Suspended are real job outcomes and none has
+        occurred in the measured tenant, so a detection filtering them is
+        unexercised rather than wrong.
+    roles:
+      who: Caller_s
+      outcome: ResultType
+      target: RunbookName_s
+      correlate: JobId_g
+    columns: [Caller_s, JobId_g, RunbookName_s, Tenant_s, CorrelationId,
+              ResultType, ResultDescription]
+  MICROSOFT.AUTOMATION/JobStreams:
+    what: >-
+      the OUTPUT of a runbook. A runbook is arbitrary PowerShell running under
+      the account's identity, so this is where executed code's output lands.
+    roles:
+      who: none -- a stream has no caller; join to JobLogs on JobId_g for that
+      outcome: ResultType
+      target: RunbookName_s
+      correlate: JobId_g
+      stream: StreamType_s
+    columns: [JobId_g, RunbookName_s, StreamType_s, Tenant_s, CorrelationId,
+              ResultType, ResultDescription]
+    note: >-
+      ResultDescription carries the stream text. StreamType_s says which stream
+      it was: Output, Verbose, Warning, Error, Progress.
+    observed_values:
+      OperationName: [Job]
+      ResultType: ["In Progress"]
+      StreamType_s: [Output, Verbose, Warning]
+  MICROSOFT.SQL/SQLSecurityAuditEvents:
+    what: T-SQL statements, logins and permission checks
+    observed_values:
+      OperationName: [AuditEvent]
+      OperationName_note: >-
+        Degenerate: all 48 measured rows carry the same value, so filtering it
+        narrows nothing. action_name_s is the real discriminator here.
+    roles:
+      who: server_principal_name_s
+      who_sid: server_principal_sid_s
+      from_where: client_ip_s
+      what: action_name_s
+      outcome: succeeded_s
+      target: object_name_s
+      scope: [LogicalServerName_s, database_name_s]
+      statement: statement_s
+    columns: [action_id_s, action_name_s, additional_information_s,
+              application_name_s, class_type_s, class_type_description_s,
+              client_ip_s, client_tls_version_name_s, connection_id_g,
+              database_name_s, database_principal_name_s, event_id_g,
+              host_name_s, is_column_permission_s, is_local_secondary_replica_s,
+              is_server_level_audit_s, location_s, LogicalServerName_s,
+              object_name_s, obo_middle_tier_app_id_g, PartitionId_s,
+              permission_bitmask_g, securable_class_type_s, sequence_group_id_g,
+              server_instance_name_s, server_principal_name_s,
+              server_principal_sid_g, server_principal_sid_s,
+              session_server_principal_name_s, statement_s, succeeded_s]
+    note: >-
+      statement_s is the literal T-SQL text and succeeded_s is a STRING holding
+      "true" or "false". Compare it as a string or cast it; `succeeded_s == true`
+      does not compile.
+    # Observed on a live database. `action_name_s` values carry SPACES, so a
+    # filter must quote the whole string -- "BATCH COMPLETED", not BATCH_COMPLETED
+    # as the audit action GROUP is named. The group and the action are different
+    # vocabularies and only the second appears in a row.
+    observed_actions:
+      BATCH COMPLETED: {events: 19, note: a T-SQL batch, carries statement_s}
+      RPC COMPLETED: {events: 16}
+      TRANSACTION BEGIN COMPLETED: {events: 4}
+      TRANSACTION ROLLBACK COMPLETED: {events: 4}
+      DATABASE AUTHENTICATION SUCCEEDED: {events: 4, note: a login}
+      AUDIT SESSION CHANGED: {events: 1}
+    destination_note: >-
+      Measured, not assumed. This database's audit setting was flipped to
+      logAnalyticsDestinationType Dedicated and 15 further rows still arrived
+      HERE rather than in the SQLSecurityAuditEvents table, which exists in the
+      workspace and stayed empty. Auditing enabled through the database audit
+      policy -- which is what the portal and the CLI both do -- lands in
+      AzureDiagnostics whatever that field says.
+
+shape:
+  - time filter is the first operator after the table name
+  - filter ResourceProvider and Category before anything else
+  - no dedupe key is needed; one event writes one row
+
+recipes:
+  scoped_events: |
+    AzureDiagnostics
+    | where TimeGenerated > ago({window})
+    | where ResourceProvider =~ "{provider}"
+    | where Category =~ "{category}"
+    | project TimeGenerated, ResourceProvider, Category, OperationName,
+              Resource, ResourceGroup, SubscriptionId, _ResourceId
+  runbook_output: |
+    AzureDiagnostics
+    | where TimeGenerated > ago({window})
+    | where ResourceProvider =~ "MICROSOFT.AUTOMATION"
+    | where Category =~ "JobStreams"
+    | where StreamType_s =~ "{stream}"
+    | project TimeGenerated, RunbookName_s, JobId_g, StreamType_s,
+              Output = ResultDescription, _ResourceId
+  sql_statements: |
+    AzureDiagnostics
+    | where TimeGenerated > ago({window})
+    | where ResourceProvider =~ "MICROSOFT.SQL"
+    | where Category =~ "SQLSecurityAuditEvents"
+    | where action_name_s =~ "{action}"
+    | project TimeGenerated, server_principal_name_s, client_ip_s,
+              application_name_s, database_name_s, action_name_s,
+              object_name_s, statement_s, succeeded_s, _ResourceId
+
+reference_query: |
+  AzureDiagnostics
+  | where TimeGenerated > ago({window})
+  | where ResourceProvider =~ "{provider}"
+  | where Category =~ "{category}"
+  | project TimeGenerated, ResourceProvider, Category, OperationName,
+            Resource, _ResourceId

@@ -1,0 +1,18 @@
+{
+ "resource_type": "Microsoft.Network/virtualNetworks",
+ "service_name": "Azure Virtual Network",
+ "logging_docs": {
+  "monitor_page": "https://learn.microsoft.com/en-us/azure/virtual-network/monitor-virtual-network",
+  "dedicated_logging_page": null,
+  "monitoring_data_reference": "https://learn.microsoft.com/en-us/azure/virtual-network/monitor-virtual-network-reference",
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-network-virtualnetworks-logs"
+ },
+ "tables": {},
+ "routing": "AzureDiagnostics",
+ "azure_diagnostics_categories": [
+  "VM protection alerts"
+ ],
+ "resource_log_categories": [
+  "VMProtectionAlerts"
+ ]
+}

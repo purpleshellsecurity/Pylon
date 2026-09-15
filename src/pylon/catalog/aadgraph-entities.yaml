@@ -1,0 +1,66 @@
+# Azure AD Graph (graph.windows.net, api-version=1.6) entity/function surface.
+#
+# This is the grounded surface for AADGraphActivityLogs detections: the RequestUri
+# shapes a legacy-API request can legitimately take. Derived from the Azure AD
+# Graph entity/complex-type reference; regenerate exhaustively from a tenant's
+# CSDL with scripts/refresh-aadgraph-surface.py (parses graph.windows.net/$metadata).
+#
+# NOTE: AAD Graph is RETIRED. In a healthy tenant legitimate traffic is ~zero, so
+# any notable read of these entities via graph.windows.net is high-signal — this
+# list bounds *what can appear*, not what is normal.
+endpoint: graph.windows.net
+api_version: "1.6"
+
+# Directory entity sets (the recon targets) — path is /{tenant}/<set>.
+entities:
+  - name: users
+    entity: User
+    recon: Enumerate all users, UPNs, attributes (roadrecon core step).
+  - name: groups
+    entity: Group
+    recon: Enumerate groups and, via /groups/{id}/members, membership.
+  - name: servicePrincipals
+    entity: ServicePrincipal
+    recon: Enumerate service principals, app roles, credentials metadata.
+  - name: applications
+    entity: Application
+    recon: Enumerate app registrations, required permissions, owners.
+  - name: devices
+    entity: Device
+    recon: Enumerate registered/joined devices.
+  - name: contacts
+    entity: Contact
+    recon: Enumerate org contacts.
+  - name: directoryRoles
+    entity: DirectoryRole
+    recon: Enumerate activated directory roles and their members.
+  - name: directoryRoleTemplates
+    entity: DirectoryRoleTemplate
+    recon: Enumerate assignable role templates.
+  - name: oauth2PermissionGrants
+    entity: OAuth2PermissionGrant
+    recon: Enumerate delegated permission grants (consent surface).
+  - name: subscribedSkus
+    entity: SubscribedSku
+    recon: Enumerate tenant licensing.
+  - name: tenantDetails
+    entity: TenantDetail
+    recon: Read tenant metadata (org id, domains, tech contacts).
+  - name: domains
+    entity: Domain
+    recon: Enumerate verified/federated domains.
+  - name: policies
+    entity: Policy
+    recon: Read directory policies.
+  - name: contracts
+    entity: Contract
+    recon: Enumerate partner/CSP contracts.
+
+# Directory functions/actions — POST calls that answer membership/lookup queries.
+functions:
+  - getObjectsByObjectIds   # bulk-resolve object ids to directory objects
+  - isMemberOf
+  - getMemberGroups
+  - getMemberObjects
+  - checkMemberGroups
+  - getAvailableExtensionProperties
