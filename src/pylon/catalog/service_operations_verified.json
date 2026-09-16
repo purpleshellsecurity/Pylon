@@ -1,0 +1,2381 @@
+{
+  "metadata": {
+    "purpose": "Doc-verified OperationName values per service table, from the operations-verification workflow. status=verified means the listed operations literally appear in the cited Azure doc (source_url). status=not_enumerated means the doc was read but does not enumerate OperationName values (operations stays empty; never invented).",
+    "services_count": 24,
+    "note": "operations land in the column named by each table's 'field' (OperationName or ActionName). Databricks audit values populate ActionName (OperationName is templated Microsoft.Databricks/<service>/<action>)."
+  },
+  "services": {
+    "Microsoft.AAD/DomainServices": {
+      "AADDomainServicesAccountLogon": {
+        "status": "verified",
+        "operations": [
+          "4767",
+          "4774",
+          "4775",
+          "4776",
+          "4777",
+          "4768",
+          "4769"
+        ],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/entra/identity/domain-services/security-audit-events",
+        "notes": "From the 'Event IDs per category' table on the service's own security-audit-events doc. This table maps to the 'Account Logon' audit category; the doc lists two rows that populate it: 'Account Logon security' = 4767, 4774, 4775, 4776, 4777 and 'Kerberos Tickets' = 4768, 4769. Sample query 7 confirms 4768/4769 land in AADDomainServicesAccountLogon (OperationName has \"4768\" or \"4769\"). Event IDs appear inside the OperationName column (queries use `OperationName has \"<id>\"`), so the full OperationName may include descriptive text."
+      },
+      "AADDomainServicesAccountManagement": {
+        "status": "verified",
+        "operations": [
+          "4720",
+          "4722",
+          "4723",
+          "4724",
+          "4725",
+          "4726",
+          "4727",
+          "4728",
+          "4729",
+          "4730",
+          "4731",
+          "4732",
+          "4733",
+          "4734",
+          "4735",
+          "4737",
+          "4738",
+          "4740",
+          "4741",
+          "4742",
+          "4743",
+          "4754",
+          "4755",
+          "4756",
+          "4757",
+          "4758",
+          "4764",
+          "4765",
+          "4766",
+          "4780",
+          "4781",
+          "4782",
+          "4793",
+          "4798",
+          "4799",
+          "5376",
+          "5377"
+        ],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/entra/identity/domain-services/security-audit-events",
+        "notes": "From the 'Event IDs per category' table, row 'Account Management security'. Sample queries 1-2 confirm these event IDs populate OperationName in AADDomainServicesAccountManagement (e.g., `where OperationName has \"4740\"` for account lockout). Values recorded verbatim from the doc."
+      },
+      "AADDomainServicesDNSAuditsDynamicUpdates": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/entra/identity/domain-services/security-audit-events",
+        "notes": "Read the service's own security-audit-events doc and the Azure Monitor supported-logs reference. The 'Event IDs per category' table provides only a single combined 'DNS Server' entry expressed as ranges (513-523, 525-531, 533-537, 540-582). This range covers both DNS tables (DynamicUpdates and General) together and is not split between them, so no discrete operation values can be attributed specifically to DNSAuditsDynamicUpdates. Expressed as ranges, not discrete enumerated OperationName values."
+      },
+      "AADDomainServicesDNSAuditsGeneral": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/entra/identity/domain-services/security-audit-events",
+        "notes": "Read the service's own security-audit-events doc and the Azure Monitor supported-logs reference. The 'Event IDs per category' table provides only a single combined 'DNS Server' entry expressed as ranges (513-523, 525-531, 533-537, 540-582), covering both DNS tables together without distinguishing General from DynamicUpdates. No discrete operation values are enumerable specifically for DNSAuditsGeneral."
+      },
+      "AADDomainServicesDirectoryServiceAccess": {
+        "status": "verified",
+        "operations": [
+          "5136",
+          "5137",
+          "5138",
+          "5139",
+          "5141"
+        ],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/entra/identity/domain-services/security-audit-events",
+        "notes": "From the 'Event IDs per category' table, row 'DS Access security'. This maps to the 'Directory Services Access' audit category / AADDomainServicesDirectoryServiceAccess table. Event IDs populate the OperationName column per the doc's query pattern."
+      },
+      "AADDomainServicesLogonLogoff": {
+        "status": "verified",
+        "operations": [
+          "4624",
+          "4625",
+          "4634",
+          "4647",
+          "4648",
+          "4672",
+          "4675",
+          "4964"
+        ],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/entra/identity/domain-services/security-audit-events",
+        "notes": "From the 'Event IDs per category' table, row 'Logon-Logoff security', mapping to the AADDomainServicesLogonLogoff table. Values recorded verbatim; they populate OperationName per the doc's query pattern."
+      },
+      "AADDomainServicesPolicyChange": {
+        "status": "verified",
+        "operations": [
+          "4670",
+          "4703",
+          "4704",
+          "4705",
+          "4706",
+          "4707",
+          "4713",
+          "4715",
+          "4716",
+          "4717",
+          "4718",
+          "4719",
+          "4739",
+          "4864",
+          "4865",
+          "4866",
+          "4867",
+          "4904",
+          "4906",
+          "4911",
+          "4912"
+        ],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/entra/identity/domain-services/security-audit-events",
+        "notes": "From the 'Event IDs per category' table, row 'Policy Change security', mapping to the AADDomainServicesPolicyChange table. Values recorded verbatim; they populate OperationName per the doc's query pattern."
+      },
+      "AADDomainServicesPrivilegeUse": {
+        "status": "verified",
+        "operations": [
+          "4985"
+        ],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/entra/identity/domain-services/security-audit-events",
+        "notes": "From the 'Event IDs per category' table, row 'Privilege Use security' = 4985, mapping to the AADDomainServicesPrivilegeUse table. Single event ID listed verbatim; populates OperationName per the doc's query pattern."
+      },
+      "AADDomainServicesSystemSecurity": {
+        "status": "verified",
+        "operations": [
+          "4612",
+          "4621"
+        ],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/entra/identity/domain-services/security-audit-events",
+        "notes": "From the 'Event IDs per category' table, row 'System security' = 4612, 4621, mapping to the SystemSecurity category / AADDomainServicesSystemSecurity table. Values recorded verbatim; populate OperationName per the doc's query pattern."
+      }
+    },
+    "Microsoft.ApiManagement/service": {
+      "APIMDevPortalAuditDiagnosticLog": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/api-management/monitor-api-management-reference",
+        "notes": "Read the service's own docs: monitor-api-management (how-to) and monitor-api-management-reference (monitoring data reference). Neither enumerates operation/action values; the reference only lists metrics, resource-log categories, and table links. The per-table column reference (tables/apimdevportalauditdiagnosticlog) lists columns only. Its OperationName column is described generically as 'the specific name or identifier of the operation being performed' (developer portal request events such as authentication actions, viewing API details, test-console requests), which is request-derived, not a fixed enumerated list. No diagnostic/audit-log reference page with an action list exists."
+      },
+      "ApiManagementGatewayLlmLog": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/api-management/monitor-api-management-reference",
+        "notes": "Checked monitor-api-management and monitor-api-management-reference; neither enumerates operation values (metrics-and-category listing only). The per-table column reference (tables/apimanagementgatewayllmlog) lists columns only; OperationName is described generically as 'the specific name or identifier of the operation being performed'. This is a generative-AI (LLM) gateway request-telemetry table keyed to the client's API operation, not a fixed action list. Nothing enumerable."
+      },
+      "ApiManagementGatewayLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/api-management/monitor-api-management-reference",
+        "notes": "Checked monitor-api-management and monitor-api-management-reference; neither enumerates operation values. The monitoring reference links this table (with a sample-queries page) but lists no action values. This is the gateway request-log table where OperationName reflects the user's own API operation name (request-derived template), not a fixed enumerated set. Nothing enumerable."
+      },
+      "ApiManagementGatewayMCPLog": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/api-management/monitor-api-management-reference",
+        "notes": "Checked monitor-api-management and monitor-api-management-reference; neither enumerates operation values. The per-table column reference (tables/apimanagementgatewaymcplog) lists columns only; OperationName is described generically as 'the specific name or identifier of the operation being performed'. Note a separate Method column has example values (e.g. tools/call, notification) but that is not OperationName and is given as examples, not a fixed enumeration. MCP-request telemetry table; OperationName is request-derived, not enumerated."
+      }
+    },
+    "Microsoft.App/managedEnvironments": {
+      "AppEnvSessionConsoleLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring",
+        "notes": "Read the service logging page (container-apps/log-monitoring) and the supported-logs reference (microsoft-app-managedenvironments-logs). This is a console-stream telemetry table capturing stdout/stderr from session containers; the docs describe columns and log-message content only and enumerate no fixed OperationName/ActionName values. No dedicated audit/action-list doc exists for it."
+      },
+      "AppEnvSessionLifecycleLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/appenvsessionlifecyclelogs",
+        "notes": "Checked the service logging page and the supported-logs reference, then the per-table reference page. The table has an OperationName column described only as 'The name of the operation generating this log' (session allocation platform events) with no enumerated list of values. No doc lists specific operation/action strings."
+      },
+      "AppEnvSessionPoolEventLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/appenvsessionpooleventlogs",
+        "notes": "Checked the service logging page, the supported-logs reference, and the per-table reference page. The table has an OperationName column described only generically as 'The name of the operation generating this log' (session pool events such as pod creation/deletion); the description text 'pod creation and deletion, etc' is prose, not an enumerated value list. No doc enumerates fixed operation values."
+      },
+      "AppEnvSpringAppConsoleLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-app-managedenvironments-logs",
+        "notes": "Checked the service logging page and the supported-logs reference. This is a console-stream telemetry table (stdout/stderr from Spring App containers plus Dapr sidecar logs). Docs describe log content/columns only and enumerate no fixed OperationName/ActionName values."
+      },
+      "ContainerAppConsoleLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring",
+        "notes": "Read the dedicated service logging page (container-apps/log-monitoring). Console logs are stdout/stderr from app containers and Dapr sidecars; the page lists only columns (ContainerAppName_s, Log_s, RevisionName_s, etc.) and query examples, with no enumerated operation/action values."
+      },
+      "ContainerAppHTTPLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring",
+        "notes": "Read the dedicated service logging page. The ContainerAppHTTPLogs schema is documented as request/response fields (Method, Path, StatusCode, etc.); these are HTTP request telemetry columns, not enumerated OperationName/ActionName values. No operation-value list exists."
+      },
+      "ContainerAppSystemLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/container-apps/log-monitoring",
+        "notes": "Read the dedicated service logging page, which presents a table of system-log source/type/message examples (Dapr, Volume Mounts, Domain Binding, Authentication, Traffic weight, Revision Provisioning). These are free-text message templates with placeholders like <component-name> and <revision-name>, not fixed OperationName/ActionName enumerated values. The per-table and supported-logs references list columns only."
+      }
+    },
+    "Microsoft.AgFoodPlatform/farmBeats": {
+      "AgriFoodApplicationAuditLogs": {
+        "status": "verified",
+        "operations": [
+          "Create Data Manager for Agriculture Resource",
+          "Update Data Manager for Agriculture Resource",
+          "Delete Data Manager for Agriculture Resource",
+          "Create Subscription",
+          "Update Subscription",
+          "Data Plane Authentication"
+        ],
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-manager-for-agri/how-to-set-up-audit-logs",
+        "notes": "Presented in an operationName table under the ApplicationAuditLogs section. The doc notes that write/delete logs from other categories also appear here (without request body); these six are the explicitly enumerated control-plane operations unique to this category."
+      },
+      "AgriFoodFarmManagementLogs": {
+        "status": "verified",
+        "operations": [
+          "Microsoft.AgFoodPlatform/farmers/write",
+          "Microsoft.AgFoodPlatform/farmers/read",
+          "Microsoft.AgFoodPlatform/deletionJobs/farmersCascadeDeleteJobs/write",
+          "Microsoft.AgFoodPlatform/farms/write",
+          "Microsoft.AgFoodPlatform/farms/read",
+          "Microsoft.AgFoodPlatform/farms/delete",
+          "Microsoft.AgFoodPlatform/deletionJobs/farmsCascadeDeleteJobs/write",
+          "Microsoft.AgFoodPlatform/field/write",
+          "Microsoft.AgFoodPlatform/field/read",
+          "Microsoft.AgFoodPlatform/field/delete",
+          "Microsoft.AgFoodPlatform/deletionJobs/fieldsCascadeDeleteJobs/write",
+          "Microsoft.AgFoodPlatform/seasonalField/write",
+          "Microsoft.AgFoodPlatform/seasonalField/read",
+          "Microsoft.AgFoodPlatform/seasonalField/delete",
+          "Microsoft.AgFoodPlatform/deletionJobs/seasonalFieldsCascadeDeleteJobs/write",
+          "Microsoft.AgFoodPlatform/boundaries/write",
+          "Microsoft.AgFoodPlatform/boundaries/read",
+          "Microsoft.AgFoodPlatform/boundaries/delete",
+          "Microsoft.AgFoodPlatform/boundaries/action",
+          "Microsoft.AgFoodPlatform/deletionJobs/fieldsCascadeDeleteJobs/write",
+          "Microsoft.AgFoodPlatform/crops/write",
+          "Microsoft.AgFoodPlatform/crops/read",
+          "Microsoft.AgFoodPlatform/crops/delete",
+          "Microsoft.AgFoodPlatform/cropVarieties/write",
+          "Microsoft.AgFoodPlatform/cropVarieties/read",
+          "Microsoft.AgFoodPlatform/cropVarieties/delete",
+          "Microsoft.AgFoodPlatform/seasons/write",
+          "Microsoft.AgFoodPlatform/seasons/read",
+          "Microsoft.AgFoodPlatform/seasons/delete",
+          "Microsoft.AgFoodPlatform/attachments/write",
+          "Microsoft.AgFoodPlatform/attachments/read",
+          "Microsoft.AgFoodPlatform/attachments/delete",
+          "Microsoft.AgFoodPlatform/prescriptions/write",
+          "Microsoft.AgFoodPlatform/prescriptions/read",
+          "Microsoft.AgFoodPlatform/prescriptions/delete",
+          "Microsoft.AgFoodPlatform/deletionJobs/prescriptionsCascadeDeleteJobs/write",
+          "Microsoft.AgFoodPlatform/prescriptionMaps/write",
+          "Microsoft.AgFoodPlatform/prescriptionMaps/read",
+          "Microsoft.AgFoodPlatform/prescriptionMaps/delete",
+          "Microsoft.AgFoodPlatform/deletionJobs/prescriptionMapsCascadeDeleteJobs/write",
+          "Microsoft.AgFoodPlatform/managementZones/write",
+          "Microsoft.AgFoodPlatform/managementZones/read",
+          "Microsoft.AgFoodPlatform/managementZones/delete",
+          "Microsoft.AgFoodPlatform/deletionJobs/managementZonescascadeDeletejobs/write",
+          "Microsoft.AgFoodPlatform/zones/write",
+          "Microsoft.AgFoodPlatform/zones/read",
+          "Microsoft.AgFoodPlatform/zones/delete",
+          "Microsoft.AgFoodPlatform/deletionJobs/zonesCascadedeleteJobs/write",
+          "Microsoft.AgFoodPlatform/plantTissueanalyses/write",
+          "Microsoft.AgFoodPlatform/plantTissueanalyses/read",
+          "Microsoft.AgFoodPlatform/plantTissueanalyses/delete",
+          "Microsoft.AgFoodPlatform/deletionJobs/plantTissueanalysesCascadedeleteJobs/write",
+          "Microsoft.AgFoodPlatform/nutrientAnalyses/write",
+          "Microsoft.AgFoodPlatform/nutrientAnalyses/read",
+          "Microsoft.AgFoodPlatform/nutrientAnalyses/delete",
+          "Microsoft.AgFoodPlatform//deletionJobs/nutrientAnalysescascadeDeletejobs/delete"
+        ],
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-manager-for-agri/how-to-set-up-audit-logs",
+        "notes": "Presented as an operationName table under the FarmManagementLogs section. Values transcribed verbatim including the doc's own casing/typo inconsistencies (e.g. double slash in the final nutrientAnalyses entry)."
+      },
+      "AgriFoodFarmOperationLogs": {
+        "status": "verified",
+        "operations": [
+          "Microsoft.AgFoodPlatform/ingetsionJobs/farmOperationsdataIngestionjobs/write",
+          "Microsoft.AgFoodPlatform/applicationData/read",
+          "Microsoft.AgFoodPlatform/applicationData/write",
+          "Microsoft.AgFoodPlatform/applicationData/delete",
+          "Microsoft.AgFoodPlatform/deletionJobs/applicationDatacascadeDeletejob/write",
+          "Microsoft.AgFoodPlatform/plantingData/write",
+          "Microsoft.AgFoodPlatform/plantingData/read",
+          "Microsoft.AgFoodPlatform/plantingData/delete",
+          "Microsoft.AgFoodPlatform/deletionJobs/plantingDatacascadeDeletejob/write",
+          "Microsoft.AgFoodPlatform/harvestingData/write",
+          "Microsoft.AgFoodPlatform/harvestingData/read",
+          "Microsoft.AgFoodPlatform/harvestingData/delete",
+          "Microsoft.AgFoodPlatform/deletionJobs/harvestingDatacascadeDeletejob/write",
+          "Microsoft.AgFoodPlatform/tillageData/Write",
+          "Microsoft.AgFoodPlatform/tillageData/Read",
+          "Microsoft.AgFoodPlatform/tillageData/Delete",
+          "Microsoft.AgFoodPlatform/deletionJobs/tillageDatacascadeDeletejob/write"
+        ],
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-manager-for-agri/how-to-set-up-audit-logs",
+        "notes": "Presented as an operationName table under the FarmOperationLogs section. Values transcribed verbatim including doc's own casing/typo inconsistencies (e.g. 'ingetsionJobs', mixed-case tillageData suffixes)."
+      },
+      "AgriFoodInsightLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-manager-for-agri/how-to-set-up-audit-logs",
+        "notes": "Read the service's own 'Enable logging for Azure Data Manager for Agriculture' audit-log how-to page. It maps AgriFoodInsightLogs -> InsightLogs category, described only as 'Logs for get and get all operations for insights.' The page provides per-category operationName tabbed tables ONLY for FarmManagementLogs, FarmOperationLogs, SatelliteLogs, WeatherLogs, ProviderAuthLogs, JobProcessesLogs, and ApplicationAuditLogs. There is NO enumerated operationName table for InsightLogs. The doc states operationName follows the 'Microsoft.AgFoodPlatform/resource-name/read|write|delete|action' format, but does not list the concrete Insight values. The Azure Monitor supported-logs reference only lists the category/column mapping, not values."
+      },
+      "AgriFoodJobProcessedLogs": {
+        "status": "verified",
+        "operations": [
+          "Microsoft.AgFoodPlatform/ingestionJobs/satelliteDataIngestionJobs/processed",
+          "Microsoft.AgFoodPlatform/deletionJobs/satelliteDataDeletionJobs/processed",
+          "Microsoft.AgFoodPlatform/ingestionJobs/weatherDataIngestionJobs/processed",
+          "Microsoft.AgFoodPlatform/deletionJobs/weatherDataDeletionJobs/processed",
+          "Microsoft.AgFoodPlatform/deletionJobs/oauthProvidersCascadeDeleteJobs/processed",
+          "Microsoft.AgFoodPlatform/deletionJobs/oauthTokensRemoveJobs/processed",
+          "Microsoft.AgFoodPlatform/ingestionJobs/biomassModelJobs/processed",
+          "Microsoft.AgFoodPlatform/ingestionJobs/ImageProcessingRasterizeJobs/processed",
+          "Microsoft.AgFoodPlatform/ingestionJobs/farmOperationDataIngestionJobs/processed",
+          "Microsoft.AgFoodPlatform/ingestionJobs/farmOperationDataIngestionJobs/processed/failures",
+          "Microsoft.AgFoodPlatform/ingestionJobs/farmOperationPeriodicJobs/processed",
+          "Microsoft.AgFoodPlatform/ingestionJobs/farmOperationPeriodicJobs/processed/failures",
+          "Microsoft.AgFoodPlatform/ingestionJobs/farmOperationEventHandlingJobs/processed",
+          "Microsoft.AgFoodPlatform/ingestionJobs/farmOperationEventHandlingJobs/processed/failures",
+          "Microsoft.AgFoodPlatform/deletionJobs/applicationDataCascadeDeletionJobs/processed",
+          "Microsoft.AgFoodPlatform/deletionJobs/tillageDataCascadeDeletionJobs/processed",
+          "Microsoft.AgFoodPlatform/deletionJobs/plantingDataCascadeDeletionJobs/processed",
+          "Microsoft.AgFoodPlatform/deletionJobs/harvestDataCascadeDeletionJobs/processed",
+          "Microsoft.AgFoodPlatform/deletionJobs/managementZonesCascadeDeletionJobs/processed",
+          "Microsoft.AgFoodPlatform/deletionJobs/zonesCascadeDeletionJobs/processed",
+          "Microsoft.AgFoodPlatform/deletionJobs/plantTissueAnalysesCascadeDeletionJobs/processed",
+          "Microsoft.AgFoodPlatform/deletionJobs/prescriptionsCascadeDeletionJobs/processed",
+          "Microsoft.AgFoodPlatform/deletionJobs/prescriptionMapsCascadeDeletionJobs/processed",
+          "Microsoft.AgFoodPlatform/deletionJobs/insightsCascadeDeletionJobs/processed",
+          "Microsoft.AgFoodPlatform/deletionJobs/farmersCascadeDeletionJobs/processed",
+          "Microsoft.AgFoodPlatform/deletionJobs/farmsCascadeDeletionJobs/processed",
+          "Microsoft.AgFoodPlatform/deletionJobs/fieldsCascadeDeletionJobs/processed",
+          "Microsoft.AgFoodPlatform/deletionJobs/seasonalFieldsCascadeDeletionJobs/processed"
+        ],
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-manager-for-agri/how-to-set-up-audit-logs",
+        "notes": "Presented as an operationName table under the JobProcessesLogs section (doc heading spells it 'JobProcessesLogs'). Values transcribed verbatim."
+      },
+      "AgriFoodModelInferenceLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-manager-for-agri/how-to-set-up-audit-logs",
+        "notes": "Read the service's audit-log how-to page. It maps AgriFoodModelInferenceLogs -> ModelInferenceLogs category, described only as 'Logs for create and get operations for biomass model job.' The page's per-category operationName tabbed tables cover only FarmManagementLogs, FarmOperationLogs, SatelliteLogs, WeatherLogs, ProviderAuthLogs, JobProcessesLogs, and ApplicationAuditLogs. There is NO enumerated operationName table for ModelInferenceLogs. Related biomass job values appear only under JobProcessesLogs (e.g. Microsoft.AgFoodPlatform/ingestionJobs/biomassModelJobs/processed), which is a different table (AgriFoodJobProcessedLogs), not this one. No concrete ModelInference values are enumerated."
+      },
+      "AgriFoodProviderAuthLogs": {
+        "status": "verified",
+        "operations": [
+          "Microsoft.AgFoodPlatform/oauthProviders/write",
+          "Microsoft.AgFoodPlatform/oauthProviders/read",
+          "Microsoft.AgFoodPlatform/oauthProviders/delete",
+          "Microsoft.AgFoodPlatform/oauthTokens/read",
+          "Microsoft.AgFoodPlatform/oauthTokens/delete"
+        ],
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-manager-for-agri/how-to-set-up-audit-logs",
+        "notes": "Presented as an operationName table under the ProviderAuthLogs section. Values transcribed verbatim."
+      },
+      "AgriFoodSatelliteLogs": {
+        "status": "verified",
+        "operations": [
+          "Microsoft.AgFoodPlatform/ingestionJobs/satelliteDataingestionJob/write",
+          "Microsoft.AgFoodPlatform/scenes/read"
+        ],
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-manager-for-agri/how-to-set-up-audit-logs",
+        "notes": "Presented as an operationName table under the SatelliteLogs section. Values transcribed verbatim."
+      },
+      "AgriFoodSensorManagementLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-manager-for-agri/how-to-set-up-audit-logs",
+        "notes": "SensorManagementLogs is not mentioned anywhere in the service's own audit-log how-to page (not in the categories table, not in the log-analytics table mapping, and no operationName tab). It appears only as a 'Sensor Management Logs' category in the Azure Monitor supported-logs reference (https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-agfoodplatform-farmbeats-logs), which lists categories/columns only and enumerates no operation/action values. No doc enumerates operationName values for this table."
+      },
+      "AgriFoodWeatherLogs": {
+        "status": "verified",
+        "operations": [
+          "Microsoft.AgFoodPlatform/ingestionJobs/weatherDataingestionJob/write",
+          "Microsoft.AgFoodPlatform/weather/read",
+          "Microsoft.AgFoodPlatform/deletionJobs/weatherDeletejob/delete"
+        ],
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-manager-for-agri/how-to-set-up-audit-logs",
+        "notes": "Presented as an operationName table under the WeatherLogs section. Values transcribed verbatim."
+      }
+    },
+    "Microsoft.AppConfiguration/configurationStores": {
+      "AACAudit": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/azure-app-configuration/monitor-app-configuration",
+        "notes": "I read the service's own monitoring page (monitor-app-configuration), the Azure Monitor supported-logs reference (microsoft-appconfiguration-configurationstores-logs), and the AACAudit table reference (tables/aacaudit). None of these enumerates a list of OperationName values. The table reference only describes the column: OperationName = 'Name of the audited operation.' The monitor page describes audit logs as capturing data-plane write operations (create, update, delete) plus control-plane CRUD, but provides no enumerated list. The only concrete OperationName strings anywhere are two illustrative values embedded in a sample KQL query on the monitor page: OperationName in (\"set-keyvalue\", \"delete-keyvalue\"). These appear only as example filter values inside a sample query, not as an enumerated/complete list of the table's operation values, so they do not constitute an enumeration."
+      }
+    },
+    "Microsoft.AppPlatform/spring": {
+      "AppPlatformIngressLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/spring-apps/basic-standard/diagnostic-services",
+        "notes": "Read the service's own 'Analyze Logs and Metrics in Azure Spring Apps' diagnostics page and the Azure Monitor supported-logs reference. IngressLogs are nginx access logs (columns like RemoteIP, Host, Request, Status, RequestTime, ReqId); the page enumerates KQL column names, not any fixed OperationName/ActionName value list. This is a telemetry/access-log table, not an audit (serviceName, actionName) pair table. No doc enumerates operation values."
+      },
+      "AppPlatformLogsforSpring": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/spring-apps/basic-standard/diagnostic-services",
+        "notes": "The diagnostics page (ApplicationConsole category) describes this as the console log of all customer applications; example queries project columns like TimeGenerated, ServiceName, AppName, InstanceName, Log. It is free-form application console output, not an audit action table, and no page enumerates OperationName/ActionName values. The supported-logs reference only lists columns."
+      },
+      "AppPlatformSystemLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/spring-apps/basic-standard/diagnostic-services",
+        "notes": "SystemLogs has a LogType column whose documented values are ConfigServer, ServiceRegistry, ApiPortal, ApplicationConfigurationService, SpringCloudGateway, SpringCloudGatewayOperator, but those are LogType (component) values, not OperationName/ActionName operation values. Columns projected are TimeGenerated, LogType, Level, ServiceName, Thread, Stack, Log, _ResourceId. No doc enumerates operation/action values for this table."
+      }
+    },
+    "Microsoft.ContainerRegistry/registries": {
+      "ContainerRegistryLoginEvents": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/container-registry/monitor-container-registry-reference",
+        "notes": "Read all three service/monitoring docs: monitor-container-registry (how-to-monitor), monitor-container-registry-reference (monitoring data reference), and the Azure Monitor supported-logs page microsoft-containerregistry-registries-logs. None enumerates operation/action values for the Login Events table. In monitor-container-registry-reference the 'Azure Monitor Logs tables' section describes ContainerRegistryLoginEvents only as 'Registry authentication events and status, including the incoming identity and IP address' with no value list; by contrast, the SAME section explicitly enumerates logged operations for the OTHER table, ContainerRegistryRepositoryEvents ('push, pull, untag, delete (including repository delete), purge tag, and purge manifest') - no comparable list exists for LoginEvents. On the monitor-container-registry page OperationName appears only as a projected column in example KQL queries (e.g. 'ContainerRegistryLoginEvents | where ResultDescription != \"200\"'), not as an enumerated set of values. The supported-logs reference lists only the log category and table (columns), not operation values."
+      },
+      "ContainerRegistryRepositoryEvents": {
+        "status": "verified",
+        "operations": [
+          "push",
+          "pull",
+          "untag",
+          "delete",
+          "purge tag",
+          "purge manifest"
+        ],
+        "source_url": "https://learn.microsoft.com/en-us/azure/container-registry/monitor-container-registry-reference",
+        "notes": "Prose (sentence). Under 'Azure Monitor Logs tables' the page states: 'The following operations are logged: push, pull, untag, delete (including repository delete), purge tag, and purge manifest.' Values captured verbatim, lowercase as written; the 'delete' entry carries the parenthetical '(including repository delete)'. Purge events are noted to be logged only if a retention policy is configured."
+      }
+    },
+    "Microsoft.Cache/redis": {
+      "ACRConnectedClientList": {
+        "status": "verified",
+        "operations": [
+          "Microsoft.Cache/ClientList"
+        ],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-monitor-diagnostic-settings",
+        "notes": "Single concrete value, not a template. Found in the 'Connection log contents' > 'Sample storage account log' JSON for the Basic/Standard/Premium ConnectedClientList category, where operationName is literally \"Microsoft.Cache/ClientList\". The field mapping table on the same page maps storage `operationName` -> Azure Monitor Logs `OperationName`. This is the only operationName value shown; the doc does not present an exhaustive enumerated list, but this is the one literal (non-placeholder) value the doc gives. The Azure Monitor column reference page describes OperationName only generically ('The Redis operation associated with the log record')."
+      },
+      "ACREntraAuthenticationAuditLog": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-monitor-diagnostic-settings",
+        "notes": "Read the service's own logging docs: cache-monitor-diagnostic-settings (diagnostic settings how-to), monitor-cache-reference (monitoring data reference), and the Azure Monitor column reference for ACREntraAuthenticationAuditLog. None enumerate OperationName/ActionName values for this table. The column reference describes OperationName only generically ('The Redis operation associated with the log record'). The diagnostic-settings page documents the 'MSEntra authentication audit log' category and shows sample JSON only for ConnectedClientList (BSP tier) and ConnectionEvents (Enterprise/REDConnectionEvents) categories -- no sample or value list for the Entra audit log. The Entra-related status strings AADAuthenticationFailure / MicrosoftEntraAuthenticationFailure / MicrosoftEntraTokenExpired in monitor-cache-reference describe the 'Connected Clients Using Microsoft Entra Token' metric, not this table's OperationName, so they are not reported here."
+      }
+    },
+    "Microsoft.DataFactory/factories": {
+      "ADFActivityRun": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-factory/monitor-data-factory-reference",
+        "notes": "Read the service's own monitoring data reference (Activity-run log attributes section). operationName is a TEMPLATE, not a fixed list: doc says 'The name of the activity with its status. If the activity is the start heartbeat, the property value is `MyActivity -`. If the activity is the end heartbeat, the property value is `MyActivity - Succeeded`.' Pattern is '<activityName> - <status>'. Also checked monitor-data-factory (how-to page) which links only to this reference. No fixed values enumerable."
+      },
+      "ADFPipelineRun": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-factory/monitor-data-factory-reference",
+        "notes": "Pipeline-run log attributes section. operationName is a TEMPLATE: 'The name of the pipeline along with its status. After the pipeline run is finished, the property value is `Pipeline - Succeeded`.' Example `MyPipeline - Succeeded`. Pattern is '<pipelineName> - <status>'. No fixed enumerated values."
+      },
+      "ADFTriggerRun": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-factory/monitor-data-factory-reference",
+        "notes": "Trigger-run log attributes section. operationName is a TEMPLATE: 'The name of the trigger with its final status... If the heartbeat was successful, the property value is `MyTrigger - Succeeded`.' Pattern is '<triggerName> - <status>'. No fixed enumerated values."
+      },
+      "ADFSSISIntegrationRuntimeLogs": {
+        "status": "verified",
+        "operations": [
+          "Start",
+          "Stop",
+          "Maintenance",
+          "Heartbeat"
+        ],
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-factory/monitor-data-factory-reference",
+        "notes": "In the 'SSIS integration runtime log attributes' property table, the operationName row (description 'The name of your SSIS IR operation') gives the Example value verbatim as 'Start/Stop/Maintenance/Heartbeat' (slash-delimited list of the operation values). Split into individual values here."
+      },
+      "ADFSSISPackageEventMessageContext": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-factory/monitor-data-factory-reference",
+        "notes": "SSIS event message context log attributes section. operationName described as 'Set to `YourSSISIRName-SSISPackageEventMessageContext`' with example `mysqlmissisir-SSISPackageEventMessageContext`. This is a TEMPLATE keyed on the SSIS IR name (<SSISIRName>-SSISPackageEventMessageContext), not a fixed value list."
+      },
+      "ADFSSISPackageEventMessages": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-factory/monitor-data-factory-reference",
+        "notes": "SSIS event messages log attributes section. operationName 'Set to `YourSSISIRName-SSISPackageEventMessages`' with example `mysqlmissisir-SSISPackageEventMessages`. TEMPLATE keyed on SSIS IR name, not enumerated."
+      },
+      "ADFSSISPackageExecutableStatistics": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-factory/monitor-data-factory-reference",
+        "notes": "SSIS executable statistics log attributes section. operationName 'Set to `YourSSISIRName-SSISPackageExecutableStatistics`' with example `mysqlmissisir-SSISPackageExecutableStatistics`. TEMPLATE keyed on SSIS IR name, not enumerated."
+      },
+      "ADFSSISPackageExecutionComponentPhases": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-factory/monitor-data-factory-reference",
+        "notes": "SSIS execution component phases log attributes section. operationName 'Set to `YourSSISIRName-SSISPackageExecutionComponentPhases`' with example `mysqlmissisir-SSISPackageExecutionComponentPhases`. TEMPLATE keyed on SSIS IR name, not enumerated."
+      },
+      "ADFSSISPackageExecutionDataStatistics": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-factory/monitor-data-factory-reference",
+        "notes": "SSIS execution data statistics log attributes section. operationName 'Set to `YourSSISIRName-SSISPackageExecutionDataStatistics`' with example `mysqlmissisir-SSISPackageExecutionDataStatistics`. TEMPLATE keyed on SSIS IR name, not enumerated."
+      },
+      "ADFSandboxActivityRun": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-factory/monitor-data-factory-reference",
+        "notes": "Listed in the Resource logs table (category 'Sandbox Activity runs log') but the reference doc provides NO per-log-attribute schema section for it and enumerates no operationName values. This is the debug/sandbox counterpart of ADFActivityRun whose operationName is a '<activityName> - <status>' template. Nothing enumerable."
+      },
+      "ADFSandboxPipelineRun": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-factory/monitor-data-factory-reference",
+        "notes": "Listed in the Resource logs table (category 'Sandbox Pipeline runs log') but the reference doc provides NO per-log-attribute schema section for it and enumerates no operationName values. Sandbox/debug counterpart of ADFPipelineRun ('<pipelineName> - <status>' template). Nothing enumerable."
+      },
+      "ADFAirflowSchedulerLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-factory/monitor-data-factory-reference",
+        "notes": "Listed only in the Resource logs table (category 'Airflow scheduler logs'). No log-attribute schema section and no operationName enumeration in the reference doc. Nothing enumerable."
+      },
+      "ADFAirflowTaskLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-factory/monitor-data-factory-reference",
+        "notes": "Listed only in the Resource logs table (category 'Airflow task execution logs'). No log-attribute schema section and no operationName enumeration in the reference doc. Nothing enumerable."
+      },
+      "ADFAirflowWorkerLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-factory/monitor-data-factory-reference",
+        "notes": "Listed only in the Resource logs table (category 'Airflow worker logs'). No log-attribute schema section and no operationName enumeration in the reference doc. Nothing enumerable."
+      },
+      "AirflowDagProcessingLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-factory/monitor-data-factory-reference",
+        "notes": "Listed only in the Resource logs table (category 'Airflow dag processing logs'). The reference doc provides no log-attribute schema section enumerating operationName values for any Airflow table; these are raw Airflow log-line tables. Nothing enumerable."
+      },
+      "ADFAirflowWebLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/data-factory/monitor-data-factory-reference",
+        "notes": "Listed only in the Resource logs table (category 'Airflow web logs'). No log-attribute schema section and no operationName enumeration in the reference doc. Nothing enumerable."
+      }
+    },
+    "Microsoft.Databricks/workspaces": {
+      "DatabricksJobs": {
+        "status": "verified",
+        "operations": [
+          "cancel",
+          "cancelAllRuns",
+          "changeJobAcl",
+          "create",
+          "delete",
+          "deleteRun",
+          "deleteTaskValues",
+          "getRunOutput",
+          "repairRun",
+          "reset",
+          "resetJobAcl",
+          "runCommand",
+          "runFailed",
+          "runNow",
+          "runStart",
+          "runSucceeded",
+          "runTriggered",
+          "sendRunWebhook",
+          "setTaskValue",
+          "submitRun",
+          "update"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Job events', service_name=jobs. action_name -> ActionName (matches the doc's JSON example ActionName=create for Type DatabricksJobs)."
+      },
+      "DatabricksNotebook": {
+        "status": "verified",
+        "operations": [
+          "attachNotebook",
+          "cloneNotebook",
+          "createFolder",
+          "createNotebook",
+          "deleteFolder",
+          "deleteNotebook",
+          "deleteRepo",
+          "detachNotebook",
+          "downloadLargeResults",
+          "downloadPreviewResults",
+          "importNotebook",
+          "modifyNotebook",
+          "moveFolder",
+          "moveNotebook",
+          "openNotebook",
+          "renameFolder",
+          "renameNotebook",
+          "restoreFolder",
+          "restoreNotebook",
+          "restoreRepo",
+          "runCommand",
+          "submitCommand",
+          "takeNotebookSnapshot"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Notebook events', service_name=notebook. action_name -> ActionName."
+      },
+      "DatabricksSecrets": {
+        "status": "verified",
+        "operations": [
+          "createScope",
+          "deleteAcl",
+          "deleteScope",
+          "deleteSecret",
+          "getAcl",
+          "getSecret",
+          "listAcls",
+          "listScopes",
+          "listSecrets",
+          "putAcl",
+          "putSecret"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Secrets events', service_name=secrets. action_name -> ActionName."
+      },
+      "DatabricksSQL": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Read the full Diagnostic log reference. The current Databricks SQL audit events are logged under service_name=databrickssql, which maps to the separate table DatabricksDatabricksSQL (reported there). No section is logged under a service_name that maps to the legacy DatabricksSQL (sqlanalytics) table. The doc's deprecated 'SQL endpoint logs' subsection lists endpoint-named events (changeEndpointAcls, createEndpoint, editEndpoint, startEndpoint, stopEndpoint, deleteEndpoint, setEndpointConfig) but gives no service_name, so they cannot be confidently attributed to DatabricksSQL. Nothing enumerable for DatabricksSQL specifically."
+      },
+      "DatabricksClusters": {
+        "status": "verified",
+        "operations": [
+          "changeClusterAcl",
+          "changeOwner",
+          "clusterPolicyEnforcementEdit",
+          "create",
+          "createResult",
+          "delete",
+          "deleteResult",
+          "edit",
+          "pendingClusterPolicyEnforcementCanceled",
+          "pendingClusterPolicyEnforcementExecuted",
+          "permanentDelete",
+          "resize",
+          "resizeResult",
+          "restart",
+          "restartResult",
+          "start",
+          "startResult"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Clusters events', service_name=clusters. action_name -> ActionName."
+      },
+      "DatabricksUnityCatalog": {
+        "status": "verified",
+        "operations": [
+          "createMetastore",
+          "getMetastore",
+          "getMetastoreSummary",
+          "listMetastores",
+          "updateMetastore",
+          "deleteMetastore",
+          "updateMetastoreAssignment",
+          "createExternalLocation",
+          "getExternalLocation",
+          "listExternalLocations",
+          "updateExternalLocation",
+          "deleteExternalLocation",
+          "createCatalog",
+          "deleteCatalog",
+          "getCatalog",
+          "updateCatalog",
+          "listCatalogs",
+          "createSchema",
+          "deleteSchema",
+          "getSchema",
+          "listSchemas",
+          "updateSchema",
+          "createStagingTable",
+          "createTable",
+          "deleteTable",
+          "getTable",
+          "privilegedGetTable",
+          "listTables",
+          "listTableSummaries",
+          "updateTables",
+          "createStorageCredential",
+          "listStorageCredentials",
+          "getStorageCredential",
+          "updateStorageCredential",
+          "deleteStorageCredential",
+          "generateTemporaryTableCredential",
+          "generateTemporaryPathCredential",
+          "checkPathAccess",
+          "getPermissions",
+          "getEffectivePermissions",
+          "updatePermissions",
+          "metadataSnapshot",
+          "metadataAndPermissionsSnapshot",
+          "updateMetadataSnapshot",
+          "getForeignCredentials",
+          "getInformationSchema",
+          "createConstraint",
+          "deleteConstraint",
+          "createPipeline",
+          "updatePipeline",
+          "getPipeline",
+          "deletePipeline",
+          "deleteResourceFailure",
+          "createVolume",
+          "getVolume",
+          "updateVolume",
+          "deleteVolume",
+          "listVolumes",
+          "generateTemporaryVolumeCredential",
+          "getTagSecurableAssignments",
+          "getTagSubentityAssignments",
+          "UpdateTagSecurableAssignments",
+          "UpdateTagSubentityAssignments",
+          "createRegisteredModel",
+          "getRegisteredModel",
+          "updateRegisteredModel",
+          "deleteRegisteredModel",
+          "listRegisteredModels",
+          "createModelVersion",
+          "finalizeModelVersion",
+          "getModelVersion",
+          "getModelVersionByAlias",
+          "updateModelVersion",
+          "deleteModelVersion",
+          "listModelVersions",
+          "generateTemporaryModelVersionCredential",
+          "setRegisteredModelAlias",
+          "deleteRegisteredModelAlias",
+          "createConnection",
+          "deleteConnection",
+          "getConnection",
+          "updateConnection",
+          "listConnections",
+          "createFunction",
+          "updateFunction",
+          "listFunctions",
+          "getFunction",
+          "deleteFunction",
+          "generateTemporaryServiceCredential",
+          "UpdateWorkspaceBindings",
+          "CreateSecurableTagAssignment",
+          "CreateSubsecurableTagAssignment",
+          "DeleteSecurableTagAssignment",
+          "DeleteSubsecurableTagAssignment",
+          "ListSecurableTagAssignments",
+          "ListSubsecurableTagAssignments",
+          "createEntityTagAssignment",
+          "getEntityTagAssignment",
+          "listEntityTagAssignments",
+          "updateEntityTagAssignment",
+          "deleteEntityTagAssignment",
+          "listSecurableTags",
+          "createPolicy",
+          "deletePolicy",
+          "getPolicy",
+          "listPolicies",
+          "updatePolicy",
+          "GetWorkspaceBindings",
+          "UpdateCatalogWorkspaceBindings",
+          "createCredential",
+          "deleteCredential",
+          "getCredential",
+          "listCredentials",
+          "updateCredential",
+          "validateCredential",
+          "createStorageLocation",
+          "createMetastoreAssignment",
+          "deleteMetastoreAssignment",
+          "getCurrentMetastoreAssignment",
+          "enableSystemSchema",
+          "disableSystemSchema",
+          "listSystemSchemas",
+          "getQuota",
+          "listQuotas",
+          "getTableById",
+          "listDroppedTables",
+          "tableExists",
+          "undropTable",
+          "updateTableToManaged",
+          "listAllVolumesInMetastore",
+          "getArtifactAllowlist",
+          "setArtifactAllowlist",
+          "updateMLServingPermissions"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Account-level section 'Unity Catalog events', explicitly logged under service_name=unityCatalog. action_name -> ActionName. NOTE: the doc's 'OpenSharing events' (Delta Sharing) section is ALSO logged under service_name=unityCatalog and would land in this same table; those additional deltaSharing*/recipient/share/provider/iceberg* action_name values are not included in this list but share the same service_name. The list here is verbatim from the primary 'Unity Catalog events' table only. getModelVersionByAlias appears twice in the source; deduplicated here."
+      },
+      "DatabricksDBFS": {
+        "status": "verified",
+        "operations": [
+          "addBlock",
+          "close",
+          "create",
+          "delete",
+          "getStatus",
+          "mkdirs",
+          "move",
+          "put",
+          "read",
+          "mount",
+          "unmount"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'DBFS events', service_name=dbfs. action_name -> ActionName."
+      },
+      "DatabricksSQLPermissions": {
+        "status": "verified",
+        "operations": [
+          "changeSecurableOwner",
+          "createSecurable",
+          "denyPermission",
+          "grantPermission",
+          "removeAllPermissions",
+          "renameSecurable",
+          "requestPermissions",
+          "revokePermission",
+          "showPermissions"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'SQL table access events', explicitly logged under service_name=sqlPermissions. action_name -> ActionName."
+      },
+      "DatabricksAccounts": {
+        "status": "verified",
+        "operations": [
+          "accountInHouseOAuthClientAuthentication",
+          "accountLoginCodeAuthentication",
+          "aadBrowserLogin",
+          "aadTokenLogin",
+          "jwtLogin",
+          "login",
+          "logout",
+          "mfaAddKey",
+          "mfaDeleteKey",
+          "mfaLogin",
+          "mintOAuthAuthorizationCode",
+          "mintOAuthToken",
+          "multiFactorAuthenticationLogin",
+          "oidcBrowserLogin",
+          "oidcTokenAuthorization",
+          "samlLogin",
+          "tokenLogin",
+          "workspaceLoginCodeAuthentication",
+          "activateUser",
+          "add",
+          "addPrincipalToGroup",
+          "addPrincipalsToGroup",
+          "changeDatabricksSqlAcl",
+          "changeDatabricksWorkspaceAcl",
+          "changeDatabricksWorkspaceDirectoryAcl",
+          "changePassword",
+          "changePasswordAcl",
+          "changeServicePrincipalAcls",
+          "createGroup",
+          "deactivateUser",
+          "delete",
+          "deleteUser",
+          "disableClusterAcls",
+          "disableTableAcls",
+          "disableWorkspaceAcls",
+          "enableClusterAcls",
+          "enableTableAcls",
+          "enableWorkspaceAcls",
+          "removeAdmin",
+          "removeGroup",
+          "removePrincipalFromGroup",
+          "removePrincipalsFromGroup",
+          "resetPassword",
+          "setAdmin",
+          "updateGroup",
+          "updateUser",
+          "usernameDomainDenied",
+          "validateEmail",
+          "autoScopeDbToken",
+          "changeDbTokenAcl",
+          "changeDbTokenState",
+          "garbageCollectDbToken",
+          "generateDbToken",
+          "reachMaxQuotaDbToken",
+          "revokeDbToken",
+          "revokeOutOfQuotaDbToken",
+          "updateDbToken",
+          "updateOnBehalfOfToken",
+          "createIpAccessList",
+          "deleteIpAccessList",
+          "IpAccessDenied",
+          "ipAccessListQuotaExceeded",
+          "updateIpAccessList"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Diagnostic log reference page. service_name=accounts. Values are the action_name column, which populates the ActionName column (OperationName is templated Microsoft.Databricks/accounts/<action>). Combined from four workspace-level subsections all logged under service_name accounts: Authentication events, User and group management events, Token management events, IP access list events."
+      },
+      "DatabricksApps": {
+        "status": "verified",
+        "operations": [
+          "createApp",
+          "installTemplateApp",
+          "updateApp",
+          "startApp",
+          "stopApp",
+          "deployApp",
+          "deleteApp",
+          "changeAppsAcl"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Databricks Apps events', logged under service_name=apps. action_name column -> ActionName."
+      },
+      "DatabricksBrickStoreHttpGateway": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Read the full Diagnostic log reference (audit-logs) plus audit-log-delivery. No section is logged under a service_name matching brickStoreHttpGateway. (Only a related action getBrickstoreOnlineTableMetadata appears inside the featureStore section; there is no dedicated BrickStore gateway service section.) No values enumerable."
+      },
+      "DatabricksBudgetPolicyCentral": {
+        "status": "verified",
+        "operations": [
+          "createBudgetPolicy",
+          "updateBudgetPolicy",
+          "deleteBudgetPolicy"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Account-level section 'Serverless usage policy events', explicitly logged under service_name=budgetPolicyCentral. action_name column -> ActionName."
+      },
+      "DatabricksCapsule8Dataplane": {
+        "status": "verified",
+        "operations": [
+          "Heartbeat",
+          "Memory Marked Executable",
+          "File Integrity Monitor",
+          "Systemd Unit File Modified",
+          "Repeated Program Crashes",
+          "Userfaultfd Usage",
+          "New File Executed in Container",
+          "Suspicious Interactive Shell",
+          "User Command Logging Evasion",
+          "BPF Program Executed",
+          "Kernel Module Loaded",
+          "Suspicious Program Name Executed-Space After File",
+          "Illegal Elevation Of Privileges",
+          "Kernel Exploit",
+          "Processor-Level Protections Disabled",
+          "Container Escape via Kernel Exploitation",
+          "Privileged Container Launched",
+          "Userland Container Escape",
+          "AppArmor Disabled In Kernel",
+          "AppArmor Profile Modified",
+          "Boot Files Modified",
+          "Log Files Deleted",
+          "New File Executed",
+          "Root Certificate Store Modified",
+          "Setuid/Setgid Bit Set On File",
+          "Hidden File Created",
+          "Modification Of Common System Utilities",
+          "Network Service Scanner Executed",
+          "Network Service Created",
+          "Network Sniffing Program Executed",
+          "Remote File Copy Detected",
+          "Unusual Outbound Connection Detected",
+          "Data Archived Via Program",
+          "Process Injection",
+          "Account Enumeration Via Program",
+          "File and Directory Discovery Via Program",
+          "Network Configuration Enumeration Via Program",
+          "Process Enumeration Via Program",
+          "System Information Enumeration Via Program",
+          "Scheduled Tasks Modified Via Program",
+          "Systemctl Usage Detected",
+          "User Execution Of su Command",
+          "User Execution Of sudo Command",
+          "User Command History Cleared",
+          "New System User Added",
+          "Password Database Modification",
+          "SSH Authorized Keys Modification",
+          "User Account Created Via CLI",
+          "User Configuration Changes",
+          "New System User Added"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Additional security monitoring events -> 'File integrity monitoring events', logged under service_name=capsule8-alerts-dataplane. Values are descriptive action names (with spaces) in the action_name column -> ActionName. Verbatim from the doc's table; note 'New System User Added' is listed twice in the source table."
+      },
+      "DatabricksClamAVScan": {
+        "status": "verified",
+        "operations": [
+          "clamAVScanAction"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Additional security monitoring events -> 'Antivirus monitoring events', logged under service_name=clamAVScanService-dataplane. Single action_name value -> ActionName."
+      },
+      "DatabricksCloudStorageMetadata": {
+        "status": "verified",
+        "operations": [
+          "listObjects",
+          "validateFileEventsPermissions"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Cloud storage metadata events', service_name=cloudStorageMetadata. action_name -> ActionName."
+      },
+      "DatabricksDashboards": {
+        "status": "verified",
+        "operations": [
+          "getDashboard",
+          "getPublishedDashboard",
+          "executeQuery",
+          "cancelQuery",
+          "getQueryResult",
+          "triggerDashboardSnapshot",
+          "sendDashboardSnapshot",
+          "getDashboardDetails",
+          "createDashboard",
+          "updateDashboard",
+          "cloneDashboard",
+          "publishDashboard",
+          "unpublishDashboard",
+          "trashDashboard",
+          "restoreDashboard",
+          "migrateDashboard",
+          "createSchedule",
+          "updateSchedule",
+          "deleteSchedule",
+          "createSubscription",
+          "deleteSubscription"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'AI/BI dashboard events', service_name=dashboards. action_name -> ActionName."
+      },
+      "DatabricksDataMonitoring": {
+        "status": "verified",
+        "operations": [
+          "CancelRefresh",
+          "CreateMonitor",
+          "DeleteMonitor",
+          "RegenerateDashboard",
+          "RunRefresh",
+          "UpdateMonitor"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Data monitoring events', service_name=dataMonitoring. action_name -> ActionName (values are PascalCase in the doc)."
+      },
+      "DatabricksDataRooms": {
+        "status": "verified",
+        "operations": [
+          "createCleanRoom",
+          "createCleanRoomAsset",
+          "createCleanRoomAssetReview",
+          "createCleanRoomAutoApprovalRule",
+          "createCleanRoomOutputCatalog",
+          "deleteCleanRoom",
+          "deleteCleanRoomAsset",
+          "deleteCleanRoomAutoApprovalRule",
+          "getCleanRoom",
+          "getCleanRoomAsset",
+          "listCleanRoomAssets",
+          "listCleanRoomAutoApprovalRules",
+          "listCleanRoomNotebookTaskRuns",
+          "listCleanRooms",
+          "updateCleanRoom",
+          "updateCleanRoomAsset"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Account-level section 'Clean Rooms events', logged under service_name=clean-room. Mapped to DatabricksDataRooms as the only rooms-feature table in the requested set (Clean Rooms is the Data Rooms feature); the doc labels the service_name 'clean-room', not 'dataRooms'. action_name -> ActionName."
+      },
+      "DatabricksDeltaPipelines": {
+        "status": "verified",
+        "operations": [
+          "changePipelineAcls",
+          "create",
+          "delete",
+          "edit",
+          "startUpdate",
+          "stop"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Lakeflow pipelines events', service_name=deltaPipelines. action_name -> ActionName."
+      },
+      "DatabricksatabricksFeatureStore": {
+        "status": "not_enumerated",
+        "operations": [],
+        "source_url": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-databricks-workspaces-logs",
+        "notes": "table name not found in doc; OperationName values not enumerated"
+      },
+      "DatabricksFiles": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Read the full Diagnostic log reference. The doc's only files-related service section ('Files events') is explicitly logged under service_name=filesystem, which maps to DatabricksFilesystem. No section is logged under a service_name that maps to the distinct DatabricksFiles table, so nothing enumerable for it."
+      },
+      "DatabricksGenie": {
+        "status": "verified",
+        "operations": [
+          "databricksAccess"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Databricks workspace access events' (remote workspace access by Databricks personnel), explicitly logged under service_name=genie. The doc states: 'The genie service name is a legacy identifier and is unrelated to the genieChat or aibiGenie services.' Single action_name value -> ActionName. (The newer genieChat/aibiGenie services are separate and do not map to Type DatabricksGenie.)"
+      },
+      "DatabricksGitCredentials": {
+        "status": "verified",
+        "operations": [
+          "createGitCredential",
+          "deleteGitCredential",
+          "getGitCredential",
+          "linkGitProvider",
+          "listGitCredentials",
+          "updateGitCredential"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Git credential events', service_name=gitCredentials. action_name -> ActionName."
+      },
+      "DatabricksGlobalInitScripts": {
+        "status": "verified",
+        "operations": [
+          "batch-reorder",
+          "create",
+          "update",
+          "delete"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Global init scripts events', service_name=globalInitScripts. action_name -> ActionName."
+      },
+      "DatabricksIAMRole": {
+        "status": "verified",
+        "operations": [
+          "changeIamRoleAcl"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'IAM role events', service_name=iamRole. Single action_name value -> ActionName."
+      },
+      "DatabricksIngestion": {
+        "status": "verified",
+        "operations": [
+          "proxyFileUpload"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Ingestion events', service_name=ingestion. Single action_name value -> ActionName."
+      },
+      "DatabricksInstancePools": {
+        "status": "verified",
+        "operations": [
+          "changeInstancePoolAcl",
+          "create",
+          "delete",
+          "edit"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Instance pool events', service_name=instancePools. action_name -> ActionName."
+      },
+      "DatabricksLineageTracking": {
+        "status": "verified",
+        "operations": [
+          "listColumnLineages",
+          "listSecurableLineagesBySecurable",
+          "listEntityLineagesBySecurable",
+          "getColumnLineages",
+          "getTableEntityLineages",
+          "getJobTableLineages",
+          "getFunctionLineages",
+          "getModelVersionLineages",
+          "getEntityTableLineages",
+          "getFrequentlyJoinedTables",
+          "getFrequentQueryByTable",
+          "getFrequentUserByTable",
+          "getTablePopularityByDate",
+          "getPopularEntities",
+          "getPopularTables",
+          "listCustomLineages",
+          "listSecurableByEntityEvent"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Account-level section 'Lineage tracking events', service_name=lineageTracking. action_name -> ActionName."
+      },
+      "DatabricksMLflowAcledArtifact": {
+        "status": "verified",
+        "operations": [
+          "readArtifact",
+          "writeArtifact"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'MLflow artifacts with ACL events', service_name=mlflowAcledArtifact. action_name -> ActionName."
+      },
+      "DatabricksMLflowExperiment": {
+        "status": "verified",
+        "operations": [
+          "createMlflowExperiment",
+          "deleteMlflowExperiment",
+          "moveMlflowExperiment",
+          "restoreMlflowExperiment",
+          "renameMlflowExperimentEvent"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'MLflow experiment events', service_name=mlflowExperiment. action_name -> ActionName."
+      },
+      "DatabricksMarketplaceConsumer": {
+        "status": "verified",
+        "operations": [
+          "getDataProduct",
+          "requestDataProduct"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Marketplace consumer events', service_name=marketplaceConsumer. action_name -> ActionName."
+      },
+      "DatabricksMarketplaceProvider": {
+        "status": "verified",
+        "operations": [
+          "createListing",
+          "updateListing",
+          "deleteListing",
+          "updateConsumerRequestStatus",
+          "createProviderProfile",
+          "updateProviderProfile",
+          "deleteProviderProfile",
+          "uploadFile",
+          "deleteFile"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Marketplace provider events', service_name=marketplaceProvider. action_name -> ActionName."
+      },
+      "DatabricksModelRegistry": {
+        "status": "verified",
+        "operations": [
+          "approveTransitionRequest",
+          "changeRegisteredModelAcl",
+          "createComment",
+          "createModelVersion",
+          "createRegisteredModel",
+          "createRegistryWebhook",
+          "createTransitionRequest",
+          "deleteComment",
+          "deleteModelVersion",
+          "deleteModelVersionTag",
+          "deleteRegisteredModel",
+          "deleteRegisteredModelTag",
+          "deleteRegistryWebhook",
+          "deleteTransitionRequest",
+          "finishCreateModelVersionAsync",
+          "generateBatchInferenceNotebook",
+          "generateDltInferenceNotebook",
+          "getModelVersionDownloadUri",
+          "getModelVersionSignedDownloadUri",
+          "listModelArtifacts",
+          "listRegistryWebhooks",
+          "rejectTransitionRequest",
+          "renameRegisteredModel",
+          "setEmailSubscriptionStatus",
+          "setModelVersionTag",
+          "setRegisteredModelTag",
+          "setUserLevelEmailSubscriptionStatus",
+          "testRegistryWebhook",
+          "transitionModelVersionStage",
+          "triggerRegistryWebhook",
+          "updateComment",
+          "updateRegistryWebhook"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'MLflow model registry events', service_name=modelRegistry. action_name -> ActionName."
+      },
+      "DatabricksOnlineTables": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Read the full Diagnostic log reference. No section is logged under a service_name matching onlineTables. (Synced/database table events exist but under service_name databaseInstances and postgres for Lakebase, which are different tables.) No values enumerable for OnlineTables."
+      },
+      "DatabricksPredictiveOptimization": {
+        "status": "verified",
+        "operations": [
+          "PutMetrics"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Predictive optimization events', service_name=predictiveOptimization. Single action_name value -> ActionName."
+      },
+      "DatabricksRemoteHistoryService": {
+        "status": "verified",
+        "operations": [
+          "addUserGitHubCredentials",
+          "deleteUserGitHubCredentials",
+          "updateUserGitHubCredentials"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Remote history service events', logged under service_name=RemoteHistoryService. action_name -> ActionName."
+      },
+      "DatabricksRepos": {
+        "status": "verified",
+        "operations": [
+          "checkoutBranch",
+          "commitAndPush",
+          "createRepo",
+          "deleteRepo",
+          "discard",
+          "getRepo",
+          "listRepos",
+          "pull",
+          "updateRepo"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Git folder events', explicitly logged under service_name=repos (maps to Type DatabricksRepos). action_name -> ActionName."
+      },
+      "DatabricksSqlAnalytics": {
+        "status": "not_enumerated",
+        "operations": [],
+        "source_url": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-databricks-workspaces-logs",
+        "notes": "columns/log categories documented, OperationName values not enumerated"
+      },
+      "DatabricksSSH": {
+        "status": "verified",
+        "operations": [
+          "login",
+          "logout"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'SSH events', service_name=ssh. action_name -> ActionName."
+      },
+      "DatabricksVectorSearch": {
+        "status": "verified",
+        "operations": [
+          "createEndpoint",
+          "deleteEndpoint",
+          "changeEndpointAcl",
+          "createVectorIndex",
+          "deleteVectorIndex",
+          "queryVectorIndex",
+          "queryVectorIndexNextPage",
+          "scanVectorIndex",
+          "upsertDataVectorIndex",
+          "deleteDataVectorIndex",
+          "queryVectorIndexRouteOptimized",
+          "queryVectorIndexNextPageRouteOptimized",
+          "scanVectorIndexRouteOptimized",
+          "upsertDataVectorIndexRouteOptimized",
+          "deleteDataVectorIndexRouteOptimized"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'AI Search events', explicitly logged under service_name=vectorSearch (maps to Type DatabricksVectorSearch). action_name -> ActionName. 'changeEndpointAcl' appears twice in the source table; deduplicated here."
+      },
+      "DatabricksWebTerminal": {
+        "status": "verified",
+        "operations": [
+          "startSession",
+          "closeSession"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Web terminal events', service_name=webTerminal. action_name -> ActionName."
+      },
+      "DatabricksWorkspace": {
+        "status": "verified",
+        "operations": [
+          "addPermissionAssignment",
+          "changeWorkspaceAcl",
+          "createWorkspaceNode",
+          "deletePermissionAssignment",
+          "deleteSetting",
+          "fileCreate",
+          "fileDelete",
+          "fileEditorOpenEvent",
+          "getPermissionAssignment",
+          "getRoleAssignment",
+          "mintOAuthAuthorizationCode",
+          "mintOAuthToken",
+          "moveWorkspaceNode",
+          "purgeWorkspaceNodes",
+          "reattachHomeFolder",
+          "renameWorkspaceNode",
+          "unmarkHomeFolder",
+          "updateRoleAssignment",
+          "updatePermissionAssignment",
+          "setSetting",
+          "workspaceConfEdit",
+          "workspaceExport",
+          "workspaceInHouseOAuthClientAuthentication"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Workspace events', service_name=workspace. action_name -> ActionName."
+      },
+      "DatabricksClusterLibraries": {
+        "status": "verified",
+        "operations": [
+          "installLibraries",
+          "uninstallLibraries"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Cluster libraries events', service_name=clusterLibraries. action_name -> ActionName."
+      },
+      "DatabricksDatabaseInstances": {
+        "status": "not_enumerated",
+        "operations": [],
+        "source_url": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-databricks-workspaces-logs",
+        "notes": "table name not found in doc; OperationName values not enumerated"
+      },
+      "DatabricksFeatureStore": {
+        "status": "verified",
+        "operations": [
+          "addConsumer",
+          "addDataSources",
+          "addProducer",
+          "batchCreateMaterializedFeatures",
+          "changeFeatureTableAcl",
+          "createFeatureSpec",
+          "createFeatureTable",
+          "createFeatureV2",
+          "createFeatures",
+          "deleteFeatureTable",
+          "deleteFeatureV2",
+          "deleteMaterializedFeature",
+          "deleteTags",
+          "generateFeatureSpecYaml",
+          "getBrickstoreOnlineTableMetadata",
+          "getConsumers",
+          "getFeatureStoreWidePermissions",
+          "getFeatureTable",
+          "getFeatureTablesById",
+          "getFeatureV2",
+          "getFeatures",
+          "getMaterializedFeature",
+          "getModelServingMetadata",
+          "getOnlineFeatureTables",
+          "getOnlineStore",
+          "getOnlineStores",
+          "getTags",
+          "listFeaturesV2",
+          "listMaterializedFeatures",
+          "logFeatureStoreClientEvent",
+          "publishFeatureTable",
+          "searchFeatureTables",
+          "setTags",
+          "systemGetMaterializedFeature",
+          "systemUpdateMaterializedFeature",
+          "updateFeatureTable"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Feature store events', service_name=featureStore. action_name -> ActionName."
+      },
+      "DatabricksClusterPolicies": {
+        "status": "verified",
+        "operations": [
+          "create",
+          "edit",
+          "delete",
+          "changeClusterPolicyAcl",
+          "cancelAllPendingEnforcements"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Cluster policy events', service_name=clusterPolicies. action_name -> ActionName."
+      },
+      "DatabricksDatabricksSQL": {
+        "status": "verified",
+        "operations": [
+          "cancelQueryExecution",
+          "changeEndpointAcls",
+          "cloneFolderNode",
+          "commandFinish",
+          "commandSubmit",
+          "createAlert",
+          "createQuery",
+          "getQuery",
+          "createQueryDraft",
+          "createQuerySnippet",
+          "createVisualization",
+          "createWarehouse",
+          "deleteAlert",
+          "deleteNotificationDestination",
+          "deleteWarehouse",
+          "deleteQuery",
+          "deleteQueryDraft",
+          "deleteQuerySnippet",
+          "deleteVisualization",
+          "downloadQueryResult",
+          "editWarehouse",
+          "executeAdhocQuery",
+          "executeSavedQuery",
+          "favoriteQuery",
+          "forkQuery",
+          "getAlert",
+          "getHistoryQueriesByLookupKeys",
+          "getHistoryQuery",
+          "listHistoryQueries",
+          "moveAlertToTrash",
+          "moveQueryToTrash",
+          "restoreAlert",
+          "restoreQuery",
+          "setWarehouseConfig",
+          "startWarehouse",
+          "stopWarehouse",
+          "transferObjectOwnership",
+          "unfavoriteQuery",
+          "updateAlert",
+          "updateNotificationDestination",
+          "updateFolderNode",
+          "updateOrganizationSetting",
+          "updateQuery",
+          "updateQueryDraft",
+          "updateQuerySnippet",
+          "updateVisualization"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Databricks SQL events', logged under service_name=databrickssql (maps to Type DatabricksDatabricksSQL). action_name -> ActionName. Additionally the doc's deprecated 'SQL endpoint logs' subsection lists endpoint-named equivalents (changeEndpointAcls, createEndpoint, editEndpoint, startEndpoint, stopEndpoint, deleteEndpoint, setEndpointConfig) that are identical to the warehouse events above."
+      },
+      "DatabricksFilesystem": {
+        "status": "verified",
+        "operations": [
+          "directoriesDelete",
+          "directoriesGet",
+          "directoriesHead",
+          "directoriesPut",
+          "filesDelete",
+          "filesGet",
+          "filesHead",
+          "filesPut"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Files events', explicitly logged under service_name=filesystem (maps to Type DatabricksFilesystem). action_name -> ActionName."
+      },
+      "DatabricksGroups": {
+        "status": "verified",
+        "operations": [
+          "addPrincipalToGroup",
+          "createGroup",
+          "getGroupMembers",
+          "getGroups",
+          "getInheritedGroups",
+          "removeGroup"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Groups events', service_name=groups. action_name -> ActionName."
+      },
+      "DatabricksLakeviewConfig": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Read the full Diagnostic log reference. No section is logged under a service_name matching lakeviewConfig. No values enumerable."
+      },
+      "DatabricksPartnerHub": {
+        "status": "verified",
+        "operations": [
+          "createOrReusePartnerConnection",
+          "deletePartnerConnection",
+          "downloadPartnerConnectionFile",
+          "setupResourcesForPartnerConnection"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Partner Connect events', explicitly logged under service_name=partnerHub. action_name -> ActionName."
+      },
+      "DatabricksRBAC": {
+        "status": "verified",
+        "operations": [
+          "updateRuleSet"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Account-level section 'Account access control events' (rule sets / role-based access control), logged under service_name=accountsAccessControl; mapped to DatabricksRBAC (Role-Based Access Control) as the corresponding requested table. Single action_name value -> ActionName."
+      },
+      "DatabricksRFA": {
+        "status": "verified",
+        "operations": [
+          "updateAccessRequestDestinations",
+          "getAccessRequestDestinations",
+          "listDestinations",
+          "getStatus",
+          "batchCreateAccessRequests",
+          "requestAccess",
+          "updateDefaultDestinationStatus",
+          "getDefaultDestinationStatus"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Request for access events', logged under service_name=request-for-access (RFA = Request For Access). action_name -> ActionName."
+      },
+      "DatabricksServerlessRealTimeInference": {
+        "status": "verified",
+        "operations": [
+          "cancelUpdateServingEndpoint",
+          "changeInferenceEndpointAcl",
+          "createServingEndpoint",
+          "deleteServingEndpoint",
+          "getQuerySchemaPreview",
+          "patchInferenceEndpointUsagePolicy",
+          "putInferenceEndpointAiGateway",
+          "startServingEndpoint",
+          "stopServingEndpoint",
+          "updateServingEndpoint"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Model serving events', explicitly logged under service_name=serverlessRealTimeInference (maps to Type DatabricksServerlessRealTimeInference). action_name -> ActionName."
+      },
+      "DatabricksTables": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Read the full Diagnostic log reference. No section is logged under a service_name matching a 'tables' service. (Table operations are covered under unityCatalog and sqlPermissions services, which map to other tables.) No values enumerable for DatabricksTables."
+      },
+      "DatabricksWebhookNotifications": {
+        "status": "verified",
+        "operations": [
+          "createWebhook",
+          "deleteWebhook",
+          "getWebhook",
+          "notifyWebhook",
+          "testWebhook",
+          "updateWebhook"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Webhook events', explicitly logged under service_name=webhookNotifications (maps to Type DatabricksWebhookNotifications). action_name -> ActionName."
+      },
+      "DatabricksWorkspaceFiles": {
+        "status": "verified",
+        "operations": [
+          "wsfsStreamingRead",
+          "wsfsStreamingWrite",
+          "wsfsImportFile"
+        ],
+        "field": "ActionName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/databricks/admin/account-settings/audit-logs",
+        "notes": "Section 'Workspace files events', service_name=workspaceFiles. action_name -> ActionName."
+      }
+    },
+    "Microsoft.EventGrid/topics": {
+      "AegDataPlaneRequests": {
+        "status": "verified",
+        "operations": [
+          "Microsoft.EventGrid/events/send"
+        ],
+        "source_url": "https://learn.microsoft.com/en-us/azure/event-grid/monitor-push-reference",
+        "notes": "The data plane operations schema table lists columns (NetworkAccess, ClientIpAddress, TlsVersion, Authentication, OperationResult, TotalOperations) and does not list OperationName as a column. The single value 'Microsoft.EventGrid/events/send' appears only as the operationName field in the example DataPlaneRequests log JSON, not as a formal enumeration."
+      },
+      "AegDeliveryFailureLogs": {
+        "status": "verified",
+        "operations": [
+          "Deliver"
+        ],
+        "source_url": "https://learn.microsoft.com/en-us/azure/event-grid/monitor-push-reference",
+        "notes": "The publish/delivery failure schema table states for OperationName: 'The name of the operation caused the failure. Example Values: \"Deliver\" for delivery failures.' The value 'Deliver' also appears as operationName in the example JSON. Presented as an example value in the schema table (prose) plus example log entry, not an exhaustive list."
+      },
+      "AegPublishFailureLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/event-grid/monitor-push-reference",
+        "notes": "Read the service's own logging docs: enable-diagnostic-logs-topic (diagnostic settings how-to) and monitor-push-reference (monitor data reference / diagnostic log schema). AegPublishFailureLogs corresponds to the 'PublishFailures' log category. The 'Schema for publish/delivery failure logs' table describes the OperationName column generically as 'The name of the operation caused the failure' with 'Example Values: \"Deliver\" for delivery failures' -- i.e. the only example value given is for delivery failures, not publish failures. No page enumerates a fixed list of OperationName values for the publish-failure table; the description is a generic/example value, not an enumeration. The supported-logs column reference lists columns only. Therefore no operation values are enumerable for AegPublishFailureLogs."
+      }
+    },
+    "Microsoft.DocumentDB/DatabaseAccounts": {
+      "CDBDataPlaneRequests": {
+        "status": "verified",
+        "operations": [
+          "Create",
+          "Update",
+          "Read",
+          "ReadFeed",
+          "Delete",
+          "Replace",
+          "Execute",
+          "SqlQuery",
+          "Query",
+          "JSQuery",
+          "Head",
+          "HeadFeed",
+          "Upsert"
+        ],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-reference",
+        "notes": "From the 'Azure Cosmos DB resource logs properties' table in monitor-reference: the operationName / OperationName row reads 'Name of the operation. The operation name can be Create, Update, Read, ReadFeed, Delete, Replace, Execute, SqlQuery, Query, JSQuery, Head, HeadFeed, or Upsert.' This is the schema for the data-plane request logs; DataPlaneRequests category maps to CDBDataPlaneRequests ('captures every data plane operation for the Cosmos DB account'). The monitor page also shows 'summarize count() by OperationName' over CDBDataPlaneRequests, confirming OperationName is the populated column."
+      },
+      "CDBControlPlaneRequests": {
+        "status": "verified",
+        "operations": [
+          "RegionAddStart",
+          "RegionAddComplete",
+          "RegionRemoveStart",
+          "RegionRemoveComplete",
+          "AccountDeleteStart",
+          "AccountDeleteComplete",
+          "RegionFailoverStart",
+          "RegionFailoverComplete",
+          "AccountCreateStart",
+          "AccountCreateComplete",
+          "AccountUpdateStart",
+          "AccountUpdateComplete",
+          "VirtualNetworkDeleteStart",
+          "VirtualNetworkDeleteComplete",
+          "DiagnosticLogUpdateStart",
+          "DiagnosticLogUpdateComplete"
+        ],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/cosmos-db/audit-control-plane-logs",
+        "notes": "From the 'Diagnostic log operations' section of the audit-control-plane-logs page: 'The following are the operation names in diagnostic logs for different operations:' followed by a bulleted list of Start/Complete pairs (verbatim above). ControlPlaneRequests maps to CDBControlPlaneRequests. NOTE: the same section states that API-specific control plane operations are named by a TEMPLATE, 'ApiKind + ApiKindResourceType + OperationType' (and a Throughput variant), with examples CassandraKeyspacesCreate, CassandraKeyspacesUpdate, CassandraKeyspacesThroughputUpdate, SqlContainersUpdate. Those template-generated names are a placeholder pattern, not a fixed enumerable set, so only the 16 fixed Start/Complete values are reported as verified."
+      },
+      "CDBMongoRequests": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-reference",
+        "notes": "Read monitor-resource-logs, monitor, and monitor-reference. The only data-plane operationName enumeration is the generic Core/SQL-API list in the monitor-reference 'resource logs properties' table. No page enumerates a Mongo-API-specific operationName value set for the MongoRequests category / CDBMongoRequests table, so nothing is verifiably enumerable for this specific table."
+      },
+      "CDBCassandraRequests": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-reference",
+        "notes": "Read monitor-resource-logs, monitor, and monitor-reference. The only data-plane operationName enumeration in the Cosmos DB docs is the generic 'Azure Cosmos DB resource logs properties' table in monitor-reference, whose value list (Create, Read, ReadFeed, SqlQuery, JSQuery, etc.) is the Core/SQL-API operation set. No page enumerates a Cassandra-API-specific operationName value set for the CassandraRequests category / CDBCassandraRequests table, so nothing is verifiably enumerable for this specific table."
+      },
+      "CDBGremlinRequests": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-reference",
+        "notes": "Read monitor-resource-logs, monitor, and monitor-reference. The only data-plane operationName enumeration is the generic Core/SQL-API list in the monitor-reference 'resource logs properties' table. No page enumerates a Gremlin-API-specific operationName value set for the GremlinRequests category / CDBGremlinRequests table, so nothing is verifiably enumerable for this specific table."
+      },
+      "CDBTableApiRequests": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-reference",
+        "notes": "Read monitor-resource-logs, monitor, and monitor-reference. TableApiRequests is a data-plane operations table for Table API accounts, but it is not even included in the category list of the monitor-reference 'resource logs properties' schema, and no page enumerates a Table-API-specific operationName value set. The generic Core/SQL operationName list is not attributable to this table, so nothing is verifiably enumerable for it."
+      },
+      "CDBDataPlaneRequests15M": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-reference",
+        "notes": "aggregated table; doc cross-references CDBDataPlaneRequests for values but does not independently enumerate operationName for this table"
+      },
+      "CDBDataPlaneRequests5M": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-reference",
+        "notes": "aggregated table; doc cross-references CDBDataPlaneRequests for values but does not independently enumerate operationName for this table"
+      },
+      "CDBPartitionKeyRUConsumption": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "other",
+        "source_url": "https://learn.microsoft.com/en-us/azure/cosmos-db/monitor-reference",
+        "notes": "monitor-reference describes this table as detailing RU (Request Unit) consumption for logical partition keys per region/physical partition (telemetry used to find hot partitions). It is a metric-style consumption table; no doc enumerates an OperationName/ActionName value set for it. The generic 'resource logs properties' operationName enumeration is the Core/SQL data-plane request operation list and is not tied to this consumption table."
+      }
+    },
+    "Microsoft.EventHub/Namespaces": {
+      "AZMSApplicationMetricLogs": {
+        "status": "verified",
+        "operations": [
+          "ConsumerLag",
+          "NamespaceActiveConnections",
+          "GetRuntimeInfo",
+          "GetPartitionRuntimeInfo",
+          "IncomingMessages",
+          "IncomingBytes",
+          "OutgoingMessages",
+          "OutgoingBytes",
+          "OffsetCommit",
+          "OffsetFetch"
+        ],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/event-hubs/monitor-event-hubs-reference",
+        "notes": "The service's own monitoring-data-reference page, in the 'Application metrics logs' section (under 'Event Hubs resource logs'), enumerates these values verbatim in a two-column table 'Name | Description' introduced by 'Application metrics logs capture the aggregated information on certain metrics related to data plane operations. The captured information includes the following runtime metrics.' Casing taken exactly from that Name column. The Azure Monitor column reference for AZMSApplicationMetricLogs (https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/azmsapplicationmetriclogs) confirms these populate the OperationName column, described as 'Operation performed on Event Hub (ConsumerLag, ActiveConnection, IncomingMessages, Etc.)' — note the column ref shows a truncated example list ('Etc.') and uses 'ActiveConnection', while the authoritative full enumeration on the service doc uses 'NamespaceActiveConnections'; values reported here are verbatim from the service doc's full list."
+      }
+    },
+    "Microsoft.Logic/Workflows": {
+      "LogicAppWorkflowRuntime": {
+        "status": "verified",
+        "operations": [
+          "WorkflowRunStarted",
+          "WorkflowRunCompleted",
+          "WorkflowTriggerStarted",
+          "WorkflowTriggerEnded",
+          "WorkflowActionStarted",
+          "WorkflowActionCompleted",
+          "WorkflowBatchMessageSend",
+          "WorkflowBatchMessageRelease"
+        ],
+        "source_url": "https://learn.microsoft.com/en-us/azure/logic-apps/monitor-workflows-collect-diagnostic-data",
+        "notes": "Bulleted list. Under 'View workflow run status' (Standard tab), the doc states that when you select the LogicAppWorkflowRuntime table, 'the table shows records related to the following events:' followed by a bullet list of these event string values. Note: the doc labels them 'events' and does not literally use the column name 'OperationName', but they are enumerated verbatim as the event values the table contains. The monitoring_data_reference page documents only metrics/columns and does not enumerate these values."
+      }
+    },
+    "Microsoft.MachineLearningServices/workspaces": {
+      "AmlComputeJobEvent": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/machine-learning/monitor-azure-machine-learning-reference",
+        "notes": "Read Log schemas > AmlComputeJobEvent table. OperationName is described generically ('Name of the operation associated with the log event'). The EventType column gives EXAMPLE values with 'For example, JobSubmitted, JobRunning, JobFailed, JobSucceeded' and ExecutionState 'For example, Queued, Running, Succeeded, Failed' — these are examples/templates for other columns (EventType/ExecutionState), not an enumeration of OperationName values, so not enumerated."
+      },
+      "AmlRunEvent": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/machine-learning/monitor-azure-machine-learning-reference",
+        "notes": "Read Log schemas > AmlRunEvent table. Only columns listed; OperationName described generically. Diagnostic categories RunEvent/RunReadEvent are category names, not OperationName values. No values enumerated."
+      },
+      "AmlModelsEvent": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/machine-learning/monitor-azure-machine-learning-reference",
+        "notes": "Read Log schemas > AmlModelsEvent table. Only columns listed; OperationName described generically. Diagnostic categories ModelsActionEvent/ModelsChangeEvent/ModelsReadEvent are category names, not OperationName values. No values enumerated."
+      },
+      "AmlDataStoreEvent": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/machine-learning/monitor-azure-machine-learning-reference",
+        "notes": "Read Log schemas > AmlDataStoreEvent table. Only columns listed; OperationName described generically. Diagnostic categories DataStoreChangeEvent/DataStoreReadEvent are category names, not OperationName values. No values enumerated."
+      },
+      "AmlDeploymentEvent": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/machine-learning/monitor-azure-machine-learning-reference",
+        "notes": "Read Log schemas > AmlDeploymentEvent table. Only columns listed; OperationName described generically. Diagnostic categories DeploymentEventACI/DeploymentEventAKS/DeploymentReadEvent are category names, not OperationName values. No values enumerated."
+      },
+      "AmlOnlineEndpointEventLog": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/machine-learning/how-to-monitor-online-endpoints",
+        "notes": "Read how-to-monitor-online-endpoints. OperationName is described generically ('The operation associated with the log record'), not enumerated. The page DOES enumerate values for a different column, 'Name' (the event name): BackOff, Pulled, Killing, Created, LivenessProbeFailed, ReadinessProbeFailed, Started — but those populate the Name column, not OperationName/ActionName, so OperationName remains not enumerated."
+      },
+      "AmlComputeClusterEvent": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/machine-learning/monitor-azure-machine-learning-reference",
+        "notes": "Read the service's own 'Machine Learning monitoring data reference' (Log schemas > AmlComputeClusterEvent table) and the monitor-azure-machine-learning how-to page. The schema table lists only COLUMNS; OperationName is described generically as 'Name of the operation associated with the log event'. The EventType column is described as 'Type of event during cluster creation' with no values enumerated. No doc enumerates the OperationName values."
+      },
+      "AmlComputeClusterNodeEvent": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/machine-learning/monitor-azure-machine-learning-reference",
+        "notes": "Listed as a supported resource log category (AmlComputeClusterNodeEvent) in the monitoring data reference, but the page provides no Log schemas section for this table and enumerates no OperationName/ActionName values. Nothing enumerable in the service's monitoring docs."
+      },
+      "AmlComputeCpuGpuUtilization": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/machine-learning/monitor-azure-machine-learning-reference",
+        "notes": "CPU/GPU utilization telemetry table. Appears in the supported resource logs and Azure Monitor Logs tables lists, but the monitoring data reference gives no Log schemas table and enumerates no operation values (metrics/utilization-style table). Nothing enumerable."
+      },
+      "AmlComputeInstanceEvent": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/machine-learning/monitor-azure-machine-learning-reference",
+        "notes": "Read Log schemas > AmlComputeInstanceEvent table. Only columns are listed; OperationName is described generically as 'The name of the operation associated with the log entry'. Diagnostic category is ComputeInstanceEvent (read/write access), but no OperationName values are enumerated."
+      },
+      "AmlDataLabelEvent": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/machine-learning/monitor-azure-machine-learning-reference",
+        "notes": "Read Log schemas > AmlDataLabelEvent table. Only columns listed; OperationName described generically. Diagnostic categories are DataLabelChangeEvent and DataLabelReadEvent (category names, not OperationName values). No OperationName values enumerated."
+      },
+      "AmlDataSetEvent": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/machine-learning/monitor-azure-machine-learning-reference",
+        "notes": "Read Log schemas > AmlDataSetEvent table. Only columns listed; OperationName described generically. Diagnostic categories DataSetChangeEvent/DataSetReadEvent are category names, not OperationName values. No values enumerated."
+      },
+      "AmlEnvironmentEvent": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/machine-learning/monitor-azure-machine-learning-reference",
+        "notes": "Read Log schemas > AmlEnvironmentEvent table. Only columns listed; OperationName described generically. Diagnostic categories EnvironmentChangeEvent/EnvironmentReadEvent are category names, not OperationName values. No values enumerated."
+      },
+      "AmlInferencingEvent": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/machine-learning/monitor-azure-machine-learning-reference",
+        "notes": "Read Log schemas > AmlInferencingEvent table. Only columns listed; OperationName described generically. Diagnostic categories InferencingOperationACI/InferencingOperationAKS are category names, not OperationName values. No values enumerated."
+      },
+      "AmlPipelineEvent": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/machine-learning/monitor-azure-machine-learning-reference",
+        "notes": "Read Log schemas > AmlPipelineEvent table. Only columns listed; OperationName described generically. Diagnostic categories PipelineChangeEvent/PipelineReadEvent are category names, not OperationName values. No values enumerated."
+      },
+      "AmlRunStatusChangedEvent": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/machine-learning/monitor-azure-machine-learning-reference",
+        "notes": "Listed as a supported resource log category (AmlRunStatusChangedEvent) in the monitoring data reference, but the page provides no Log schemas table for it and enumerates no OperationName/ActionName values. Nothing enumerable in the service's monitoring docs."
+      },
+      "AmlOnlineEndpointConsoleLog": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/machine-learning/how-to-monitor-online-endpoints",
+        "notes": "Read the how-to-monitor-online-endpoints page (Log column details > AmlOnlineEndpointConsoleLog) and the monitoring data reference. Only columns listed; OperationName described generically as 'The operation associated with the log record'. This is a container console-output log; no OperationName values enumerated."
+      },
+      "AmlOnlineEndpointTrafficLog": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/machine-learning/how-to-monitor-online-endpoints",
+        "notes": "Read how-to-monitor-online-endpoints (Log column details > AmlOnlineEndpointTrafficLog) and the monitoring data reference. This traffic/request log's schema has NO OperationName or ActionName column at all (columns are Method, Path, ResponseCode, durations, etc.). Nothing to enumerate."
+      }
+    },
+    "Microsoft.RecoveryServices/Vaults": {
+      "AzureBackupOperations": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/backup/monitor-backup-reference",
+        "notes": "Read monitor-backup-reference, monitor-backup, and backup-azure-monitoring-use-azuremonitor. This table is listed only as a column-reference link and is not referenced in any sample query; no service or audit doc enumerates its OperationName values."
+      },
+      "AddonAzureBackupJobs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/backup/backup-azure-monitoring-use-azuremonitor",
+        "notes": "The service how-to page's sample Kusto queries filter this table on JobOperation (e.g. 'Backup','Restore') and JobStatus, not on OperationName, and present no enumerated list of OperationName values. No service or reference doc enumerates OperationName values for this table."
+      },
+      "CoreAzureBackup": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/backup/backup-azure-monitoring-use-azuremonitor",
+        "notes": "The service how-to page's sample Kusto queries filter this table with OperationName == 'BackupItem', but this is a single filter value used inside example queries, not an enumerated list of all possible OperationName values. The CoreAzureBackup column reference lists OperationName as a string column with no description or value list. No doc enumerates the full value set."
+      },
+      "ASRJobs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/asrjobs",
+        "notes": "Read the service monitoring docs (monitor-backup, monitor-backup-reference, backup-azure-monitoring-use-azuremonitor) and the ASRJobs table column reference. No page enumerates OperationName values. The ASRJobs column reference only describes OperationName as 'Type of ASR job, for example, Test failover.' — an example/template phrasing, not a fixed enumerated list."
+      },
+      "ASRReplicatedItems": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/backup/monitor-backup-reference",
+        "notes": "No Azure Backup/ASR service doc enumerates operation values for this table. The monitoring data reference lists it only as a table link (columns), and no how-to or audit page enumerates its OperationName/operation values."
+      },
+      "AddonAzureBackupAlerts": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/backup/monitor-backup-reference",
+        "notes": "Checked monitor-backup-reference (monitoring data reference), monitor-backup, and backup-azure-monitoring-use-azuremonitor. These pages list the table (columns only) and sample Kusto queries but do not enumerate any OperationName values for this table. Metrics/alerts telemetry table with no enumerated operation list."
+      },
+      "AddonAzureBackupPolicy": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/backup/monitor-backup-reference",
+        "notes": "No service monitoring/audit doc enumerates operation values for this table. The monitoring data reference lists it only as a column-reference link; no how-to page enumerates its OperationName values."
+      },
+      "AddonAzureBackupProtectedInstance": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/backup/monitor-backup-reference",
+        "notes": "No service monitoring/audit doc enumerates operation values for this table. Listed only as a column-reference link in the monitoring data reference; no enumerated OperationName list appears in any Azure Backup doc read."
+      },
+      "AddonAzureBackupStorage": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/backup/backup-azure-monitoring-use-azuremonitor",
+        "notes": "The service how-to page's sample Kusto query filters this table with OperationName == 'StorageAssociation', but this appears only as a single filter value inside an example query, not as an enumerated list of all possible OperationName values. No doc enumerates the full value set."
+      }
+    },
+    "Microsoft.Relay/namespaces": {
+      "AZMSHybridConnectionsEvents": {
+        "status": "verified",
+        "operations": [
+          "AuthorizationFailed",
+          "InvalidSasToken",
+          "ListenerAcceptingConnection",
+          "ListenerAcceptingConnectionTimeout",
+          "ListenerAcceptingHttpRequestFailed",
+          "ListenerAcceptingRequestTimeout",
+          "ListenerClosingFromExpiredToken",
+          "ListenerClosingFromUnauthorizedRenewToken",
+          "ListenerRejectedConnection",
+          "ListenerReturningHttpResponse",
+          "ListenerReturningHttpResponseFailed",
+          "ListenerSentHttpResponse",
+          "ListenerUnregistered",
+          "ListenerUnresponsive",
+          "MessageSendingToListener",
+          "MessageSentToListener",
+          "NewListenerRegistered",
+          "NewSenderRegistering",
+          "ProcessingRequestFailed",
+          "SenderConnectionClosed",
+          "SenderListenerConnectionEstablished",
+          "SenderSentHttpRequest"
+        ],
+        "source_url": "https://learn.microsoft.com/en-us/azure/azure-relay/diagnostic-logs",
+        "notes": "Enumerated in a two-column table titled 'Events and operations captured in diagnostic logs' (Operation | Description). Values listed verbatim from the Operation column. Note: the doc's sample JSON shows operationName prefixed as 'Microsoft.Relay/HybridConnections/NewSenderRegistering', but the enumerated table lists the short unprefixed names captured here."
+      }
+    },
+    "Microsoft.Network/applicationgateways": {
+      "AGWAccessLogs": {
+        "status": "verified",
+        "operations": [
+          "ApplicationGatewayAccess"
+        ],
+        "source_url": "https://learn.microsoft.com/en-us/azure/application-gateway/monitor-application-gateway-reference",
+        "notes": "Under 'Access log category', a JSON sample log entry shows the operationName field value verbatim as \"ApplicationGatewayAccess\" (category ApplicationGatewayAccessLog). Presented as a JSON code sample, one operationName value for this log type."
+      },
+      "AGWFirewallLogs": {
+        "status": "verified",
+        "operations": [
+          "ApplicationGatewayFirewall"
+        ],
+        "source_url": "https://learn.microsoft.com/en-us/azure/application-gateway/monitor-application-gateway-reference",
+        "notes": "Under the Firewall log section, a JSON sample log entry shows the operationName field value verbatim as \"ApplicationGatewayFirewall\" (category ApplicationGatewayFirewallLog). Presented as a JSON code sample, one operationName value for this log type."
+      },
+      "AGWPerformanceLogs": {
+        "status": "verified",
+        "operations": [
+          "ApplicationGatewayPerformance"
+        ],
+        "source_url": "https://learn.microsoft.com/en-us/azure/application-gateway/monitor-application-gateway-reference",
+        "notes": "Under 'Performance log category', a JSON sample log entry shows the operationName field value verbatim as \"ApplicationGatewayPerformance\" (category ApplicationGatewayPerformanceLog). Presented as a JSON code sample, one operationName value for this log type (v1 SKU only)."
+      }
+    },
+    "Microsoft.ServiceBus/Namespaces": {
+      "AZMSApplicationMetricLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/service-bus-messaging/monitor-service-bus-reference",
+        "notes": "Read the service's own monitoring data reference (monitor-service-bus-reference) and the how-to-monitor page (monitor-service-bus). In the 'Supported resource logs' table, the corresponding log category is listed as 'Application Metrics Logs (Unused)' and mapped to the AzureDiagnostics/AZMSApplicationMetricLogs table. The doc provides dedicated schema/operation sections for Operational logs (e.g. Create Queue, Retrieve Namespace), Runtime audit logs, and Diagnostic error logs, but provides NO section, schema, or enumerated OperationName/ActionName value list for Application Metric Logs. This is a metrics-oriented log category (the category is marked Unused), so no operation values are enumerable from the fetched docs."
+      }
+    },
+    "Microsoft.SignalRService/SignalR": {
+      "SignalRServiceDiagnosticLogs": {
+        "status": "verified",
+        "operations": [
+          "ConnectionAborted",
+          "ConnectionEnded"
+        ],
+        "source_url": "https://learn.microsoft.com/en-us/azure/azure-signalr/signalr-howto-diagnostic-logs",
+        "notes": "Presented in prose in the 'Unexpected connection dropping' troubleshooting section: 'the resource logs record this disconnecting event, and you see ConnectionAborted or ConnectionEnded in operationName.' These are the only literal OperationName column values named in the doc; it is not a comprehensive enumeration table. The monitoring_data_reference page documents the OperationName column but does not list its values."
+      }
+    },
+    "Microsoft.Synapse/workspaces": {
+      "SynapseRbacOperations": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/monitor-synapse-analytics-reference",
+        "notes": "Checked both service monitoring docs. Listed as resource-log category 'Synapse RBAC Operations'. The docs link to Microsoft.Synapse resource provider operations (activity-log RBAC permissions) but do not enumerate the OperationName/ActionName values that populate the SynapseRbacOperations table itself."
+      },
+      "SynapseGatewayApiRequests": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/monitor-synapse-analytics-reference",
+        "notes": "Checked both service monitoring docs. Listed as resource-log category 'Synapse Gateway Api Requests' routed to AzureDiagnostics. Only the category/table/columns are documented; no doc enumerates operation/action values."
+      },
+      "SynapseIntegrationActivityRuns": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/monitor-synapse-analytics-reference",
+        "notes": "Checked both service monitoring docs. Category 'Integration Activity Runs'. The reference documents only the related metric (IntegrationActivityRunsEnded) and its Result dimension (Succeeded/Failed/Canceled), not an enumerated set of table OperationName/ActionName values."
+      },
+      "SynapseSqlPoolExecRequests": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/monitor-synapse-analytics-reference",
+        "notes": "Checked both service monitoring docs. Category 'Exec Requests', backed by DMV sys.dm_pdw_exec_requests. Only category/table/columns are documented; no enumeration of operation/action values."
+      },
+      "SynapseBigDataPoolApplicationsEnded": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/monitor-synapse-analytics-reference",
+        "notes": "Read the service's own monitor page (monitor-synapse-analytics) and monitoring data reference (monitor-synapse-analytics-reference). This is a Spark application telemetry log table (category 'Big Data Pool Applications Ended', Microsoft.Synapse/workspaces/bigDataPools). The reference page lists only the log category, table, and columns; no doc enumerates OperationName/ActionName values for it."
+      },
+      "SynapseBuiltinSqlPoolRequestsEnded": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/monitor-synapse-analytics-reference",
+        "notes": "Checked monitor-synapse-analytics and monitor-synapse-analytics-reference. Corresponds to resource-log category 'Built-in Sql Pool Requests Ended'; the reference notes the event is emitted only for queries that read data from storage. Only category/table/columns are documented; no enumeration of operation values."
+      },
+      "SynapseIntegrationPipelineRuns": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/monitor-synapse-analytics-reference",
+        "notes": "Checked both service monitoring docs. Category 'Integration Pipeline Runs'. Reference documents only the metric IntegrationPipelineRunsEnded and Result dimension values; no enumeration of table operation/action values."
+      },
+      "SynapseIntegrationTriggerRuns": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/monitor-synapse-analytics-reference",
+        "notes": "Checked both service monitoring docs. Category 'Integration Trigger Runs'. Reference documents only the metric IntegrationTriggerRunsEnded and Result dimension values; no enumeration of table operation/action values."
+      },
+      "SynapseLinkEvent": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/monitor-synapse-analytics",
+        "notes": "Checked monitor-synapse-analytics and monitor-synapse-analytics-reference. The monitor page shows only a single sample KQL query filtering OperationName == \"TableFail\" as an example, and the reference describes link table events as 'snapshot, removal, and failure' in prose for the metric. No doc provides an enumerated list of OperationName values for the SynapseLinkEvent table, so nothing can be reported verbatim."
+      },
+      "SynapseScopePoolScopeJobsEnded": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/monitor-synapse-analytics-reference",
+        "notes": "Checked both service monitoring docs. Category 'Scope Pool Scope Jobs Ended' (Microsoft.Synapse/workspaces/scopePools). Only the category/table/columns and related SCOPE job metrics are documented; no enumeration of operation/action values."
+      },
+      "SynapseSqlPoolRequestSteps": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/monitor-synapse-analytics-reference",
+        "notes": "Checked both service monitoring docs. Category 'Request Steps', backed by DMV sys.dm_pdw_request_steps. Only category/table/columns are documented; no enumeration of operation/action values."
+      },
+      "SynapseSqlPoolDmsWorkers": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/monitor-synapse-analytics-reference",
+        "notes": "Checked both service monitoring docs. Category 'Dms Workers' (Microsoft.Synapse/workspaces/sqlPools), backed by DMV sys.dm_pdw_dms_workers. Only category/table/columns are documented; no enumeration of operation/action values."
+      },
+      "SynapseSqlPoolSqlRequests": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/monitor-synapse-analytics-reference",
+        "notes": "Checked both service monitoring docs. Category 'Sql Requests', backed by DMV sys.dm_pdw_sql_requests. Only category/table/columns are documented; no enumeration of operation/action values."
+      },
+      "SynapseSqlPoolWaits": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/monitor-synapse-analytics-reference",
+        "notes": "Checked both service monitoring docs. Category 'Waits', backed by DMV sys.dm_pdw_waits. Only category/table/columns are documented; no enumeration of operation/action values."
+      },
+      "SynapseScopePoolScopeJobsStateChange": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/synapse-analytics/monitor-synapse-analytics-reference",
+        "notes": "Checked both service monitoring docs. Listed as resource-log category 'Scope Pool Scope Jobs State Change' with no dedicated log table shown (maps to AzureActivity in the tables list). No doc enumerates operation/action values."
+      }
+    },
+    "Microsoft.Web/sites": {
+      "AppServiceAuditLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/app-service/monitor-app-service-reference",
+        "notes": "Described only as 'Login activity via FTP and Kudu' in the Supported resource logs table of monitor-app-service-reference. Neither the dedicated logging page nor the monitor page nor the reference page enumerates literal OperationName/ActionName values for this table."
+      },
+      "AppServiceAuthenticationLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/app-service/monitor-app-service-reference",
+        "notes": "Listed as an Azure Monitor Logs table for Microsoft.Web/sites but not described with any enumerated operation values in the fetched service logging/monitoring docs. No doc lists literal OperationName/ActionName strings for this table."
+      },
+      "AppServiceHTTPLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "source_url": "https://learn.microsoft.com/en-us/azure/app-service/monitor-app-service-reference",
+        "notes": "Log type/table documented, OperationName values not enumerated in any of the three docs"
+      },
+      "AppServiceFileAuditLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/app-service/monitor-app-service-reference",
+        "notes": "Described as 'File changes made to the site content; only available for Premium tier and above' in the Supported resource logs table. No fetched service logging/monitoring doc enumerates literal OperationName/ActionName values for this table."
+      },
+      "AppServiceAppLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/app-service/monitor-app-service-reference",
+        "notes": "Read the App Service dedicated logging page (troubleshoot-diagnostic-logs), the monitor-app-service how-to page, and the monitor-app-service-reference monitoring data reference. This is the application-code log stream (Critical/Error/Warning/Info/Debug/Trace severity categories); records carry app log messages and a CustomLevel, not a fixed enumerated OperationName. No fetched service doc lists literal OperationName/ActionName values for this table. The reference page's Activity log operations table (Create or Update Web App, etc.) applies to AzureActivity, not this resource-log table."
+      },
+      "AppServiceConsoleLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/app-service/monitor-app-service-reference",
+        "notes": "Described as 'Standard output and standard error' in the Supported resource logs table. This is stdout/stderr console output (ResultDescription content), not a fixed set of operations. No fetched service doc enumerates literal OperationName/ActionName values."
+      },
+      "AppServicePlatformLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/app-service/monitor-app-service-reference",
+        "notes": "Described as 'Container operation logs' in the Supported resource logs table. No fetched service logging/monitoring doc enumerates literal OperationName/ActionName values for this table."
+      },
+      "LogicAppWorkflowRuntime": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/logicappworkflowruntime",
+        "notes": "The table reference page defines columns only. OperationName = 'The name of this operation' and ActionName = 'The name of the workflow action' are template/free-form values (the user-defined workflow action/trigger names), not a fixed enumerated set. The Status column lists example values (Succeeded, Failed, Skipped, Ignored) but that is the Status column, not the operation name. No fetched doc enumerates fixed OperationName/ActionName values."
+      }
+    },
+    "Microsoft.Web/sites/slots": {
+      "AppServiceAppLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/app-service/monitor-app-service-reference",
+        "notes": "Checked the service's own docs: troubleshoot-diagnostic-logs, monitor-app-service, monitor-app-service-reference, and the Azure Monitor supported-logs reference for Microsoft.Web/sites/slots. This is the 'App Service Application Logs' category — free-form application log messages generated by app code (categorized only by severity: Critical/Error/Warning/Info/Debug/Trace). No doc enumerates a fixed list of OperationName/ActionName values; it is a content telemetry table, not a (service, action) audit-pair table."
+      },
+      "AppServiceAuditLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/app-service/monitor-app-service-reference",
+        "notes": "The reference describes this table only as 'Login activity via FTP and Kudu' / 'Access Audit Logs' (logs generated when publishing users successfully log on via an App Service publishing protocol). No service doc enumerates fixed OperationName/ActionName values; only the log category description and column schema are given."
+      },
+      "AppServiceConsoleLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/app-service/monitor-app-service-reference",
+        "notes": "Described as 'Standard output and standard error' / 'Console logs generated from application or container.' Free-form stdout/stderr content; no doc enumerates any fixed operation/action value list."
+      },
+      "AppServiceFileAuditLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/app-service/monitor-app-service-reference",
+        "notes": "Described as 'File changes made to the site content' / 'Site Content Change Audit Logs' (Premium tier and above). No service doc enumerates a fixed list of OperationName/ActionName values; only the category description and schema are provided."
+      },
+      "AppServicePlatformLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/app-service/monitor-app-service-reference",
+        "notes": "Described as 'Container operation logs' / 'Logs generated through AppService platform for your application.' No service doc enumerates a fixed list of OperationName/ActionName values; it is a platform log content table, not an enumerated audit-action table."
+      }
+    },
+    "Microsoft.KeyVault/vaults": {
+      "AZKVPolicyEvaluationDetailsLogs": {
+        "status": "not_enumerated",
+        "operations": [],
+        "field": "OperationName",
+        "source_url": "https://learn.microsoft.com/en-us/azure/key-vault/general/logging",
+        "notes": "Checked the Key Vault logging page (https://learn.microsoft.com/en-us/azure/key-vault/general/logging), the monitoring data reference (https://learn.microsoft.com/en-us/azure/key-vault/general/monitor-key-vault-reference), and the Azure Monitor table reference for AZKVPolicyEvaluationDetailsLogs. The logging page DOES enumerate operationName values (VaultGet, KeyCreate, SecretSet, etc.) but those are explicitly for the AuditEvent category, which maps to the AZKVAuditLogs table -- not this policy-evaluation table. The monitor-key-vault-reference page lists AZKVPolicyEvaluationDetailsLogs only as an Azure Monitor Logs table (columns) under the 'Azure Policy Evaluation Details' resource-log category and does not enumerate its operation values. The dedicated table reference page (azkvpolicyevaluationdetailslogs) lists only columns; its OperationName column is described generically as 'Name of the operation' with no enumerated value list. No fetched Microsoft doc enumerates operation/action values specific to AZKVPolicyEvaluationDetailsLogs."
+      }
+    }
+  }
+}

@@ -1,0 +1,135 @@
+{
+ "resource_type": "Microsoft.ServiceBus/Namespaces",
+ "service_name": "Azure Service Bus",
+ "logging_docs": {
+  "monitor_page": "https://learn.microsoft.com/en-us/azure/service-bus-messaging/monitor-service-bus",
+  "dedicated_logging_page": null,
+  "monitoring_data_reference": "https://learn.microsoft.com/en-us/azure/service-bus-messaging/monitor-service-bus-reference",
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-servicebus-namespaces-logs"
+ },
+ "tables": {
+  "AZMSApplicationMetricLogs": {
+   "schema_mode": "resource-specific",
+   "operations_status": "not enumerated in Azure docs (checked https://learn.microsoft.com/en-us/azure/service-bus-messaging/monitor-service-bus-reference); columns below are the verified allowlist",
+   "operations_note": "Read the service's own monitoring data reference (monitor-service-bus-reference) and the how-to-monitor page (monitor-service-bus). In the 'Supported resource logs' table, the corresponding log category is listed as 'Application Metrics Logs (Unused)' and mapped to the AzureDiagnostics/AZMSApplicationMetricLogs table. The doc provides dedicated schema/operation sections for Operational logs (e.g. Create Queue, Retrieve Namespace), Runtime audit logs, and Diagnostic error logs, but provides NO section, schema, or enumerated OperationName/ActionName value list for Application Metric Logs. This is a metrics-oriented log category (the category is marked Unused), so no operation values are enumerable from the fetched docs.",
+   "columns": {
+    "ActivityId": "string",
+    "AuthId": "string",
+    "AuthType": "string",
+    "_BilledSize": "real",
+    "EntityName": "string",
+    "EntityType": "string",
+    "_IsBillable": "string",
+    "NamespaceName": "string",
+    "OperationName": "string",
+    "Outcome": "string",
+    "Properties": "dynamic",
+    "Protocol": "string",
+    "Provider": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string",
+    "Value": "int"
+   }
+  },
+  "AZMSDiagnosticErrorLogs": {
+   "schema_mode": "resource-specific",
+   "operations_status": "n/a \u2014 no OperationName column in this table's schema; it carries no action field (metrics/telemetry table; columns below are the verified allowlist)",
+   "columns": {
+    "ActivityId": "string",
+    "ActivityName": "string",
+    "_BilledSize": "real",
+    "EntityName": "string",
+    "EntityType": "string",
+    "ErrorCount": "int",
+    "ErrorMessage": "string",
+    "_IsBillable": "string",
+    "NamespaceName": "string",
+    "OperationResult": "string",
+    "Provider": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string"
+   }
+  },
+  "AZMSOperationalLogs": {
+   "schema_mode": "resource-specific",
+   "operations_status": "n/a \u2014 no OperationName column in this table's schema; it carries no action field (metrics/telemetry table; columns below are the verified allowlist)",
+   "columns": {
+    "ActivityId": "string",
+    "_BilledSize": "real",
+    "Caller": "string",
+    "EventName": "string",
+    "EventProperties": "dynamic",
+    "_IsBillable": "string",
+    "Provider": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "Status": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string"
+   }
+  },
+  "AZMSRunTimeAuditLogs": {
+   "schema_mode": "resource-specific",
+   "operations_status": "n/a \u2014 no OperationName column in this table's schema; it carries no action field (metrics/telemetry table; columns below are the verified allowlist)",
+   "columns": {
+    "ActivityId": "string",
+    "ActivityName": "string",
+    "AuthKey": "string",
+    "AuthType": "string",
+    "_BilledSize": "real",
+    "ClientIp": "string",
+    "Count": "int",
+    "_IsBillable": "string",
+    "NetworkType": "string",
+    "Properties": "dynamic",
+    "Protocol": "string",
+    "Provider": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "Status": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string"
+   }
+  },
+  "AZMSVnetConnectionEvents": {
+   "schema_mode": "resource-specific",
+   "operations_status": "n/a \u2014 no OperationName column in this table's schema; its action field is 'Action' (columns below are the verified allowlist)",
+   "columns": {
+    "Action": "string",
+    "AddressIp": "string",
+    "_BilledSize": "real",
+    "Count": "int",
+    "_IsBillable": "string",
+    "Message": "string",
+    "NamespaceName": "string",
+    "Provider": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string"
+   }
+  }
+ },
+ "resource_log_categories": [
+  "ApplicationMetricsLogs",
+  "DataDRLogs",
+  "DiagnosticErrorLogs",
+  "OperationalLogs",
+  "RuntimeAuditLogs",
+  "VNetAndIPFilteringLogs"
+ ]
+}

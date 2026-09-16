@@ -1,0 +1,18 @@
+{
+ "resource_type": "Microsoft.Search/searchServices",
+ "service_name": "Azure AI Search",
+ "logging_docs": {
+  "monitor_page": "https://learn.microsoft.com/en-us/azure/search/monitor-azure-cognitive-search",
+  "dedicated_logging_page": "https://learn.microsoft.com/en-us/azure/search/search-monitor-enable-logging",
+  "monitoring_data_reference": "https://learn.microsoft.com/en-us/azure/search/monitor-azure-cognitive-search-data-reference",
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-search-searchservices-logs"
+ },
+ "tables": {},
+ "routing": "AzureDiagnostics",
+ "azure_diagnostics_categories": [
+  "Operation Logs"
+ ],
+ "resource_log_categories": [
+  "OperationLogs"
+ ]
+}

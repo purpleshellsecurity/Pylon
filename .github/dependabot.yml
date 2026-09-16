@@ -1,0 +1,31 @@
+# Dependency updates and known-CVE alerts.
+#
+# Most of this project's dependencies are unpinned (`pydantic>=2`, `httpx`,
+# `azure-identity`), which is a deliberate trade recorded in `.gitignore`: a
+# fresh install gets current libraries, at the cost of a transitive release
+# being able to break someone's first run on a Tuesday. Dependabot moves the
+# discovery of that from a stranger's machine to a pull request here.
+#
+# For a security consultancy's flagship tool, a prospect running `pip-audit` and
+# finding something we had not is the avoidable version of a bad first
+# impression.
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      # MONTHLY. Each PR triggers a CI run, and on a private repo that is
+      # metered: seven open Dependabot PRs is a third of the monthly allowance
+      # before anyone has written a line. Grouped and monthly is one run.
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    groups:
+      # One PR for routine bumps rather than five. Security updates are not
+      # grouped: those should arrive on their own and be read on their own.
+      minor-and-patch:
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"

@@ -1,0 +1,75 @@
+{
+ "resource_type": "Microsoft.DBforMySQL/flexibleServers",
+ "service_name": "Azure Database for MySQL Flexible Server",
+ "logging_docs": {
+  "monitor_page": "https://learn.microsoft.com/en-us/azure/mysql/flexible-server/concepts-monitor-mysql",
+  "dedicated_logging_page": "https://learn.microsoft.com/en-us/azure/mysql/flexible-server/tutorial-configure-audit",
+  "monitoring_data_reference": "https://learn.microsoft.com/en-us/azure/mysql/flexible-server/concepts-monitor-mysql-reference",
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-dbformysql-flexibleservers-logs"
+ },
+ "tables": {
+  "MySqlAuditLogs": {
+   "schema_mode": "resource-specific",
+   "operations_status": "n/a \u2014 no OperationName column in this table's schema; its action field is 'Category' (columns below are the verified allowlist)",
+   "columns": {
+    "_BilledSize": "real",
+    "Category": "string",
+    "ConnectionId": "string",
+    "Db": "string",
+    "ErrorCode": "int",
+    "EventClass": "string",
+    "EventSubclass": "string",
+    "EventTime": "datetime",
+    "Host": "string",
+    "Ip": "string",
+    "IsAadAuth": "string",
+    "_IsBillable": "string",
+    "ReplicationSetRole": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "SqlText": "string",
+    "Status": "int",
+    "_SubscriptionId": "string",
+    "Table": "string",
+    "TenantId": "string",
+    "ThreadId": "int",
+    "TimeGenerated": "datetime",
+    "Type": "string",
+    "User": "string"
+   }
+  },
+  "MySqlSlowLogs": {
+   "schema_mode": "resource-specific",
+   "operations_status": "n/a \u2014 no OperationName column in this table's schema; its action field is 'Category' (columns below are the verified allowlist)",
+   "columns": {
+    "_BilledSize": "real",
+    "Category": "string",
+    "Db": "string",
+    "EventClass": "string",
+    "Host": "string",
+    "InsertId": "int",
+    "_IsBillable": "string",
+    "LastInsertId": "int",
+    "LockDurationMs": "long",
+    "QueryDurationMs": "long",
+    "ReplicationSetRole": "string",
+    "_ResourceId": "string",
+    "RowsExamined": "int",
+    "RowsSent": "int",
+    "ServerId": "int",
+    "SourceSystem": "string",
+    "SqlText": "string",
+    "StartTime": "datetime",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "ThreadId": "int",
+    "TimeGenerated": "datetime",
+    "Type": "string"
+   }
+  }
+ },
+ "resource_log_categories": [
+  "MySqlAuditLogs",
+  "MySqlSlowLogs"
+ ]
+}

@@ -1,0 +1,24 @@
+{
+ "resource_type": "Microsoft.Cdn/profiles",
+ "service_name": "Azure Front Door / CDN",
+ "logging_docs": {
+  "monitor_page": "https://learn.microsoft.com/en-us/azure/frontdoor/monitor-front-door",
+  "dedicated_logging_page": "https://learn.microsoft.com/en-us/azure/frontdoor/standard-premium/how-to-logs",
+  "monitoring_data_reference": "https://learn.microsoft.com/en-us/azure/frontdoor/monitor-front-door-reference",
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-cdn-profiles-logs"
+ },
+ "tables": {},
+ "routing": "AzureDiagnostics",
+ "azure_diagnostics_categories": [
+  "Azure Cdn Access Log",
+  "FrontDoor Access Log",
+  "FrontDoor Health Probe Log",
+  "FrontDoor WebApplicationFirewall Log"
+ ],
+ "resource_log_categories": [
+  "AzureCdnAccessLog",
+  "FrontDoorAccessLog",
+  "FrontDoorHealthProbeLog",
+  "FrontDoorWebApplicationFirewallLog"
+ ]
+}

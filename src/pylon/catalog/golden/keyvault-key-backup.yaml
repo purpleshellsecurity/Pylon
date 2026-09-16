@@ -1,0 +1,20 @@
+# Golden-set case: a Key Vault key-backup exfil detection must fire on a
+# KeyBackup audit event and stay quiet on a benign KeyGet. Events are one row
+# each; the harness runs the query per row in the offline KQL engine and checks
+# tp rows match and tn rows don't. Extend with more cases over time.
+name: keyvault-key-backup-exfil
+table: AZKVAuditLogs
+query: |
+  AZKVAuditLogs
+  | where TimeGenerated > ago(1h)
+  | where OperationName == "KeyBackup"
+  | project TimeGenerated, OperationName, CallerIpAddress
+events:
+  - label: tp                 # the attack: backing up a key blob
+    OperationName: KeyBackup
+    CallerIpAddress: 8.8.8.8
+    TimeGenerated: 2026-01-01T00:00:00Z
+  - label: tn                 # benign: reading a key
+    OperationName: KeyGet
+    CallerIpAddress: 10.0.0.5
+    TimeGenerated: 2026-01-01T00:00:00Z

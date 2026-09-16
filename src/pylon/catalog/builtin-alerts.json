@@ -1,0 +1,4318 @@
+{
+  "AI": {
+    "alerts": [
+      {
+        "alert_id": "",
+        "name": "Exposed Kubernetes service detected (AI applications on Kubernetes)",
+        "severity": "Medium",
+        "tactics": []
+      },
+      {
+        "alert_id": "AI.Azure_CredentialTheftAttempt",
+        "name": "Detected credential theft attempts on an Azure AI model deployment",
+        "severity": "Medium",
+        "tactics": [
+          "Credential Access",
+          "Lateral Movement",
+          "Exfiltration"
+        ]
+      },
+      {
+        "alert_id": "AI.Azure_Jailbreak.ContentFiltering.BlockedAttempt",
+        "name": "A Jailbreak attempt on an Azure AI model deployment was blocked by Azure AI Content Safety Prompt Shields",
+        "severity": "Medium",
+        "tactics": [
+          "Privilege Escalation",
+          "Defense Evasion"
+        ]
+      },
+      {
+        "alert_id": "AI.Azure_Jailbreak.ContentFiltering.DetectedAttempt",
+        "name": "A Jailbreak attempt on an Azure AI model deployment was detected by Azure AI Content Safety Prompt Shields",
+        "severity": "Medium",
+        "tactics": [
+          "Privilege Escalation",
+          "Defense Evasion"
+        ]
+      },
+      {
+        "alert_id": "AI.Azure_MaliciousUrl.ModelResponse",
+        "name": "Corrupted AI applicationmodeldata directed a phishing attempt at a user",
+        "severity": "High",
+        "tactics": [
+          "Impact (Defacement)"
+        ]
+      },
+      {
+        "alert_id": "AI.Azure_MaliciousUrl.UnknownSource",
+        "name": "Phishing URL shared in an AI application",
+        "severity": "High",
+        "tactics": [
+          "Impact (Defacement)",
+          "Collection"
+        ]
+      },
+      {
+        "alert_id": "AI.Azure_MaliciousUrl.UserPrompt",
+        "name": "Phishing attempt detected in an AI application",
+        "severity": "High",
+        "tactics": [
+          "Collection"
+        ]
+      },
+      {
+        "alert_id": "AI.Azure_AccessFromSuspiciousUserAgent",
+        "name": "Suspicious user agent detected",
+        "severity": "Medium",
+        "tactics": [
+          "Execution",
+          "Reconnaissance",
+          "Initial access"
+        ]
+      },
+      {
+        "alert_id": "AI.Azure_ASCIISmuggling",
+        "name": "ASCII Smuggling prompt injection detected",
+        "severity": "High",
+        "tactics": [
+          "Impact"
+        ]
+      },
+      {
+        "alert_id": "AI.Azure_AccessFromAnonymizedIP",
+        "name": "Access from a Tor IP",
+        "severity": "High",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "AI.Azure_AccessFromSuspiciousIP",
+        "name": "Access from suspicious IP",
+        "severity": "High",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "AI.Azure_DOWDuplicateRequests",
+        "name": "Suspected wallet attack - recurring requests",
+        "severity": "Medium",
+        "tactics": [
+          "Impact"
+        ]
+      },
+      {
+        "alert_id": "AI.Azure_DOWVolumeAnomaly",
+        "name": "Suspected wallet attack - volume anomaly",
+        "severity": "Medium",
+        "tactics": [
+          "Impact"
+        ]
+      },
+      {
+        "alert_id": "AI.Azure_AccessAnomaly",
+        "name": "Access anomaly in AI resource",
+        "severity": "Medium",
+        "tactics": [
+          "Execution",
+          "Reconnaissance",
+          "Initial access"
+        ]
+      },
+      {
+        "alert_id": "AI.Azure_AnomalousOperation.InitialAccess",
+        "name": "Suspicious invocation of a high-risk 'Initial Access' operation by a service principal detected (AI resources)",
+        "severity": "Medium",
+        "tactics": [
+          "Initial access"
+        ]
+      },
+      {
+        "alert_id": "AI.Azure_AnomalousToolInvocation",
+        "name": "Anomalous tool invocation",
+        "severity": "Low",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "AI.Azure_LLMReconnaissance",
+        "name": "(Preview) LLM Reconnaissance Attempt Detected",
+        "severity": "Low",
+        "tactics": [
+          "Reconnaissance"
+        ]
+      },
+      {
+        "alert_id": "AI.AIModelScan_MalwareDetected",
+        "name": "(Preview) Malicious content detected in uploaded AI model",
+        "severity": "",
+        "tactics": []
+      }
+    ],
+    "granularity": "tactic",
+    "plan": "AI",
+    "product": "Microsoft Defender for Cloud",
+    "unenumerated_pages": []
+  },
+  "Api": {
+    "alerts": [
+      {
+        "alert_id": "API_PopulationSpikeInAPITraffic",
+        "name": "Suspicious population-level spike in API traffic to an API endpoint",
+        "severity": "Informational",
+        "tactics": [
+          "Impact"
+        ]
+      },
+      {
+        "alert_id": "API_SpikeInAPITraffic",
+        "name": "Suspicious spike in API traffic from a single IP address to an API endpoint",
+        "severity": "Informational",
+        "tactics": [
+          "Impact"
+        ]
+      },
+      {
+        "alert_id": "API_SpikeInPayload",
+        "name": "Unusually large response payload transmitted between a single IP address and an API endpoint",
+        "severity": "Informational",
+        "tactics": [
+          "Initial access"
+        ]
+      },
+      {
+        "alert_id": "API_SpikeInPayload",
+        "name": "Unusually large request body transmitted between a single IP address and an API endpoint",
+        "severity": "Informational",
+        "tactics": [
+          "Initial access"
+        ]
+      },
+      {
+        "alert_id": "API_SpikeInLatency",
+        "name": "(Preview) Suspicious spike in latency for traffic between a single IP address and an API endpoint",
+        "severity": "Informational",
+        "tactics": [
+          "Initial access"
+        ]
+      },
+      {
+        "alert_id": "API_SprayInRequests",
+        "name": "API requests spray from a single IP address to an unusually large number of distinct API endpoints",
+        "severity": "Informational",
+        "tactics": [
+          "Discovery"
+        ]
+      },
+      {
+        "alert_id": "API_ParameterEnumeration",
+        "name": "Parameter enumeration on an API endpoint",
+        "severity": "Informational",
+        "tactics": [
+          "Initial access"
+        ]
+      },
+      {
+        "alert_id": "API_DistributedParameterEnumeration",
+        "name": "Distributed parameter enumeration on an API endpoint",
+        "severity": "Informational",
+        "tactics": [
+          "Initial access"
+        ]
+      },
+      {
+        "alert_id": "API_UnseenParamType",
+        "name": "Parameter value(s) with anomalous data types in an API call",
+        "severity": "Informational",
+        "tactics": [
+          "Impact"
+        ]
+      },
+      {
+        "alert_id": "API_UnseenParam",
+        "name": "Previously unseen parameter used in an API call",
+        "severity": "Informational",
+        "tactics": [
+          "Impact"
+        ]
+      },
+      {
+        "alert_id": "API_AccessFromTorExitNode",
+        "name": "Access from a Tor exit node to an API endpoint",
+        "severity": "Medium",
+        "tactics": [
+          "Pre-attack"
+        ]
+      },
+      {
+        "alert_id": "API_AccessFromSuspiciousIP",
+        "name": "API Endpoint access from suspicious IP",
+        "severity": "High",
+        "tactics": [
+          "Pre-attack"
+        ]
+      },
+      {
+        "alert_id": "API_AccessFromSuspiciousUserAgent",
+        "name": "Suspicious User Agent detected",
+        "severity": "Medium",
+        "tactics": [
+          "Execution"
+        ]
+      }
+    ],
+    "granularity": "tactic",
+    "plan": "Api",
+    "product": "Microsoft Defender for Cloud",
+    "unenumerated_pages": []
+  },
+  "AppServices": {
+    "alerts": [],
+    "granularity": "tactic",
+    "plan": "AppServices",
+    "product": "Microsoft Defender for Cloud",
+    "unenumerated_pages": [
+      "alerts-azure-app-service"
+    ]
+  },
+  "Arm": {
+    "alerts": [
+      {
+        "alert_id": "ARM_OperationFromSuspiciousIP",
+        "name": "Azure Resource Manager operation from suspicious IP address",
+        "severity": "Medium",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "ARM_OperationFromSuspiciousProxyIP",
+        "name": "Azure Resource Manager operation from suspicious proxy IP address",
+        "severity": "Medium",
+        "tactics": [
+          "Defense Evasion"
+        ]
+      },
+      {
+        "alert_id": "ARM_MicroBurst.AzDomainInfo",
+        "name": "MicroBurst exploitation toolkit used to enumerate resources in your subscriptions",
+        "severity": "Low",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "ARM_MicroBurst.AzureDomainInfo",
+        "name": "MicroBurst exploitation toolkit used to enumerate resources in your subscriptions",
+        "severity": "Low",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "ARM_MicroBurst.AzVMBulkCMD",
+        "name": "MicroBurst exploitation toolkit used to execute code on your virtual machine",
+        "severity": "High",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "RM_MicroBurst.AzureRmVMBulkCMD",
+        "name": "MicroBurst exploitation toolkit used to execute code on your virtual machine",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "ARM_MicroBurst.AzKeyVaultKeysREST",
+        "name": "MicroBurst exploitation toolkit used to extract keys from your Azure key vaults",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "ARM_MicroBurst.AZStorageKeysREST",
+        "name": "MicroBurst exploitation toolkit used to extract keys to your storage accounts",
+        "severity": "Low",
+        "tactics": [
+          "Collection"
+        ]
+      },
+      {
+        "alert_id": "ARM_MicroBurst.AzKeyVaultSecretsREST",
+        "name": "MicroBurst exploitation toolkit used to extract secrets from your Azure key vaults",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "ARM_PowerZure.AzureElevatedPrivileges",
+        "name": "PowerZure exploitation toolkit used to elevate access from Microsoft Entra ID to Azure",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "ARM_PowerZure.GetAzureTargets",
+        "name": "PowerZure exploitation toolkit used to enumerate resources",
+        "severity": "High",
+        "tactics": [
+          "Collection"
+        ]
+      },
+      {
+        "alert_id": "ARM_PowerZure.ShowStorageContent",
+        "name": "PowerZure exploitation toolkit used to enumerate storage containers, shares, and tables",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "ARM_PowerZure.StartRunbook",
+        "name": "PowerZure exploitation toolkit used to execute a Runbook in your subscription",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "ARM_PowerZure.AzureRunbookContent",
+        "name": "PowerZure exploitation toolkit used to extract Runbooks content",
+        "severity": "High",
+        "tactics": [
+          "Collection"
+        ]
+      },
+      {
+        "alert_id": "ARM_Azurite",
+        "name": "PREVIEW - FSecure's Azurite toolkit detected",
+        "severity": "High",
+        "tactics": [
+          "Collection"
+        ]
+      },
+      {
+        "alert_id": "ARM_SuspiciousComputeCreation",
+        "name": "Suspicious creation of compute resources detected",
+        "severity": "Medium",
+        "tactics": [
+          "Impact"
+        ]
+      },
+      {
+        "alert_id": "Arm_Suspicious_Vault_Recovering",
+        "name": "Suspicious key vault recovery detected",
+        "severity": "Medium/high",
+        "tactics": [
+          "Lateral movement"
+        ]
+      },
+      {
+        "alert_id": "ARM_UnusedAccountPersistence",
+        "name": "PREVIEW - Suspicious management session using an inactive account detected",
+        "severity": "Medium",
+        "tactics": [
+          "Persistence"
+        ]
+      },
+      {
+        "alert_id": "ARM_AnomalousServiceOperation.CredentialAccess",
+        "name": "PREVIEW - Suspicious invocation of a high-risk 'Credential Access' operation by a service principal detected",
+        "severity": "Medium",
+        "tactics": [
+          "Credential access"
+        ]
+      },
+      {
+        "alert_id": "ARM_AnomalousServiceOperation.Collection",
+        "name": "PREVIEW - Suspicious invocation of a high-risk 'Data Collection' operation by a service principal detected",
+        "severity": "Medium",
+        "tactics": [
+          "Collection"
+        ]
+      },
+      {
+        "alert_id": "ARM_AnomalousServiceOperation.DefenseEvasion",
+        "name": "PREVIEW - Suspicious invocation of a high-risk 'Defense Evasion' operation by a service principal detected",
+        "severity": "Medium",
+        "tactics": [
+          "Defense Evasion"
+        ]
+      },
+      {
+        "alert_id": "ARM_AnomalousServiceOperation.Execution",
+        "name": "PREVIEW - Suspicious invocation of a high-risk 'Execution' operation by a service principal detected",
+        "severity": "Medium",
+        "tactics": [
+          "Defense Execution"
+        ]
+      },
+      {
+        "alert_id": "ARM_AnomalousServiceOperation.Impact",
+        "name": "PREVIEW - Suspicious invocation of a high-risk 'Impact' operation by a service principal detected",
+        "severity": "Medium",
+        "tactics": [
+          "Impact"
+        ]
+      },
+      {
+        "alert_id": "ARM_AnomalousServiceOperation.InitialAccess",
+        "name": "PREVIEW - Suspicious invocation of a high-risk 'Initial Access' operation by a service principal detected",
+        "severity": "Medium",
+        "tactics": [
+          "Initial access"
+        ]
+      },
+      {
+        "alert_id": "ARM_AnomalousServiceOperation.LateralMovement",
+        "name": "PREVIEW - Suspicious invocation of a high-risk 'Lateral Movement Access' operation by a service principal detected",
+        "severity": "Medium",
+        "tactics": [
+          "Lateral movement"
+        ]
+      },
+      {
+        "alert_id": "ARM_AnomalousServiceOperation.Persistence",
+        "name": "PREVIEW - Suspicious invocation of a high-risk 'persistence' operation by a service principal detected",
+        "severity": "Medium",
+        "tactics": [
+          "Persistence"
+        ]
+      },
+      {
+        "alert_id": "ARM_AnomalousServiceOperation.PrivilegeEscalation",
+        "name": "PREVIEW - Suspicious invocation of a high-risk 'Privilege Escalation' operation by a service principal detected",
+        "severity": "Medium",
+        "tactics": [
+          "Privilege escalation"
+        ]
+      },
+      {
+        "alert_id": "ARM_UnusedAccountPersistence",
+        "name": "PREVIEW - Suspicious management session using an inactive account detected",
+        "severity": "Medium",
+        "tactics": [
+          "Persistence"
+        ]
+      },
+      {
+        "alert_id": "ARM_UnusedAppPowershellPersistence",
+        "name": "PREVIEW - Suspicious management session using PowerShell detected",
+        "severity": "Medium",
+        "tactics": [
+          "Persistence"
+        ]
+      },
+      {
+        "alert_id": "ARM_UnusedAppIbizaPersistence",
+        "name": "PREVIEW \u00e2\u20ac\u201c Suspicious management session using Azure portal detected",
+        "severity": "Medium",
+        "tactics": [
+          "Persistence"
+        ]
+      },
+      {
+        "alert_id": "ARM_PrivilegedRoleDefinitionCreation",
+        "name": "Privileged custom role created for your subscription in a suspicious way",
+        "severity": "Informational",
+        "tactics": [
+          "Privilege Escalation",
+          "Defense Evasion"
+        ]
+      },
+      {
+        "alert_id": "ARM_AnomalousRBACRoleAssignment",
+        "name": "Suspicious Azure role assignment detected (Preview)",
+        "severity": "Low (PIM) / High",
+        "tactics": [
+          "Lateral Movement",
+          "Defense Evasion"
+        ]
+      },
+      {
+        "alert_id": "ARM_AnomalousOperation.CredentialAccess",
+        "name": "Suspicious invocation of a high-risk 'Credential Access' operation detected (Preview)",
+        "severity": "Medium",
+        "tactics": [
+          "Credential Access"
+        ]
+      },
+      {
+        "alert_id": "ARM_AnomalousOperation.Collection",
+        "name": "Suspicious invocation of a high-risk 'Data Collection' operation detected (Preview)",
+        "severity": "Medium",
+        "tactics": [
+          "Collection"
+        ]
+      },
+      {
+        "alert_id": "ARM_AnomalousOperation.DefenseEvasion",
+        "name": "Suspicious invocation of a high-risk 'Defense Evasion' operation detected (Preview)",
+        "severity": "Medium",
+        "tactics": [
+          "Defense Evasion"
+        ]
+      },
+      {
+        "alert_id": "ARM_AnomalousOperation.Execution",
+        "name": "Suspicious invocation of a high-risk 'Execution' operation detected (Preview)",
+        "severity": "Medium",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "ARM_AnomalousOperation.Impact",
+        "name": "Suspicious invocation of a high-risk 'Impact' operation detected (Preview)",
+        "severity": "Medium",
+        "tactics": [
+          "Impact"
+        ]
+      },
+      {
+        "alert_id": "ARM_AnomalousOperation.InitialAccess",
+        "name": "Suspicious invocation of a high-risk 'Initial Access' operation detected (Preview)",
+        "severity": "Medium",
+        "tactics": [
+          "Initial Access"
+        ]
+      },
+      {
+        "alert_id": "ARM_AnomalousOperation.LateralMovement",
+        "name": "Suspicious invocation of a high-risk 'Lateral Movement' operation detected (Preview)",
+        "severity": "Medium",
+        "tactics": [
+          "Lateral Movement"
+        ]
+      },
+      {
+        "alert_id": "ARM_AnomalousElevateAccess",
+        "name": "Suspicious elevate access operation",
+        "severity": "Medium",
+        "tactics": [
+          "Privilege Escalation"
+        ]
+      },
+      {
+        "alert_id": "ARM_AnomalousOperation.Persistence",
+        "name": "Suspicious invocation of a high-risk 'Persistence' operation detected (Preview)",
+        "severity": "Medium",
+        "tactics": [
+          "Persistence"
+        ]
+      },
+      {
+        "alert_id": "ARM_AnomalousOperation.PrivilegeEscalation",
+        "name": "Suspicious invocation of a high-risk 'Privilege Escalation' operation detected (Preview)",
+        "severity": "Medium",
+        "tactics": [
+          "Privilege Escalation"
+        ]
+      },
+      {
+        "alert_id": "ARM_MicroBurst.RunCodeOnBehalf",
+        "name": "Usage of MicroBurst exploitation toolkit to run an arbitrary code or exfiltrate Azure Automation account credentials",
+        "severity": "High",
+        "tactics": [
+          "Persistence",
+          "Credential Access"
+        ]
+      },
+      {
+        "alert_id": "ARM_NetSPI.MaintainPersistence",
+        "name": "Usage of NetSPI techniques to maintain persistence in your Azure environment",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "ARM_PowerZure.RunCodeOnBehalf",
+        "name": "Usage of PowerZure exploitation toolkit to run an arbitrary code or exfiltrate Azure Automation account credentials",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "ARM_AnomalousClassicRoleAssignment",
+        "name": "Suspicious classic role assignment detected (Preview)",
+        "severity": "High",
+        "tactics": [
+          "Lateral Movement",
+          "Defense Evasion"
+        ]
+      }
+    ],
+    "granularity": "tactic",
+    "plan": "Arm",
+    "product": "Microsoft Defender for Cloud",
+    "unenumerated_pages": []
+  },
+  "Containers": {
+    "alerts": [],
+    "granularity": "tactic",
+    "plan": "Containers",
+    "product": "Microsoft Defender for Cloud",
+    "unenumerated_pages": [
+      "alerts-containers"
+    ]
+  },
+  "CosmosDbs": {
+    "alerts": [
+      {
+        "alert_id": "CosmosDB_TorAnomaly",
+        "name": "Access from a Tor exit node",
+        "severity": "High/Medium",
+        "tactics": [
+          "Initial Access"
+        ]
+      },
+      {
+        "alert_id": "CosmosDB_SuspiciousIp",
+        "name": "Access from a suspicious IP",
+        "severity": "Medium",
+        "tactics": [
+          "Initial Access"
+        ]
+      },
+      {
+        "alert_id": "CosmosDB_GeoAnomaly",
+        "name": "Access from an unusual location",
+        "severity": "Low",
+        "tactics": [
+          "Initial Access"
+        ]
+      },
+      {
+        "alert_id": "CosmosDB_DataExfiltrationAnomaly",
+        "name": "Unusual volume of data extracted",
+        "severity": "Medium",
+        "tactics": [
+          "Exfiltration"
+        ]
+      },
+      {
+        "alert_id": "CosmosDB_SuspiciousListKeys.MaliciousScript",
+        "name": "Extraction of Azure Cosmos DB accounts keys via a potentially malicious script",
+        "severity": "Medium",
+        "tactics": [
+          "Collection"
+        ]
+      },
+      {
+        "alert_id": "AzureCosmosDB_SuspiciousListKeys.SuspiciousPrincipal",
+        "name": "Suspicious extraction of Azure Cosmos DB account keys",
+        "severity": "high",
+        "tactics": [
+          "Credential Access"
+        ]
+      },
+      {
+        "alert_id": "CosmosDB_SqlInjection.DataExfiltration",
+        "name": "SQL injection: potential data exfiltration",
+        "severity": "Medium",
+        "tactics": [
+          "Exfiltration"
+        ]
+      },
+      {
+        "alert_id": "CosmosDB_SqlInjection.FailedFuzzingAttempt",
+        "name": "SQL injection: fuzzing attempt",
+        "severity": "Low",
+        "tactics": [
+          "Pre-attack"
+        ]
+      }
+    ],
+    "granularity": "tactic",
+    "plan": "CosmosDbs",
+    "product": "Microsoft Defender for Cloud",
+    "unenumerated_pages": []
+  },
+  "DefenderForIdentity": {
+    "alerts": [
+      {
+        "alert_id": "xdr_SuspiciousActiveDirectoryDnsQuery",
+        "name": "Suspicious DNS query from a device in the organization",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1071",
+          "T1071.004"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousEntraGraphCall",
+        "name": "Suspicious Entra Graph API query observed",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1071",
+          "T1071.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_AADInternalsPrivateKeyExtractAttempt",
+        "name": "AADInternals private key extraction attempt",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1552",
+          "T1552.004"
+        ]
+      },
+      {
+        "alert_id": "xdr_CredentialStuffingToolObserved",
+        "name": "A compromised user account signed in",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1078"
+        ]
+      },
+      {
+        "alert_id": "xdr_AnomalousDeviceCodeAuth",
+        "name": "Anomalous OAuth device code authentication activity",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.004",
+          "T1528"
+        ]
+      },
+      {
+        "alert_id": "xdr_AsrepRoastingAttack",
+        "name": "AS-REP roasting",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1558",
+          "T1558.004"
+        ]
+      },
+      {
+        "alert_id": "xdr_DcSyncAttackDetected",
+        "name": "DCSync attack (replication of directory services)",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1003",
+          "T1003.006"
+        ]
+      },
+      {
+        "alert_id": "xdr_MFAMethodAddition",
+        "name": "Malicious registration of an attacker controlled MFA device",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1098",
+          "T1098.005",
+          "T1556",
+          "T1556.006"
+        ]
+      },
+      {
+        "alert_id": "xdr_AnomalousRandomUASignIn",
+        "name": "Malicious sign in from a randomized user agent",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1110",
+          "T1110.001",
+          "T1110.003",
+          "T1539"
+        ]
+      },
+      {
+        "alert_id": "xdr_OktaMultipleFailedLogons",
+        "name": "Multiple failed Okta authentication attempts detected",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1110"
+        ]
+      },
+      {
+        "alert_id": "xdr_OktaMultipleFailedLogonsFollowedBySignIn",
+        "name": "Multiple failed Okta sign in attempts followed by successful sign in with anomalous user behavior",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1110"
+        ]
+      },
+      {
+        "alert_id": "xdr_NegoexRelayAttack",
+        "name": "NEGOEX relay attack",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1187",
+          "T1557",
+          "T1557.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_OktaFastPassPhishingAttempt",
+        "name": "Okta FastPass phishing attack detected",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1539",
+          "T1550",
+          "T1550.004"
+        ]
+      },
+      {
+        "alert_id": "xdr_OktaPrivilegedRoleAssignedToApplication",
+        "name": "Okta privileged role assigned to application",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1003",
+          "T1003.006"
+        ]
+      },
+      {
+        "alert_id": "xdr_CredentialStuffingToolObserved",
+        "name": "Possible account secret leak",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1078"
+        ]
+      },
+      {
+        "alert_id": "xdr_PossibleAitMConsentFix",
+        "name": "Possible adversary-in-the-middle (AiTM) attack detected (ConsentFix)",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1557"
+        ]
+      },
+      {
+        "alert_id": "xdr_AsrepRoastingAttack",
+        "name": "Possible AS-REP roasting attack",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1558",
+          "T1558.004"
+        ]
+      },
+      {
+        "alert_id": "xdr_PossibleGoldenSamlAttack",
+        "name": "Possible Golden SAML attack",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1071",
+          "T1606",
+          "T1606.002"
+        ]
+      },
+      {
+        "alert_id": "xdr_PossibleGoldenTicketAttacks",
+        "name": "Possible golden ticket attack",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1558",
+          "T1558.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_PossibleGoldenTicketAttack_SuspiciousPac",
+        "name": "Possible golden ticket attack (CVE-2021-42287 exploitation)",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1558",
+          "T1558.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_PossibleGoldenTicketAttack_SuspiciousTicket",
+        "name": "Possible golden ticket attack (suspicious ticket)",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1558",
+          "T1558.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_PossibleKerberoastingAttack",
+        "name": "Possible Kerberoasting attack",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1558",
+          "T1558.003"
+        ]
+      },
+      {
+        "alert_id": "xdr_PossibleKerberoastingFollowingSuspiciousLdapQuery",
+        "name": "Possible Kerberoasting attack following a suspicious LDAP query",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1087",
+          "T1087.002",
+          "T1558",
+          "T1558.003"
+        ]
+      },
+      {
+        "alert_id": "xdr_PossibleStealthyLdapKerberoastingAttack",
+        "name": "Possible Kerberoasting attack using a stealthy LDAP search",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1087",
+          "T1087.002",
+          "T1558",
+          "T1558.003"
+        ]
+      },
+      {
+        "alert_id": "xdr_PossibleKerberosKeyListAttack",
+        "name": "Possible Kerberos key list attack",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1558",
+          "T1558.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_PossibleNetsyncAttack",
+        "name": "Possible NetSync attack",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1003",
+          "T1003.006"
+        ]
+      },
+      {
+        "alert_id": "xdr_PossibleOauthCodeTheft",
+        "name": "Possible OAuth code theft detected through consent abuse",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1557"
+        ]
+      },
+      {
+        "alert_id": "xdr_PossibleOverPassTheHash",
+        "name": "Possible overpass-the-hash attack",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1550",
+          "T1550.002"
+        ]
+      },
+      {
+        "alert_id": "xdr_CredentialStuffingToolObserved",
+        "name": "Possible service principal account secret leak",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1078"
+        ]
+      },
+      {
+        "alert_id": "xdr_StolenSessionArtifactReplay",
+        "name": "Possible use of a stolen session cookie",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.004",
+          "T1539",
+          "T1550",
+          "T1550.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_CredentialStuffingToolObserved",
+        "name": "Possibly compromised service principal account signed in",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1078"
+        ]
+      },
+      {
+        "alert_id": "xdr_DiscoveryToolObserved",
+        "name": "Possibly compromised service principal account signed in",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1078"
+        ]
+      },
+      {
+        "alert_id": "xdr_DiscoveryToolObserved",
+        "name": "Possibly compromised user account signed in",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1078"
+        ]
+      },
+      {
+        "alert_id": "xdr_SailPointBruteforceAttack",
+        "name": "SailPoint ISC suspected brute-force attack",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1110",
+          "T1110.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_OnPremBruteforce",
+        "name": "Suspected brute-force attack (Kerberos, NTLM)",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1110",
+          "T1110.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_LdapBindBruteforce",
+        "name": "Suspected brute-force attack on Lightweight Directory Access Protocol (LDAP) authentication",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1110",
+          "T1110.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspectedCABwithNonCompliantDevice",
+        "name": "Suspected Conditional Access bypass via non-compliant device",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.004"
+        ]
+      },
+      {
+        "alert_id": "xdr_OnPremPasswordSpray",
+        "name": "Suspected password spray attack (Kerberos, NTLM)",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1110",
+          "T1110.003"
+        ]
+      },
+      {
+        "alert_id": "xdr_LdapBindBruteforce",
+        "name": "Suspected password spray attack on Lightweight Directory Access Protocol (LDAP) authentication",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1110",
+          "T1110.003"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousUserAdditionToEsxGroup",
+        "name": "Suspicious creation of ESXi group",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1098"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousDmsaAction",
+        "name": "Suspicious DMSA related activity detected",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1555"
+        ]
+      },
+      {
+        "alert_id": "xdr_MfaTamperingAndEmailSoftwareAbuse",
+        "name": "Suspicious email app consent grant",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1110",
+          "T1110.003",
+          "T1110.004"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousAccountEnabled",
+        "name": "Suspicious Entra account enablement after disruption",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1098"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousGoldenGmsaActivity",
+        "name": "Suspicious Golden gMSA related activity",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1555"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousKerberosApReq",
+        "name": "Suspicious Kerberos authentication (AP-REQ)",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1558",
+          "T1558.002"
+        ]
+      },
+      {
+        "alert_id": "xdr_SusKerberosAuth_AsReq",
+        "name": "Suspicious Kerberos authentication (AS-REQ)",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1550",
+          "T1558"
+        ]
+      },
+      {
+        "alert_id": "xdr_SusKerberosAuth_TgsReq",
+        "name": "Suspicious Kerberos authentication (TGS-REQ)",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1550",
+          "T1558"
+        ]
+      },
+      {
+        "alert_id": "xdr_SusKerberosAuth_S4U2selfTgsReq",
+        "name": "Suspicious Kerberos authentication (TGT request using TGS-REQ)",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1550",
+          "T1558"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousLoginWithExchange",
+        "name": "Suspicious login attempt using possibly compromised account certificate",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1649"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousConnectionOverEFSRPC",
+        "name": "Suspicious network connection over Encrypting File System Remote Protocol",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1187"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousNtlmAuthentication",
+        "name": "Suspicious NTLM authentication",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1087",
+          "T1087.002",
+          "T1550",
+          "T1550.002"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousAccountEnabled",
+        "name": "Suspicious on-premises account enablement after disruption",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1098"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousOsSwitchSignIn",
+        "name": "Suspicious OS switch sign-in",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1078"
+        ]
+      },
+      {
+        "alert_id": "xdr_MFAMethodAddition",
+        "name": "Suspicious registration of a new Authenticator MFA method",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1098",
+          "T1098.005",
+          "T1556",
+          "T1556.006"
+        ]
+      },
+      {
+        "alert_id": "xdr_MFAMethodAddition",
+        "name": "Suspicious registration of a new Email MFA method",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1098",
+          "T1098.005",
+          "T1556",
+          "T1556.006"
+        ]
+      },
+      {
+        "alert_id": "xdr_MFAMethodAddition",
+        "name": "Suspicious registration of a new Phone MFA method",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1098",
+          "T1098.005",
+          "T1556",
+          "T1556.006"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousChangeOfSamName",
+        "name": "Suspicious SAM Account Name Change",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1110",
+          "T1110.001",
+          "T1558",
+          "T1558.003"
+        ]
+      },
+      {
+        "alert_id": "xdr_CsrfSpeedbumpToRiskyLogin",
+        "name": "Suspicious sign in with CSRF speedbump trigger",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1185",
+          "T1557"
+        ]
+      },
+      {
+        "alert_id": "xdr_SpikeAppResourceInSignIns",
+        "name": "User exhibiting spike in distinct application\u2011resource access combinations",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1087"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousSharedClientInfraActivity",
+        "name": "User sign\u2011in from shared client infrastructure exhibiting anomalous activity",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1078"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspectedMDITampering",
+        "name": "Attempt to disable Defender for Identity service principal observed",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1562",
+          "T1562.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousMfaSkip",
+        "name": "Skipped MFA on remembered device from uncommon ISP sign-in",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.004",
+          "T1550",
+          "T1550.004"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousDenyAccessToPrimaryGroupId",
+        "name": "Suspicious access denial to view primary group ID of an object",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1564",
+          "T1564.002"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousAccountLink",
+        "name": "Suspicious account link",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1556"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousPropertyLockEntra",
+        "name": "Suspicious property lock deactivated on Microsoft Entra application",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1562",
+          "T1562.001",
+          "T1671"
+        ]
+      },
+      {
+        "alert_id": "xdr_SamrReconnaissanceSecurityAlert",
+        "name": "Anomalous Samr activity (Preview)",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1069",
+          "T1087"
+        ]
+      },
+      {
+        "alert_id": "xdr_DiscoveryToolObserved",
+        "name": "Discovery tool was observed",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1087"
+        ]
+      },
+      {
+        "alert_id": "xdr_OktaSyncServicePrincipalEnumeration",
+        "name": "Okta sync service principal enumerated",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1087",
+          "T1087.002"
+        ]
+      },
+      {
+        "alert_id": "xdr_PossibleActiveDirectoryCertificateServicesEnumeration",
+        "name": "Possible Active Directory Certificate Services enumeration",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1087",
+          "T1649"
+        ]
+      },
+      {
+        "alert_id": "xdr_PossibleActiveDirectoryEnumerationAdws",
+        "name": "Possible Active Directory enumeration via ADWS",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1069",
+          "T1069.002",
+          "T1087",
+          "T1087.002",
+          "T1615"
+        ]
+      },
+      {
+        "alert_id": "xdr_PossibleKerberoastingLdapRecon",
+        "name": "Possible Kerberoasting LDAP reconnaissance",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1087",
+          "T1087.002",
+          "T1558",
+          "T1558.003"
+        ]
+      },
+      {
+        "alert_id": "xdr_PossibleSpnEnumerationAdws",
+        "name": "Possible SPN enumeration via ADWS",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1087",
+          "T1087.002"
+        ]
+      },
+      {
+        "alert_id": "xdr_PossibleSpnEnumerationLdap",
+        "name": "Possible SPN enumeration via LDAP",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1087",
+          "T1087.002"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspectedAccountEnumeration",
+        "name": "Suspected account enumeration (Kerberos, NTLM, AD FS)",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1087",
+          "T1087.002"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousAdditionOfOnPremDevice",
+        "name": "Suspicious addition of device on-premises",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1098",
+          "T1098.005"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousLdapQuery",
+        "name": "Suspicious LDAP query",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1087",
+          "T1087.002"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousSensitiveAttributeLdapQuery",
+        "name": "Suspicious LDAP query targeting sensitive attributes",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1069",
+          "T1069.002",
+          "T1087",
+          "T1087.002"
+        ]
+      },
+      {
+        "alert_id": "xdr_SmbSessionEnumeration",
+        "name": "Suspicious Server Message Block (SMB) enumeration from untrusted host",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1049"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousRemoteServiceInstallation",
+        "name": "Suspicious remote service installation",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1569",
+          "T1569.002"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousBulkUserDeletion",
+        "name": "Suspicious bulk user deletion via scripted activity",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1531"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousBrandingChangesByNewUser",
+        "name": "Newly created user performed organization branding change",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1098",
+          "T1098.003",
+          "T1136",
+          "T1136.003",
+          "T1491",
+          "T1491.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousEntraFailedAuthentication",
+        "name": "Failed credential abuse attempt in Entra ID authentication",
+        "severity": "Low",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.004"
+        ]
+      },
+      {
+        "alert_id": "xdr_OktaAnonymousUserAccess",
+        "name": "Okta anonymous user access",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1078"
+        ]
+      },
+      {
+        "alert_id": "xdr_OneLoginPasswordSpray",
+        "name": "Password spray against OneLogin",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1110",
+          "T1110.003"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousEntraAuthentication",
+        "name": "Potential credential abuse in Entra ID authentication",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.004"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousSignInAndUserTampering",
+        "name": "Suspicious account sign-in and configuration changes",
+        "severity": "Low",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousEntraConnectAccountAuthentication",
+        "name": "Suspicious Entra Connect account authentication",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1556",
+          "T1556.007"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousEntraSignIn",
+        "name": "Suspicious Entra cookie request from suspicious IP address",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousEntraSignIn",
+        "name": "Suspicious Entra P2P certificate request from suspicious IP address",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousConnectSyncProvisioningGraphAPIActivity",
+        "name": "Suspicious Graph API request made from Entra ID sync application",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1069",
+          "T1087"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousOktaAccountEnumeration",
+        "name": "Suspicious Okta account enumeration",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.004"
+        ]
+      },
+      {
+        "alert_id": "xdr_OneLoginMfaFatigue",
+        "name": "Suspicious OneLogin MFA fatigue",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1110",
+          "T1110.003"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousEntraSignIn",
+        "name": "Suspicious sign-in from an unusual user agent and IP address",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousEntraSignIn",
+        "name": "Suspicious sign-in from an unusual user agent and IP address using device code flow",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousEntraSignIn",
+        "name": "Suspicious sign-in from an unusual user agent and IP address using PowerShell",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousAdminAccountSignIn",
+        "name": "Suspicious sign-in made to an admin account",
+        "severity": "Low",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_SignInUsingMaliciousCertificate",
+        "name": "Suspicious sign-in made using a malicious certificate",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousConnectSyncProvisioningSignIn",
+        "name": "Suspicious sign-in observed from Entra ID sync application",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousConnectSyncProvisioningSignIn",
+        "name": "Suspicious sign-in observed from Entra ID sync application to an uncommon resource app",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousConnectSyncProvisioningSignIn",
+        "name": "Suspicious sign-in observed to Entra ID sync application using an uncommon user agent",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_MfaPhoneNumberTamperingToSuspiciousWebAppSignIn",
+        "name": "Suspicious sign-in to a web app following MFA phone number tampering activity",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousMicrosoftSentinelAccessByEntraIdSyncAccount",
+        "name": "Suspicious sign-in to Microsoft Sentinel app made using Entra ID sync account",
+        "severity": "Low",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousToolSyncAccountSignIn",
+        "name": "Suspicious tool used by a Microsoft Entra Sync account",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.004"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousEntraSignIn",
+        "name": "Suspicious user agent sign-in on Microsoft Entra",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_ConnectSyncProvisioningNonSyncActivity",
+        "name": "Suspicious user configuration change activity from Entra ID sync application",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_RiskyEntraIDSyncAccount",
+        "name": "Sync account risky sign-in to an uncommon app",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_PossibleAuthenticationSiloBypass",
+        "name": "Possible authentication silo bypass",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1550"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspectedAzureSsoAccountTakeover",
+        "name": "Possible takeover of a Microsoft Entra seamless SSO account",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1556"
+        ]
+      },
+      {
+        "alert_id": "xdr_PassTheTicketAttack",
+        "name": "Suspected pass-the-ticket attack",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1550"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousActivityAfterPasswordSync",
+        "name": "Suspicious activity after password sync",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1021",
+          "T1021.007"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousAuthAttempt",
+        "name": "Suspicious authentication attempt",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1550",
+          "T1550.002"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousAuthAttempt",
+        "name": "Suspicious Kerberos SPN request",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1558",
+          "T1558.003"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousRBCDAuthentication",
+        "name": "Suspicious resource-based constrained delegation (RBCD) authentication",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1558"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousSmbNtlmAuthenticationAttempt",
+        "name": "Suspicious SMB NTLM authentication attempt",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1021",
+          "T1021.002"
+        ]
+      },
+      {
+        "alert_id": "xdr_GuestToMemberPromotion",
+        "name": "Guest user account promoted to member",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1098"
+        ]
+      },
+      {
+        "alert_id": "xdr_MFAMethodAddition",
+        "name": "Malicious registration of a device with strong MFA",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1098",
+          "T1098.005",
+          "T1556",
+          "T1556.006"
+        ]
+      },
+      {
+        "alert_id": "xdr_OAuthAppCreatedAUser",
+        "name": "OAuth app created a user",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1136",
+          "T1136.003"
+        ]
+      },
+      {
+        "alert_id": "xdr_OktaPrivilegedApiTokenCreated",
+        "name": "Okta privileged API token created",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.004"
+        ]
+      },
+      {
+        "alert_id": "xdr_OktaPrivilegedApiTokenUpdated",
+        "name": "Okta privileged API token updated",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.004"
+        ]
+      },
+      {
+        "alert_id": "xdr_ReciprocalTAPCreationViaGraphAPI",
+        "name": "Reciprocal Temporary Access Pass creation between users",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1098"
+        ]
+      },
+      {
+        "alert_id": "xdr_ShadowCredentialsAttack",
+        "name": "Shadow credentials added to account",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1098"
+        ]
+      },
+      {
+        "alert_id": "xdr_ShadowCredentialsAttack",
+        "name": "Shadow Credentials Added to Account and Used for Authentication",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1098"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousAdditionOfAcl",
+        "name": "Suspicious addition of ACL on-premises",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1098"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousMFAAddition",
+        "name": "Suspicious addition of alternative phone number",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1556",
+          "T1556.006"
+        ]
+      },
+      {
+        "alert_id": "xdr_Suspicious3rdPartyMfaAddition",
+        "name": "Suspicious addition of default third\u2011party MFA method to user account",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1556",
+          "T1556.006"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousMFAAddition",
+        "name": "Suspicious addition of email",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1556",
+          "T1556.006"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousChangeInUserPrimaryGroupId",
+        "name": "Suspicious change to primary group ID",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1098"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousAdditionOfEntraDevice",
+        "name": "Suspicious Entra device join or registration",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1098",
+          "T1098.005"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousAdditionOfRoleToUser",
+        "name": "Suspicious Entra role addition",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1098",
+          "T1098.003"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousGuestUserInvitation",
+        "name": "Suspicious guest user invitation",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1136",
+          "T1136.003"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousIntuneDeviceRegistration",
+        "name": "Suspicious Intune device registration activity",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1098",
+          "T1098.005"
+        ]
+      },
+      {
+        "alert_id": "xdr_AdminAccountTakeover",
+        "name": "Suspicious MFA tampering activity by admin account",
+        "severity": "Low",
+        "tactics": [],
+        "techniques": [
+          "T1556",
+          "T1556.006"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousAppRoleAssignmentDeletion",
+        "name": "Suspicious removal of privileged app role assignment through Graph API",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1114"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousRbcdAttributeChange",
+        "name": "Suspicious resource-based constrained delegation (RBCD) attribute change",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1098"
+        ]
+      },
+      {
+        "alert_id": "xdr_AnomalousSPNSignInAfterCredAddition",
+        "name": "Suspicious service principal sign-in following credential addition",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1098",
+          "T1098.001"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousSpikeUserUpdate",
+        "name": "Suspicious sign\u2011in by a user exhibiting a spike in account update activity",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1098"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousUserCreationAndSensitiveRoleAssignment",
+        "name": "User was created and assigned to Global Administrator role",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1098",
+          "T1098.003",
+          "T1136",
+          "T1136.003"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousUserCreationAndSensitiveRoleAssignment",
+        "name": "User was created and assigned to sensitive role",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1098",
+          "T1098.003",
+          "T1136",
+          "T1136.003"
+        ]
+      },
+      {
+        "alert_id": "xdr_AnomalousGlobalAdminActivity",
+        "name": "Anomalous activity following Global Administrator elevation",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.004",
+          "T1098"
+        ]
+      },
+      {
+        "alert_id": "xdr_OktaPrivilegeEscalationFollowingSignIn",
+        "name": "Okta privilege escalation following anomalous sign in by {ActorAliasName}",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1110",
+          "T1548"
+        ]
+      },
+      {
+        "alert_id": "xdr_OktaUserSessionImpersonationPrivilegedAction",
+        "name": "Okta session impersonation leading to privileged action for {AccountUpn}",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1134",
+          "T1548"
+        ]
+      },
+      {
+        "alert_id": "xdr_CertighostAdcsChaseAbuse",
+        "name": "Potential Certighost (CVE-2026-54121) AD CS abuse",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1550",
+          "T1550.003",
+          "T1649"
+        ]
+      },
+      {
+        "alert_id": "xdr_RiskySignInFollowedByPrivilegedRoleGrant",
+        "name": "Risky sign in followed by privilege role grant",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.004",
+          "T1098",
+          "T1098.003"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspectedCertificateEnrollmentESC15",
+        "name": "Suspected certificate enrollment abuse (ESC15)",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1068"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousAdditionAndRemovalOfPrivilegedRole",
+        "name": "Suspicious addition and removal of elevated privileges",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1078",
+          "T1078.004"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousEntraDomainAddition",
+        "name": "Suspicious Entra domain addition observed",
+        "severity": "Medium",
+        "tactics": [],
+        "techniques": [
+          "T1484",
+          "T1484.002"
+        ]
+      },
+      {
+        "alert_id": "xdr_SuspiciousAdditionOfSpnToUser",
+        "name": "Suspicious SPN was added to a user",
+        "severity": "High",
+        "tactics": [],
+        "techniques": [
+          "T1098"
+        ]
+      }
+    ],
+    "granularity": "technique",
+    "plan": "DefenderForIdentity",
+    "product": "Microsoft Defender for Identity"
+  },
+  "Dns": {
+    "alerts": [
+      {
+        "alert_id": "AzureDNS_ProtocolAnomaly",
+        "name": "Anomalous network protocol usage",
+        "severity": "-",
+        "tactics": [
+          "Exfiltration"
+        ]
+      },
+      {
+        "alert_id": "AzureDNS_DarkWeb",
+        "name": "Anonymity network activity",
+        "severity": "Low",
+        "tactics": [
+          "Exfiltration"
+        ]
+      },
+      {
+        "alert_id": "AzureDNS_DarkWebProxy",
+        "name": "Anonymity network activity using web proxy",
+        "severity": "Low",
+        "tactics": [
+          "Exfiltration"
+        ]
+      },
+      {
+        "alert_id": "AzureDNS_SinkholedDomain",
+        "name": "Attempted communication with suspicious sinkholed domain",
+        "severity": "Medium",
+        "tactics": [
+          "Exfiltration"
+        ]
+      },
+      {
+        "alert_id": "AzureDNS_PhishingDomain",
+        "name": "Communication with possible phishing domain",
+        "severity": "Informational",
+        "tactics": [
+          "Exfiltration"
+        ]
+      },
+      {
+        "alert_id": "AzureDNS_DomainGenerationAlgorithm",
+        "name": "Communication with suspicious algorithmically generated domain",
+        "severity": "Informational",
+        "tactics": [
+          "Exfiltration"
+        ]
+      },
+      {
+        "alert_id": "AzureDNS_ThreatIntelSuspectDomain",
+        "name": "Communication with suspicious domain identified by threat intelligence",
+        "severity": "Medium",
+        "tactics": [
+          "Initial Access"
+        ]
+      },
+      {
+        "alert_id": "AzureDNS_RandomizedDomain",
+        "name": "Communication with suspicious random domain name",
+        "severity": "Informational",
+        "tactics": [
+          "Exfiltration"
+        ]
+      },
+      {
+        "alert_id": "AzureDNS_CurrencyMining",
+        "name": "Digital currency mining activity",
+        "severity": "Low",
+        "tactics": [
+          "Exfiltration"
+        ]
+      },
+      {
+        "alert_id": "AzureDNS_SuspiciousDomain",
+        "name": "Network intrusion detection signature activation",
+        "severity": "Medium",
+        "tactics": [
+          "Exfiltration"
+        ]
+      },
+      {
+        "alert_id": "AzureDNS_DataInfiltration",
+        "name": "Possible data download via DNS tunnel",
+        "severity": "Low",
+        "tactics": [
+          "Exfiltration"
+        ]
+      },
+      {
+        "alert_id": "AzureDNS_DataExfiltration",
+        "name": "Possible data exfiltration via DNS tunnel",
+        "severity": "Low",
+        "tactics": [
+          "Exfiltration"
+        ]
+      },
+      {
+        "alert_id": "AzureDNS_DataObfuscation",
+        "name": "Possible data transfer via DNS tunnel",
+        "severity": "Low",
+        "tactics": [
+          "Exfiltration"
+        ]
+      }
+    ],
+    "granularity": "tactic",
+    "plan": "Dns",
+    "product": "Microsoft Defender for Cloud",
+    "unenumerated_pages": []
+  },
+  "KeyVaults": {
+    "alerts": [
+      {
+        "alert_id": "KV_SuspiciousIPAccess",
+        "name": "Access from a suspicious IP address to a key vault",
+        "severity": "Medium",
+        "tactics": [
+          "Credential Access"
+        ]
+      },
+      {
+        "alert_id": "KV_TORAccess",
+        "name": "Access from a TOR exit node to a key vault",
+        "severity": "Medium",
+        "tactics": [
+          "Credential Access"
+        ]
+      },
+      {
+        "alert_id": "KV_OperationVolumeAnomaly",
+        "name": "High volume of operations in a key vault",
+        "severity": "Medium",
+        "tactics": [
+          "Credential Access"
+        ]
+      },
+      {
+        "alert_id": "KV_PutGetAnomaly",
+        "name": "Suspicious policy change and secret query in a key vault",
+        "severity": "Medium",
+        "tactics": [
+          "Credential Access"
+        ]
+      },
+      {
+        "alert_id": "KV_ListGetAnomaly",
+        "name": "Suspicious secret listing and query in a key vault",
+        "severity": "Medium",
+        "tactics": [
+          "Credential Access"
+        ]
+      },
+      {
+        "alert_id": "KV_AccountVolumeAccessDeniedAnomaly",
+        "name": "Unusual access denied - User accessing high volume of key vaults denied",
+        "severity": "Low",
+        "tactics": [
+          "Discovery"
+        ]
+      },
+      {
+        "alert_id": "KV_UserAccessDeniedAnomaly",
+        "name": "Unusual access denied - Unusual user accessing key vault denied",
+        "severity": "Low",
+        "tactics": [
+          "Initial Access",
+          "Discovery"
+        ]
+      },
+      {
+        "alert_id": "KV_AppAnomaly",
+        "name": "Unusual application accessed a key vault",
+        "severity": "Medium",
+        "tactics": [
+          "Credential Access"
+        ]
+      },
+      {
+        "alert_id": "KV_OperationPatternAnomaly",
+        "name": "Unusual operation pattern in a key vault",
+        "severity": "Medium",
+        "tactics": [
+          "Credential Access"
+        ]
+      },
+      {
+        "alert_id": "KV_UserAnomaly",
+        "name": "Unusual user accessed a key vault",
+        "severity": "Medium",
+        "tactics": [
+          "Credential Access"
+        ]
+      },
+      {
+        "alert_id": "KV_UserAppAnomaly",
+        "name": "Unusual user-application pair accessed a key vault",
+        "severity": "Medium",
+        "tactics": [
+          "Credential Access"
+        ]
+      },
+      {
+        "alert_id": "KV_AccountVolumeAnomaly",
+        "name": "User accessed high volume of key vaults",
+        "severity": "Medium",
+        "tactics": [
+          "Credential Access"
+        ]
+      },
+      {
+        "alert_id": "KV_SuspiciousIPAccessDenied",
+        "name": "Denied access from a suspicious IP to a key vault",
+        "severity": "Low",
+        "tactics": [
+          "Credential Access"
+        ]
+      },
+      {
+        "alert_id": "KV_UnusualAccessSuspiciousIP",
+        "name": "Unusual access to the key vault from a suspicious IP (Non-Microsoft or external)",
+        "severity": "Medium",
+        "tactics": [
+          "Credential Access"
+        ]
+      }
+    ],
+    "granularity": "tactic",
+    "plan": "KeyVaults",
+    "product": "Microsoft Defender for Cloud",
+    "unenumerated_pages": []
+  },
+  "OpenSourceRelationalDatabases": {
+    "alerts": [
+      {
+        "alert_id": "",
+        "name": "Suspected brute force attack using a valid user",
+        "severity": "Medium",
+        "tactics": [
+          "PreAttack"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspected successful brute force attack",
+        "severity": "High",
+        "tactics": [
+          "PreAttack"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspected brute force attack",
+        "severity": "Medium",
+        "tactics": [
+          "PreAttack"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Attempted logon by a potentially harmful application",
+        "severity": "High/Medium",
+        "tactics": [
+          "PreAttack"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Login from a principal user not seen in 60 days",
+        "severity": "Low",
+        "tactics": [
+          "Exploitation"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Login from a domain not seen in 60 days",
+        "severity": "Medium",
+        "tactics": [
+          "Exploitation"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Log on from an unusual Azure Data Center",
+        "severity": "Low",
+        "tactics": [
+          "Probing"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Logon from an unusual cloud provider",
+        "severity": "Medium",
+        "tactics": [
+          "Exploitation"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Log on from an unusual location",
+        "severity": "Medium",
+        "tactics": [
+          "Exploitation"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Login from a suspicious IP",
+        "severity": "Medium",
+        "tactics": [
+          "PreAttack"
+        ]
+      }
+    ],
+    "granularity": "tactic",
+    "plan": "OpenSourceRelationalDatabases",
+    "product": "Microsoft Defender for Cloud",
+    "unenumerated_pages": []
+  },
+  "SqlServers": {
+    "alerts": [
+      {
+        "alert_id": "",
+        "name": "A possible vulnerability to SQL Injection",
+        "severity": "Medium",
+        "tactics": [
+          "Pre-Attack"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Logon activity from a potentially harmful application",
+        "severity": "High",
+        "tactics": [
+          "Pre-Attack"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Log on from an unusual Azure Data Center",
+        "severity": "Low",
+        "tactics": [
+          "Probing"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Log on from an unusual location",
+        "severity": "Medium",
+        "tactics": [
+          "Exploitation"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Login from a principal user not seen in 60 days",
+        "severity": "Medium",
+        "tactics": [
+          "Exploitation"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Login from a domain not seen in 60 days",
+        "severity": "Medium",
+        "tactics": [
+          "Exploitation"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Login from a suspicious IP",
+        "severity": "Medium",
+        "tactics": [
+          "Pre-Attack"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Potential SQL injection",
+        "severity": "High",
+        "tactics": [
+          "Pre-Attack"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspected brute force attack using a valid user",
+        "severity": "High",
+        "tactics": [
+          "Pre-Attack"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspected brute force attack",
+        "severity": "High",
+        "tactics": [
+          "Pre-Attack"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspected successful brute force attack",
+        "severity": "High",
+        "tactics": [
+          "Pre-Attack"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "SQL Server potentially spawned a Windows command shell and accessed an abnormal external source",
+        "severity": "High/Medium",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "SQL.VM_PotentialSqlInjection",
+        "name": "Unusual payload with obfuscated parts has been initiated by SQL Server",
+        "severity": "High/Medium",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "SQL.VM_DataExfiltration",
+        "name": "An abnormally large number of rows were extracted from your SQL Server - Preview",
+        "severity": "Medium",
+        "tactics": [
+          "Exfiltration"
+        ]
+      }
+    ],
+    "granularity": "tactic",
+    "plan": "SqlServers",
+    "product": "Microsoft Defender for Cloud",
+    "unenumerated_pages": []
+  },
+  "StorageAccounts": {
+    "alerts": [
+      {
+        "alert_id": "Storage.Blob_SuspiciousApp",
+        "name": "Access from a suspicious application",
+        "severity": "High/Medium",
+        "tactics": [
+          "Initial Access"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Access from a suspicious IP address",
+        "severity": "High/Medium/Low",
+        "tactics": [
+          "Pre Attack"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Phishing content hosted on a storage account",
+        "severity": "High",
+        "tactics": [
+          "Collection"
+        ]
+      },
+      {
+        "alert_id": "Storage.Blob_OpenACL",
+        "name": "The access level of a potentially sensitive storage blob container was changed to allow unauthenticated public access",
+        "severity": "Medium",
+        "tactics": [
+          "Collection"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Authenticated access from a Tor exit node",
+        "severity": "High/Medium",
+        "tactics": [
+          "Initial Access",
+          "Pre Attack"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Access from an unusual location to a storage account",
+        "severity": "Informational",
+        "tactics": [
+          "Initial Access"
+        ]
+      },
+      {
+        "alert_id": "Storage.Blob_AnonymousAccessAnomaly",
+        "name": "Unusual unauthenticated access to a storage container",
+        "severity": "High/Low",
+        "tactics": [
+          "Initial Access"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Potential malware uploaded to a storage account",
+        "severity": "High",
+        "tactics": [
+          "Lateral Movement"
+        ]
+      },
+      {
+        "alert_id": "Storage.Blob_OpenContainersScanning.SuccessfulDiscovery",
+        "name": "Publicly accessible storage containers successfully discovered",
+        "severity": "High/Medium",
+        "tactics": [
+          "Collection"
+        ]
+      },
+      {
+        "alert_id": "Storage.Blob_OpenContainersScanning.FailedAttempt",
+        "name": "Publicly accessible storage containers unsuccessfully scanned",
+        "severity": "High/Low",
+        "tactics": [
+          "Collection"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Unusual access inspection in a storage account",
+        "severity": "Medium/Low",
+        "tactics": [
+          "Discovery"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Unusual amount of data extracted from a storage account",
+        "severity": "High/Low",
+        "tactics": [
+          "Exfiltration"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Unusual application accessed a storage account",
+        "severity": "Informational",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Unusual data exploration in a storage account",
+        "severity": "Medium/Low",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Unusual deletion in a storage account",
+        "severity": "Medium/Low",
+        "tactics": [
+          "Exfiltration"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Unusual unauthenticated public access to a sensitive blob container",
+        "severity": "High",
+        "tactics": [
+          "Initial Access"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Unusual amount of data extracted from a sensitive blob container",
+        "severity": "Medium",
+        "tactics": [
+          "Exfiltration"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Unusual number of blobs extracted from a sensitive blob container",
+        "severity": "",
+        "tactics": [
+          "Exfiltration"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Access from a known suspicious application to a sensitive blob container",
+        "severity": "High",
+        "tactics": [
+          "Initial Access"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Access from a known suspicious IP address to a sensitive blob container",
+        "severity": "High",
+        "tactics": [
+          "Pre-Attack"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Access from a Tor exit node to a sensitive blob container",
+        "severity": "High",
+        "tactics": [
+          "Pre-Attack"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Access from an unusual location to a sensitive blob container",
+        "severity": "Informational",
+        "tactics": [
+          "Initial Access"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "The access level of a sensitive storage blob container was changed to allow unauthenticated public access",
+        "severity": "High",
+        "tactics": [
+          "Collection"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspicious external access to an Azure storage account with overly permissive SAS token",
+        "severity": "Medium",
+        "tactics": [
+          "Exfiltration",
+          "Resource Development",
+          "Impact"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspicious external operation to an Azure storage account with overly permissive SAS token",
+        "severity": "Medium",
+        "tactics": [
+          "Exfiltration",
+          "Resource Development",
+          "Impact"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Unusual SAS token was used to access an Azure storage account from a public IP address",
+        "severity": "Low",
+        "tactics": [
+          "Exfiltration",
+          "Resource Development",
+          "Impact"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Malicious blob uploaded to storage account",
+        "severity": "High",
+        "tactics": [
+          "Lateral Movement"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Malicious file uploaded to storage account",
+        "severity": "High",
+        "tactics": [
+          "Lateral Movement"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Malicious blob was downloaded from a storage account",
+        "severity": "High, if Eicar - low",
+        "tactics": [
+          "Lateral Movement"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspected exposure of Azure Storage account key in a distributed client-side application",
+        "severity": "High",
+        "tactics": [
+          "Credential Access"
+        ]
+      }
+    ],
+    "granularity": "tactic",
+    "plan": "StorageAccounts",
+    "product": "Microsoft Defender for Cloud",
+    "unenumerated_pages": []
+  },
+  "VirtualMachines": {
+    "alerts": [
+      {
+        "alert_id": "",
+        "name": "A logon from a malicious IP has been detected. [seen multiple times]",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Addition of Guest account to Local Administrators group",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "An event log was cleared",
+        "severity": "Informational",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Antimalware Action Failed",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Antimalware Action Taken",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "VM_AmBroadFilesExclusion",
+        "name": "Antimalware broad files exclusion in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "VM_AmDisablementAndCodeExecution",
+        "name": "Antimalware disabled and code execution in your virtual machine",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "VM_AmDisablement",
+        "name": "Antimalware disabled in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "Defense Evasion"
+        ]
+      },
+      {
+        "alert_id": "VM_AmFileExclusionAndCodeExecution",
+        "name": "Antimalware file exclusion and code execution in your virtual machine",
+        "severity": "High",
+        "tactics": [
+          "Defense Evasion",
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "VM_AmTempFileExclusionAndCodeExecution",
+        "name": "Antimalware file exclusion and code execution in your virtual machine (temporary)",
+        "severity": "High",
+        "tactics": [
+          "Defense Evasion",
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "VM_AmTempFileExclusion",
+        "name": "Antimalware file exclusion in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "Defense Evasion"
+        ]
+      },
+      {
+        "alert_id": "VM_AmRealtimeProtectionDisabled",
+        "name": "Antimalware real-time protection was disabled in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "Defense Evasion"
+        ]
+      },
+      {
+        "alert_id": "VM_AmTempRealtimeProtectionDisablement",
+        "name": "Antimalware real-time protection was disabled temporarily in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "Defense Evasion"
+        ]
+      },
+      {
+        "alert_id": "VM_AmRealtimeProtectionDisablementAndCodeExec",
+        "name": "Antimalware real-time protection was disabled temporarily while code was executed in your virtual machine",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "VM_AmMalwareCampaignRelatedExclusion",
+        "name": "Antimalware scans blocked for files potentially related to malware campaigns on your virtual machine (Preview)",
+        "severity": "Medium",
+        "tactics": [
+          "Defense Evasion"
+        ]
+      },
+      {
+        "alert_id": "VM_AmTemporarilyDisablement",
+        "name": "Antimalware temporarily disabled in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "VM_UnusualAmFileExclusion",
+        "name": "Antimalware unusual file exclusion in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "Defense Evasion"
+        ]
+      },
+      {
+        "alert_id": "AzureDNS_ThreatIntelSuspectDomain",
+        "name": "Communication with suspicious domain identified by threat intelligence",
+        "severity": "Medium",
+        "tactics": [
+          "Initial Access",
+          "Persistence",
+          "Execution",
+          "Command And Control",
+          "Exploitation"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected actions indicative of disabling and deleting IIS log files",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected anomalous mix of upper and lower case characters in command-line",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected change to a registry key that can be abused to bypass UAC",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected decoding of an executable using built-in certutil.exe tool",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected enabling of the WDigest UseLogonCredential registry key",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected encoded executable in command line data",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected obfuscated command line",
+        "severity": "Informational",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected possible execution of keygen executable",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected possible execution of malware dropper",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected possible local reconnaissance activity",
+        "severity": "Low",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected potentially suspicious use of Telegram tool",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected suppression of legal notice displayed to users at logon",
+        "severity": "Low",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected suspicious combination of HTA and PowerShell",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected suspicious commandline arguments",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected suspicious commandline used to start all executables in a directory",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected suspicious credentials in commandline",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected suspicious document credentials",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected suspicious execution of VBScript.Encode command",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected suspicious execution via rundll32.exe",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected suspicious file cleanup commands",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected suspicious file creation",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected suspicious named pipe communications",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected suspicious network activity",
+        "severity": "Low",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected suspicious new firewall rule",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected suspicious use of Cacls to lower the security state of the system",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected suspicious use of FTP -s Switch",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected suspicious use of Pcalua.exe to launch executable code",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected the disabling of critical services",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Digital currency mining related behavior detected",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Dynamic PS script construction",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Executable found running from a suspicious location",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "VM_FilelessAttackBehavior.Windows",
+        "name": "Fileless attack behavior detected",
+        "severity": "Low",
+        "tactics": [
+          "Defense Evasion"
+        ]
+      },
+      {
+        "alert_id": "VM_FilelessAttackTechnique.Windows",
+        "name": "Fileless attack technique detected",
+        "severity": "High",
+        "tactics": [
+          "Defense Evasion",
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "VM_FilelessAttackToolkit.Windows",
+        "name": "Fileless attack toolkit detected",
+        "severity": "Medium",
+        "tactics": [
+          "Defense Evasion",
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "High risk software detected",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Local Administrators group members were enumerated",
+        "severity": "Informational",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Malicious firewall rule created by ZINC server implant [seen multiple times]",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Malicious SQL activity",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Multiple Domain Accounts Queried",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Possible credential dumping detected [seen multiple times]",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "VM_SvcHostRunInRareServiceGroup",
+        "name": "Rare SVCHOST service group executed",
+        "severity": "Informational",
+        "tactics": [
+          "Defense Evasion",
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Sticky keys attack detected",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "VM_LoginBruteForceSuccess",
+        "name": "Successful brute force attack",
+        "severity": "Medium/High",
+        "tactics": [
+          "Exploitation"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspect integrity level indicative of RDP hijacking",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspect service installation",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspected Kerberos Golden Ticket attack parameters observed",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspicious Account Creation Detected",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "VM_SuspiciousActivity",
+        "name": "Suspicious Activity Detected",
+        "severity": "Medium",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "VM_LoginBruteForceValidUserFailed",
+        "name": "Suspicious authentication activity",
+        "severity": "Medium",
+        "tactics": [
+          "Probing"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspicious code segment detected",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspicious double extension file executed",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspicious download using Certutil detected [seen multiple times]",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspicious download using Certutil detected",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspicious PowerShell Activity Detected",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspicious PowerShell cmdlets executed",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspicious process executed [seen multiple times]",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspicious process executed",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspicious process name detected [seen multiple times]",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspicious SQL activity",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspicious SVCHOST process executed",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "VM_SystemProcessInAbnormalContext",
+        "name": "Suspicious system process executed",
+        "severity": "High",
+        "tactics": [
+          "Defense Evasion",
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspicious Volume Shadow Copy Activity",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspicious WindowPosition registry value detected",
+        "severity": "Low",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspiciously named process detected",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "VM_VMAccessUnusualConfigReset",
+        "name": "Unusual config reset in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "Credential Access"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Unusual process execution detected",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "VM_VMAccessUnusualPasswordReset",
+        "name": "Unusual user password reset in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "Credential Access"
+        ]
+      },
+      {
+        "alert_id": "VM_VMAccessUnusualSSHReset",
+        "name": "Unusual user SSH key reset in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "Credential Access"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "VBScript HTTP object allocation detected",
+        "severity": "",
+        "tactics": []
+      },
+      {
+        "alert_id": "VM_GPUDriverExtensionUnusualExecution",
+        "name": "Suspicious installation of GPU extension in your virtual machine (Preview)",
+        "severity": "Low",
+        "tactics": [
+          "Impact"
+        ]
+      },
+      {
+        "alert_id": "ARM_AzureHound",
+        "name": "AzureHound tool invocation detected",
+        "severity": "Medium",
+        "tactics": [
+          "Discovery"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "A history file has been cleared",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "VM_AdaptiveApplicationControlLinuxViolationAudited",
+        "name": "Adaptive application control policy violation was audited",
+        "severity": "Informational",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "VM_AmBroadFilesExclusion",
+        "name": "Antimalware broad files exclusion in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "VM_AmDisablementAndCodeExecution",
+        "name": "Antimalware disabled and code execution in your virtual machine",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "VM_AmDisablement",
+        "name": "Antimalware disabled in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "Defense Evasion"
+        ]
+      },
+      {
+        "alert_id": "VM_AmFileExclusionAndCodeExecution",
+        "name": "Antimalware file exclusion and code execution in your virtual machine",
+        "severity": "High",
+        "tactics": [
+          "Defense Evasion",
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "VM_AmTempFileExclusionAndCodeExecution",
+        "name": "Antimalware file exclusion and code execution in your virtual machine (temporary)",
+        "severity": "High",
+        "tactics": [
+          "Defense Evasion",
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "VM_AmTempFileExclusion",
+        "name": "Antimalware file exclusion in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "Defense Evasion"
+        ]
+      },
+      {
+        "alert_id": "VM_AmRealtimeProtectionDisabled",
+        "name": "Antimalware real-time protection was disabled in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "Defense Evasion"
+        ]
+      },
+      {
+        "alert_id": "VM_AmTempRealtimeProtectionDisablement",
+        "name": "Antimalware real-time protection was disabled temporarily in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "Defense Evasion"
+        ]
+      },
+      {
+        "alert_id": "VM_AmRealtimeProtectionDisablementAndCodeExec",
+        "name": "Antimalware real-time protection was disabled temporarily while code was executed in your virtual machine",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "VM_AmMalwareCampaignRelatedExclusion",
+        "name": "Antimalware scans blocked for files potentially related to malware campaigns on your virtual machine (Preview)",
+        "severity": "Medium",
+        "tactics": [
+          "Defense Evasion"
+        ]
+      },
+      {
+        "alert_id": "VM_AmTemporarilyDisablement",
+        "name": "Antimalware temporarily disabled in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "VM_UnusualAmFileExclusion",
+        "name": "Antimalware unusual file exclusion in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "Defense Evasion"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Behavior similar to ransomware detected [seen multiple times]",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "AzureDNS_ThreatIntelSuspectDomain",
+        "name": "Communication with suspicious domain identified by threat intelligence",
+        "severity": "Medium",
+        "tactics": [
+          "Initial Access",
+          "Persistence",
+          "Execution",
+          "Command And Control",
+          "Exploitation"
+        ]
+      },
+      {
+        "alert_id": "VM_MinerInContainerImage",
+        "name": "Container with a miner image detected",
+        "severity": "High",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected anomalous mix of upper and lower case characters in command line",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected file download from a known malicious source",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Detected suspicious network activity",
+        "severity": "Low",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Digital currency mining related behavior detected",
+        "severity": "High",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Disabling of auditd logging [seen multiple times]",
+        "severity": "Low",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Exploitation of Xorg vulnerability [seen multiple times]",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "VM_SshBruteForceFailed",
+        "name": "Failed SSH brute force attack",
+        "severity": "Medium",
+        "tactics": [
+          "Probing"
+        ]
+      },
+      {
+        "alert_id": "VM_FilelessAttackBehavior.Linux",
+        "name": "Fileless attack behavior detected",
+        "severity": "Low",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "VM_FilelessAttackTechnique.Linux",
+        "name": "Fileless attack technique detected",
+        "severity": "High",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "VM_FilelessAttackToolkit.Linux",
+        "name": "Fileless attack toolkit detected",
+        "severity": "High",
+        "tactics": [
+          "Defense Evasion",
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Hidden file execution detected",
+        "severity": "Informational",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "VM_SshKeyAddition",
+        "name": "New SSH key added [seen multiple times]",
+        "severity": "Low",
+        "tactics": [
+          "Persistence"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "New SSH key added",
+        "severity": "Low",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Possible backdoor detected [seen multiple times]",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Possible exploitation of the mailserver detected",
+        "severity": "Medium",
+        "tactics": [
+          "Exploitation"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Possible malicious web shell detected",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Possible password change using crypt-method detected [seen multiple times]",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Process associated with digital currency mining detected [seen multiple times]",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Process associated with digital currency mining detected",
+        "severity": "Medium",
+        "tactics": [
+          "Exploitation",
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Python encoded downloader detected [seen multiple times]",
+        "severity": "Low",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Screenshot taken on host [seen multiple times]",
+        "severity": "Low",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Shellcode detected [seen multiple times]",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "VM_SshBruteForceSuccess",
+        "name": "Successful SSH brute force attack",
+        "severity": "High",
+        "tactics": [
+          "Exploitation"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspicious Account Creation Detected",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspicious kernel module detected [seen multiple times]",
+        "severity": "Medium",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspicious password access [seen multiple times]",
+        "severity": "Informational",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "",
+        "name": "Suspicious password access",
+        "severity": "Informational",
+        "tactics": [
+          "-"
+        ]
+      },
+      {
+        "alert_id": "VM_KubernetesDashboard",
+        "name": "Suspicious request to the Kubernetes Dashboard",
+        "severity": "Medium",
+        "tactics": [
+          "LateralMovement"
+        ]
+      },
+      {
+        "alert_id": "VM_VMAccessUnusualConfigReset",
+        "name": "Unusual config reset in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "Credential Access"
+        ]
+      },
+      {
+        "alert_id": "VM_VMAccessUnusualPasswordReset",
+        "name": "Unusual user password reset in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "Credential Access"
+        ]
+      },
+      {
+        "alert_id": "VM_VMAccessUnusualSSHReset",
+        "name": "Unusual user SSH key reset in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "Credential Access"
+        ]
+      },
+      {
+        "alert_id": "VM_GPUDriverExtensionUnusualExecution",
+        "name": "Suspicious installation of GPU extension in your virtual machine (Preview)",
+        "severity": "Low",
+        "tactics": [
+          "Impact"
+        ]
+      },
+      {
+        "alert_id": "VM_GPUExtensionSuspiciousFailure",
+        "name": "Suspicious failure installing GPU extension in your subscription (Preview)",
+        "severity": "Medium",
+        "tactics": [
+          "Impact"
+        ]
+      },
+      {
+        "alert_id": "VM_GPUDriverExtensionUnusualExecution",
+        "name": "Suspicious installation of a GPU extension was detected on your virtual machine (Preview)",
+        "severity": "Low",
+        "tactics": [
+          "Impact"
+        ]
+      },
+      {
+        "alert_id": "VM_RunCommandSuspiciousScript",
+        "name": "Run Command with a suspicious script was detected on your virtual machine (Preview)",
+        "severity": "High",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "VM_RunCommandSuspiciousFailure",
+        "name": "Suspicious unauthorized Run Command usage was detected on your virtual machine (Preview)",
+        "severity": "Medium",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "VM_RunCommandSuspiciousUsage",
+        "name": "Suspicious Run Command usage was detected on your virtual machine (Preview)",
+        "severity": "Low",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "VM_SuspiciousMultiExtensionUsage",
+        "name": "Suspicious usage of multiple monitoring or data collection extensions was detected on your virtual machines (Preview)",
+        "severity": "Medium",
+        "tactics": [
+          "Reconnaissance"
+        ]
+      },
+      {
+        "alert_id": "VM_DiskEncryptionSuspiciousUsage",
+        "name": "Suspicious installation of disk encryption extensions was detected on your virtual machines (Preview)",
+        "severity": "Medium",
+        "tactics": [
+          "Impact"
+        ]
+      },
+      {
+        "alert_id": "VM_VMAccessSuspiciousUsage",
+        "name": "Suspicious usage of VMAccess extension was detected on your virtual machines (Preview)",
+        "severity": "Medium",
+        "tactics": [
+          "Persistence"
+        ]
+      },
+      {
+        "alert_id": "VM_DSCExtensionSuspiciousScript",
+        "name": "Desired State Configuration (DSC) extension with a suspicious script was detected on your virtual machine (Preview)",
+        "severity": "High",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "VM_DSCExtensionSuspiciousUsage",
+        "name": "Suspicious usage of a Desired State Configuration (DSC) extension was detected on your virtual machines (Preview)",
+        "severity": "Low",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "VM_CustomScriptExtensionSuspiciousCmd",
+        "name": "Custom script extension with a suspicious script was detected on your virtual machine (Preview)",
+        "severity": "High",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "VM_CustomScriptExtensionSuspiciousFailure",
+        "name": "Suspicious failed execution of custom script extension in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "VM_CustomScriptExtensionUnusualDeletion",
+        "name": "Unusual deletion of custom script extension in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "VM_CustomScriptExtensionUnusualExecution",
+        "name": "Unusual execution of custom script extension in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "VM_CustomScriptExtensionSuspiciousEntryPoint",
+        "name": "Custom script extension with suspicious entry-point in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "VM_CustomScriptExtensionSuspiciousPayload",
+        "name": "Custom script extension with suspicious payload in your virtual machine",
+        "severity": "Medium",
+        "tactics": [
+          "Execution"
+        ]
+      },
+      {
+        "alert_id": "Network_CommunicationWithC2",
+        "name": "Network communication with a malicious machine detected",
+        "severity": "Medium",
+        "tactics": [
+          "Command and Control"
+        ]
+      },
+      {
+        "alert_id": "Network_ResourceIpIndicatedAsMalicious",
+        "name": "Possible compromised machine detected",
+        "severity": "Medium",
+        "tactics": [
+          "Command and Control"
+        ]
+      },
+      {
+        "alert_id": "Generic_Incoming_BF_OneToOne",
+        "name": "Possible incoming %{Service Name} brute force attempts detected",
+        "severity": "Informational",
+        "tactics": [
+          "PreAttack"
+        ]
+      },
+      {
+        "alert_id": "SQL_Incoming_BF_OneToOne",
+        "name": "Possible incoming SQL brute force attempts detected",
+        "severity": "Medium",
+        "tactics": [
+          "PreAttack"
+        ]
+      },
+      {
+        "alert_id": "DDOS",
+        "name": "Possible outgoing denial-of-service attack detected",
+        "severity": "Medium",
+        "tactics": [
+          "Impact"
+        ]
+      },
+      {
+        "alert_id": "RDP_Incoming_BF_ManyToOne",
+        "name": "Suspicious incoming RDP network activity from multiple sources",
+        "severity": "Medium",
+        "tactics": [
+          "PreAttack"
+        ]
+      },
+      {
+        "alert_id": "RDP_Incoming_BF_OneToOne",
+        "name": "Suspicious incoming RDP network activity",
+        "severity": "Medium",
+        "tactics": [
+          "PreAttack"
+        ]
+      },
+      {
+        "alert_id": "SSH_Incoming_BF_ManyToOne",
+        "name": "Suspicious incoming SSH network activity from multiple sources",
+        "severity": "Medium",
+        "tactics": [
+          "PreAttack"
+        ]
+      },
+      {
+        "alert_id": "SSH_Incoming_BF_OneToOne",
+        "name": "Suspicious incoming SSH network activity",
+        "severity": "Medium",
+        "tactics": [
+          "PreAttack"
+        ]
+      },
+      {
+        "alert_id": "PortScanning",
+        "name": "Suspicious outgoing %{Attacked Protocol} traffic detected",
+        "severity": "Medium",
+        "tactics": [
+          "Discovery"
+        ]
+      },
+      {
+        "alert_id": "RDP_Outgoing_BF_OneToMany",
+        "name": "Suspicious outgoing RDP network activity to multiple destinations",
+        "severity": "High",
+        "tactics": [
+          "Discovery"
+        ]
+      },
+      {
+        "alert_id": "RDP_Outgoing_BF_OneToOne",
+        "name": "Suspicious outgoing RDP network activity",
+        "severity": "High",
+        "tactics": [
+          "Lateral Movement"
+        ]
+      },
+      {
+        "alert_id": "SSH_Outgoing_BF_OneToMany",
+        "name": "Suspicious outgoing SSH network activity to multiple destinations",
+        "severity": "Medium",
+        "tactics": [
+          "Discovery"
+        ]
+      },
+      {
+        "alert_id": "SSH_Outgoing_BF_OneToOne",
+        "name": "Suspicious outgoing SSH network activity",
+        "severity": "Medium",
+        "tactics": [
+          "Lateral Movement"
+        ]
+      },
+      {
+        "alert_id": "Network_TrafficFromUnrecommendedIP",
+        "name": "Traffic detected from IP addresses recommended for blocking",
+        "severity": "Informational",
+        "tactics": [
+          "Probing"
+        ]
+      },
+      {
+        "alert_id": "NETWORK_DDOS_DETECTED",
+        "name": "DDoS Attack detected for Public IP",
+        "severity": "High",
+        "tactics": [
+          "Probing"
+        ]
+      },
+      {
+        "alert_id": "NETWORK_DDOS_MITIGATED",
+        "name": "DDoS Attack mitigated for Public IP",
+        "severity": "Low",
+        "tactics": [
+          "Probing"
+        ]
+      }
+    ],
+    "granularity": "tactic",
+    "plan": "VirtualMachines",
+    "product": "Microsoft Defender for Cloud",
+    "unenumerated_pages": []
+  }
+}

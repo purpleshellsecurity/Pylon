@@ -1,0 +1,140 @@
+# How a detection reads App Service publishing logons. Measured against real
+# rows from a Linux function app. Eleven columns, and every one of them is
+# populated -- this table has no optional half.
+table: AppServiceAuditLogs
+plane: data
+platform: azure
+columns: 11
+
+operation:
+  column: OperationName
+  operator: "=~"
+  why: >-
+    The verb is coarse. Measured: every row so far carries "Authorization",
+    because the table records an authentication to a publishing endpoint and
+    nothing else. Narrow with Protocol and UserAddress, not with OperationName.
+
+# WHAT THIS TABLE IS. A row here means somebody authenticated to the app's
+# publishing surface -- Kudu/SCM, FTP or WebDeploy -- which is the path used to
+# read or replace the app's own code. It is not a request to the app.
+what_a_row_means: >-
+  An authentication to the deployment endpoint. Planting a web shell starts
+  here, so a row from an address or a principal that does not deploy is worth
+  more than most control-plane events.
+
+roles:
+  who: UserDisplayName
+  who_id: User
+  from_where: UserAddress
+  what: OperationName
+  how: Protocol
+  scope: [_ResourceId]
+
+typing:
+  TimeGenerated: datetime
+  OperationName: string
+  Protocol: string
+  User: string
+  UserDisplayName: string
+  UserAddress: string
+
+# WHETHER THIS TABLE NAMES A PERSON DEPENDS ON THE PROTOCOL, and that was the
+# contract's biggest error. It used to say "UserDisplayName carried the real UPN
+# on every measured row and is the field to alert on" -- true of the twelve rows
+# measured at the time, and all twelve were Entra tokens against SCM, because the
+# app had basic-auth publishing DISABLED and no other protocol could appear.
+#
+# Re-measured on 2026-09-14 with basic auth enabled long enough to produce one
+# FTP login and three Kudu calls:
+#
+#   Bearer  12 of 12 rows name a person   UserDisplayName = tenant@example.com
+#   Kudu     0 of 3  rows name a person   UserDisplayName = $sitename
+#   FTP      0 of 1  rows name a person   UserDisplayName = $sitename
+#
+# On basic-auth publishing BOTH identity columns hold the site-level publishing
+# credential `$sitename`. It identifies the APP, not the human, and every person
+# who holds that profile is indistinguishable from every other -- which is
+# exactly the web-shell case this table exists to catch: an attacker with a
+# stolen publishing profile looks like a legitimate deploy.
+identity:
+  display: UserDisplayName
+  opaque_id: User
+  note: >-
+    On Bearer, UserDisplayName is the UPN and `User` is an opaque credential id
+    such as "100320049CB7E7B3". On Kudu and FTP, BOTH hold "$sitename" and
+    neither names a person. Read the protocol before trusting either.
+
+# Same shape as the storage family's OAuth gate, and it earns the same
+# machinery: the renderers wrap the actor in this condition, the checker rejects
+# a query that projects the actor without it, and the pivot projects Protocol so
+# an unattributed row explains itself.
+attribution:
+  gate: Protocol == "Bearer"
+  # HOW an unattributed row looks, because there are two ways and the checker
+  # cannot tell them apart on its own. The storage family leaves the principal
+  # column EMPTY when the gate fails; this table fills it with the site-level
+  # publishing credential, so `isnotempty()` is true on a row that names nobody.
+  # Present-and-meaningless is the worse of the two: a query returns rows, they
+  # look attributed, and every one of them says the app published to itself.
+  unattributed: placeholder
+  placeholder_matches: '^\$'
+  measured:
+    Bearer: {rows: 12, principal: always}
+    Kudu: {rows: 3, principal: never}
+    FTP: {rows: 1, principal: never}
+  consequence: >-
+    A detection that alerts on UserDisplayName without stating the protocol
+    renders "$sitename" for every basic-auth publish and reads as though the app
+    published to itself. State Protocol in the output or filter on it.
+
+never_populated: []
+
+observed_values:
+  OperationName: [Authorization]
+  Protocol: [Bearer, Kudu, FTP]
+
+  Protocol_note: >-
+    MEASURED, all three. Bearer is an Entra token against SCM. Kudu and FTP are
+    basic-auth publishing and appear only when the app allows it -- both
+    `basicPublishingCredentialsPolicies/scm` and `/ftp` default to allow=false
+    on a modern app, which is why the first measurement of this table saw Bearer
+    and nothing else. WebDeploy/MSDeploy is documented by Microsoft and still
+    unexercised here, so the set is open.
+
+# NOTHING here is complete. FTP and WebDeploy publishing write their own
+# Protocol values and neither was exercised in the measured tenant, so a query
+# filtering on one of those is correct and unproven rather than wrong.
+vocabulary_complete: []
+
+shape:
+  - time filter is the first operator after the table name
+  - no dedupe key is needed; one authentication writes one row
+  - project UserAddress; a deployment logon from an unexpected address is the
+    signal, and the table has no other outcome column to lean on
+
+recipes:
+  publishing_logon: |
+    AppServiceAuditLogs
+    | where TimeGenerated > ago({window})
+    | extend NamesAPerson = Protocol == "Bearer"
+    | project TimeGenerated, OperationName, Protocol, NamesAPerson,
+              UserDisplayName, User, UserAddress, _ResourceId
+  # Grouped BY Protocol, not filtered to Bearer. A basic-auth publish is the
+  # more interesting event, not the less -- it just cannot be attributed to a
+  # person, and the output has to say so rather than group four publishes under
+  # "$sitename" as though that were somebody.
+  logon_by_principal: |
+    AppServiceAuditLogs
+    | where TimeGenerated > ago({window})
+    | extend NamesAPerson = Protocol == "Bearer"
+    | summarize logons = count(), addresses = dcount(UserAddress),
+                firstSeen = min(TimeGenerated), lastSeen = max(TimeGenerated)
+        by UserDisplayName, Protocol, NamesAPerson, _ResourceId
+    | where logons > {threshold}
+
+reference_query: |
+  AppServiceAuditLogs
+  | where TimeGenerated > ago({window})
+  | extend NamesAPerson = Protocol == "Bearer"
+  | project TimeGenerated, OperationName, Protocol, NamesAPerson,
+            UserDisplayName, UserAddress, _ResourceId

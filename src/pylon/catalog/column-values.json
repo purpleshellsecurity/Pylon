@@ -1,0 +1,154 @@
+{
+  "AZMSRunTimeAuditLogs": {
+    "Provider": {
+      "exhaustive": true,
+      "type": "string",
+      "values": [
+        "eventhub",
+        "relay",
+        "servicebus"
+      ]
+    }
+  },
+  "DeviceFileEvents": {
+    "RequestProtocol": {
+      "exhaustive": false,
+      "type": "string",
+      "values": [
+        "Unknown",
+        "Local",
+        "SMB",
+        "NFS"
+      ]
+    }
+  },
+  "DeviceLogonEvents": {
+    "RemoteIPType": {
+      "exhaustive": false,
+      "type": "string",
+      "values": [
+        "Public",
+        "Private",
+        "Reserved",
+        "Loopback",
+        "Teredo",
+        "FourToSixMapping",
+        "Broadcast"
+      ]
+    }
+  },
+  "DeviceNetworkEvents": {
+    "LocalIPType": {
+      "exhaustive": false,
+      "type": "string",
+      "values": [
+        "Public",
+        "Private",
+        "Reserved",
+        "Loopback",
+        "Teredo",
+        "FourToSixMapping",
+        "Broadcast"
+      ]
+    },
+    "RemoteIPType": {
+      "exhaustive": false,
+      "type": "string",
+      "values": [
+        "Public",
+        "Private",
+        "Reserved",
+        "Loopback",
+        "Teredo",
+        "FourToSixMapping",
+        "Broadcast"
+      ]
+    }
+  },
+  "DeviceProcessEvents": {
+    "ProcessTokenElevation": {
+      "exhaustive": true,
+      "type": "string",
+      "values": [
+        "TokenElevationTypeLimited",
+        "TokenElevationTypeDefault",
+        "TokenElevationTypeFull"
+      ]
+    }
+  },
+  "SigninLogs": {
+    "ConditionalAccessStatus": {
+      "exhaustive": true,
+      "type": "string",
+      "values": [
+        "success",
+        "failure",
+        "notApplied"
+      ]
+    },
+    "RiskDetail": {
+      "exhaustive": true,
+      "type": "string",
+      "values": [
+        "none",
+        "adminGeneratedTemporaryPassword",
+        "userPerformedSecuredPasswordChange",
+        "userPerformedSecuredPasswordReset",
+        "adminConfirmedSigninSafe",
+        "aiConfirmedSigninSafe",
+        "userPassedMFADrivenByRiskBasedPolicy",
+        "adminDismissedAllRiskForUser",
+        "adminConfirmedSigninCompromised"
+      ]
+    },
+    "RiskEventTypes_V2": {
+      "exhaustive": true,
+      "type": "string",
+      "values": [
+        "unlikelyTravel",
+        "anonymizedIPAddress",
+        "maliciousIPAddress",
+        "unfamiliarFeatures",
+        "malwareInfectedIPAddress",
+        "suspiciousIPAddress",
+        "leakedCredentials",
+        "investigationsThreatIntelligence",
+        "generic"
+      ]
+    },
+    "RiskLevelAggregated": {
+      "exhaustive": true,
+      "type": "string",
+      "values": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "hidden"
+      ]
+    },
+    "RiskLevelDuringSignIn": {
+      "exhaustive": true,
+      "type": "string",
+      "values": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "hidden"
+      ]
+    },
+    "RiskState": {
+      "exhaustive": true,
+      "type": "string",
+      "values": [
+        "none",
+        "confirmedSafe",
+        "remediated",
+        "dismissed",
+        "atRisk",
+        "confirmedCompromised"
+      ]
+    }
+  }
+}

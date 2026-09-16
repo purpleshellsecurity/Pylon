@@ -1,0 +1,105 @@
+{
+ "resource_type": "Microsoft.Storage/storageAccounts/queueServices",
+ "service_name": "Azure Queue Storage",
+ "logging_docs": {
+  "monitor_page": "https://learn.microsoft.com/en-us/azure/storage/queues/monitor-queue-storage",
+  "dedicated_logging_page": null,
+  "monitoring_data_reference": "https://learn.microsoft.com/en-us/azure/storage/queues/monitor-queue-storage-reference",
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-storage-storageaccounts-queueservices-logs"
+ },
+ "tables": {
+  "StorageQueueLogs": {
+   "schema_mode": "resource-specific",
+   "operation_field": "OperationName",
+   "operations": {
+    "message": [
+     "PutMessage",
+     "GetMessage",
+     "GetMessages",
+     "GetMessageRead",
+     "GetMessageWrite",
+     "PeekMessage",
+     "PeekMessages",
+     "UpdateMessage",
+     "DeleteMessage",
+     "ClearMessages"
+    ],
+    "queue": [
+     "CreateQueue",
+     "DeleteQueue",
+     "GetQueue",
+     "ListQueues",
+     "GetQueueMetadata",
+     "SetQueueMetadata"
+    ],
+    "service": [
+     "GetQueueServiceProperties",
+     "SetQueueServiceProperties",
+     "QueuePreflightRequest"
+    ]
+   },
+   "columns": {
+    "AccountName": "string",
+    "AuthenticationHash": "string",
+    "AuthenticationType": "string",
+    "AuthorizationDetails": "dynamic",
+    "_BilledSize": "real",
+    "CallerIpAddress": "string",
+    "Category": "string",
+    "ClientRequestId": "string",
+    "ConditionsUsed": "string",
+    "ContentLengthHeader": "long",
+    "CorrelationId": "string",
+    "DurationMs": "real",
+    "Etag": "string",
+    "_IsBillable": "string",
+    "LastModifiedTime": "datetime",
+    "Location": "string",
+    "MetricResponseType": "string",
+    "ObjectKey": "string",
+    "OperationCount": "int",
+    "OperationName": "string",
+    "OperationVersion": "string",
+    "Protocol": "string",
+    "ReferrerHeader": "string",
+    "RequestBodySize": "long",
+    "RequesterAppId": "string",
+    "RequesterAudience": "string",
+    "RequesterObjectId": "string",
+    "RequesterTenantId": "string",
+    "RequesterTokenIssuer": "string",
+    "RequesterUpn": "string",
+    "RequestHeaderSize": "long",
+    "RequestMd5": "string",
+    "_ResourceId": "string",
+    "ResponseBodySize": "long",
+    "ResponseHeaderSize": "long",
+    "ResponseMd5": "string",
+    "SasExpiryStatus": "string",
+    "SchemaVersion": "string",
+    "ServerLatencyMs": "real",
+    "ServiceType": "string",
+    "SourceSystem": "string",
+    "StatusCode": "string",
+    "StatusText": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "TlsVersion": "string",
+    "Type": "string",
+    "Uri": "string",
+    "UserAgentHeader": "string"
+   },
+   "diagnostic_category": "StorageDelete, StorageRead, StorageWrite"
+  }
+ },
+ "api_references": {
+  "data_plane_rest_api": "https://learn.microsoft.com/en-us/rest/api/storageservices/queue-service-rest-api",
+  "operations_source": "https://learn.microsoft.com/en-us/rest/api/storageservices/storage-analytics-logged-operations-and-status-messages"
+ },
+ "resource_log_categories": [
+  "StorageDelete",
+  "StorageRead",
+  "StorageWrite"
+ ]
+}

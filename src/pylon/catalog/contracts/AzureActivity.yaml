@@ -1,0 +1,202 @@
+# How a detection reads the ARM control plane. Measured against 2000 real rows
+# over 7 days. One object, two consumers: rendered into the prompt, asserted by
+# the eval, so the two cannot drift.
+table: AzureActivity
+plane: control
+platform: azure
+columns: 34
+
+operation:
+  column: OperationNameValue
+  operator: "=~"
+  why: a tenant spells the operation in a different case than the catalogue
+  never_use: OperationName
+  never_use_reason: >-
+    It exists in the schema and is NEVER populated. Measured: 0 of 2000 rows.
+    Filtering on it parses, runs, and matches nothing.
+
+# Seven columns are in the schema and never carry a value. Projecting one puts
+# an empty column in the output and implies the field was absent on that event.
+never_populated: [ActivityStatus, ActivitySubstatus, Category,
+                  OperationName, Resource, ResourceId, ResourceProvider]
+
+# OperationId WAS on that list and the verifier caught it. Re-measured over 90
+# days: 14 rows of 35,274 carry it -- 0.04% -- and all fourteen are
+# Microsoft.Security/locations/alerts/activate/action with status Active, where
+# it repeats CorrelationId exactly. A Defender for Cloud alert activation, not
+# an ARM operation anyone writes a detection against.
+#
+# Kept out of never_populated because the claim is false, and kept out of the
+# usable columns because 0.04% is not attribution. A detection reaching for a
+# correlation key uses CorrelationId, which every row carries.
+effectively_empty:
+  OperationId:
+    rows: 14
+    of: 35274
+    only_on: Microsoft.Security/locations/alerts/activate/action
+    duplicates: CorrelationId
+    guidance: >-
+      Treat as empty. If you need a correlation key use CorrelationId, which is
+      populated on every row and is the same value where both exist.
+
+roles:
+  who: Caller
+  from_where: CallerIpAddress
+  what: OperationNameValue
+  outcome: ActivityStatusValue
+  dedupe: EventDataId
+  correlate: CorrelationId
+  scope: [SubscriptionId, ResourceGroup, _ResourceId]
+  note_resource_id: >-
+    Use _ResourceId, with the underscore. ResourceId without it is one of the
+    eight columns that is never populated.
+
+# NOT a two-value column. A detection comparing against "Success" and treating
+# everything else as failure is wrong on six other values.
+outcome_values:
+  measured: {Success: 1032, Start: 829, Failure: 74, Active: 28, Accept: 18,
+             Unknown: 8, Updated: 7, Resolved: 4}
+  pairing: >-
+    One ARM call writes a Start row and a Success row sharing a CorrelationId
+    with different EventDataIds. Start says what was asked, Success says what
+    happened.
+
+# The single most expensive assumption in this table.
+payload:
+  reach: parse_json(tostring(parse_json(Properties).requestbody))
+  present_on: Start
+  measured_coverage: 38 of 829 Start rows
+  which_operations: >-
+    Only operations that carry a body. WRITE with a payload does; DELETE and
+    ACTION do not. Measured carriers: DIAGNOSTICSETTINGS/WRITE,
+    ROLEASSIGNMENTS/WRITE, RESOURCEGROUPS/WRITE, NETWORKINTERFACES/WRITE.
+    Measured non-carriers include ROLEASSIGNMENTS/DELETE and every /ACTION.
+  consequence: >-
+    A detection that joins Start to Success to read the request body loses every
+    event for an operation that carries no body, which is most of them. Check
+    that the operation is a carrier before building the join, and do not use
+    this shape for DELETE or ACTION at all.
+  double_parse_required: >-
+    requestbody is a JSON STRING nested inside the parsed Properties column. One
+    parse_json returns "" for every field under it, silently and without error.
+
+# What the request body actually contains, per operation, measured over 30 days.
+# This is what makes a plan checkable: a vector distinguished by a field that
+# never appears for its operation is a vector describing something this tenant
+# cannot evidence, and a predicate requiring an always-present field to be EMPTY
+# describes a state the API does not produce.
+#
+# `always` means present on every observed event of that operation. It is a
+# statement about a sample, not a law, so a breach is reported with the count
+# behind it and never as "impossible".
+operation_payloads:
+  MICROSOFT.INSIGHTS/DIAGNOSTICSETTINGS/WRITE:
+    observed_events: 31
+    fields:
+      workspaceId: {events: 31, always: true}
+      logs: {events: 21}
+      metrics: {events: 14}
+      logAnalyticsDestinationType: {events: 10}
+    never_observed: [storageAccountId, eventHubAuthorizationRuleId,
+                     serviceBusRuleId, marketplacePartnerId]
+    # Entries inside `logs`. Measured over 63 of them.
+    logs_entry:
+      enabled: {entries: 63}
+      category: {entries: 38, exclusive_with: categoryGroup}
+      categoryGroup: {entries: 25, exclusive_with: category}
+      retentionPolicy: {entries: 21, only_with: categoryGroup}
+      presence_note: >-
+        Test presence with isnotempty(tostring(entry.category)), not by whether
+        the key exists. `category` is present-but-empty on 16 entries, so a key
+        check reports both shapes on the same entry and the exclusivity looks
+        violated when it is not.
+  MICROSOFT.AUTHORIZATION/ROLEASSIGNMENTS/WRITE:
+    observed_events: 21
+    fields:
+      principalId: {events: 21, always: true}
+      principalType: {events: 21, always: true}
+      roleDefinitionId: {events: 21, always: true}
+
+# Always present inside Properties, unlike requestbody.
+properties_always: [eventCategory, entity, message, hierarchy, caller, eventDataId,
+                    eventSubmissionTimestamp, httpRequest, resourceGroup,
+                    subscriptionId, activityStatusValue]
+
+# Case matters and this table disagrees with the storage family.
+casing_traps:
+  _ResourceId: leading underscore; ResourceId is the never-populated one
+
+json_matching:
+  verbatim_strings: >-
+    Inside @"..." a double quote is escaped by DOUBLING it. A backslash ends the
+    string and the next word becomes a stray token, giving
+    "Query could not be parsed at '<word>'".
+  extract_all: requires at least one capture group in the pattern
+
+# Arrays inside the request body need mv-expand, and both of these bite.
+array_handling:
+  null_row: >-
+    mv-expand over a field that is ABSENT emits one row with nulls rather than
+    nothing. Guard with isnotempty() or you count events that have no array.
+  dual_shape: >-
+    Entries in properties.logs carry EITHER a named `category` OR a
+    `categoryGroup` of allLogs or audit, never both. Measured: 16 group-shaped
+    entries against 6 named ones. Reading only `category` misses the majority.
+
+shape:
+  - time filter is the first operator after the table name
+  - dedupe with `summarize take_any(*) by EventDataId` before extending
+  - project EventDataId so a matched row traces back to the event
+
+recipes:
+  simple_operation: |
+    AzureActivity
+    | where TimeGenerated > ago({window})
+    | where OperationNameValue =~ "{operation}"
+    | where ActivityStatusValue =~ "Success"
+    | summarize take_any(*) by EventDataId
+    | project TimeGenerated, OperationNameValue, ActivityStatusValue, Caller,
+              CallerIpAddress, SubscriptionId, ResourceGroup, _ResourceId,
+              CorrelationId, EventDataId
+  # ONLY for operations confirmed to carry a request body. See payload above.
+  with_request_body: |
+    let Starts = AzureActivity
+    | where TimeGenerated > ago({window})
+    | where OperationNameValue =~ "{operation}"
+    | where ActivityStatusValue =~ "Start"
+    | summarize take_any(*) by EventDataId
+    | extend Body = parse_json(tostring(parse_json(Properties).requestbody))
+    | where isnotempty(Body)
+    | project CorrelationId, StartEventId = EventDataId, Body;
+    AzureActivity
+    | where TimeGenerated > ago({window})
+    | where OperationNameValue =~ "{operation}"
+    | where ActivityStatusValue =~ "Success"
+    | summarize take_any(*) by EventDataId
+    | join kind=innerunique Starts on CorrelationId
+    | project TimeGenerated, Caller, CallerIpAddress, SubscriptionId,
+              ResourceGroup, _ResourceId, EventDataId, StartEventId, Body
+  # Expanding an array in the body. Both guards are load-bearing.
+  body_array: |
+    AzureActivity
+    | where TimeGenerated > ago({window})
+    | where OperationNameValue =~ "{operation}"
+    | where ActivityStatusValue =~ "Start"
+    | summarize take_any(*) by EventDataId
+    | extend Body = parse_json(tostring(parse_json(Properties).requestbody))
+    | where isnotempty(Body.properties.{array})
+    | mv-expand entry = Body.properties.{array}
+    | extend Name = coalesce(tostring(entry.category),
+                             strcat("group:", tostring(entry.categoryGroup)))
+    | extend Enabled = tobool(entry.enabled)
+    | project TimeGenerated, Caller, CallerIpAddress, _ResourceId, Name,
+              Enabled, EventDataId
+
+reference_query: |
+  AzureActivity
+  | where TimeGenerated > ago({window})
+  | where OperationNameValue =~ "{operation}"
+  | summarize take_any(*) by EventDataId
+  | project TimeGenerated, OperationNameValue, ActivityStatusValue, Caller,
+            CallerIpAddress, SubscriptionId, ResourceGroup, _ResourceId,
+            CorrelationId, EventDataId

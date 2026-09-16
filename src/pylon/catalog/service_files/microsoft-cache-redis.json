@@ -1,0 +1,70 @@
+{
+ "resource_type": "Microsoft.Cache/redis",
+ "service_name": "Azure Cache for Redis",
+ "logging_docs": {
+  "monitor_page": "https://learn.microsoft.com/en-us/azure/redis/monitor-cache",
+  "dedicated_logging_page": "https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-monitor-diagnostic-settings",
+  "monitoring_data_reference": "https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/monitor-cache-reference",
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-cache-redis-logs"
+ },
+ "tables": {
+  "ACRConnectedClientList": {
+   "schema_mode": "resource-specific",
+   "operation_field": "OperationName",
+   "operations": [
+    "Microsoft.Cache/ClientList"
+   ],
+   "columns": {
+    "_BilledSize": "real",
+    "CacheName": "string",
+    "ClientCount": "int",
+    "ClientIp": "string",
+    "_IsBillable": "string",
+    "Location": "string",
+    "OperationName": "string",
+    "PrivateLinkIpv6": "string",
+    "_ResourceId": "string",
+    "RoleInstance": "string",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string"
+   }
+  },
+  "ACREntraAuthenticationAuditLog": {
+   "schema_mode": "resource-specific",
+   "operations_status": "not enumerated in Azure docs (checked https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-monitor-diagnostic-settings); columns below are the verified allowlist",
+   "operations_note": "Read the service's own logging docs: cache-monitor-diagnostic-settings (diagnostic settings how-to), monitor-cache-reference (monitoring data reference), and the Azure Monitor column reference for ACREntraAuthenticationAuditLog. None enumerate OperationName/ActionName values for this table. The column reference describes OperationName only generically ('The Redis operation associated with the log record'). The diagnostic-settings page documents the 'MSEntra authentication audit log' category and shows sample JSON only for ConnectedClientList (BSP tier) and ConnectionEvents (Enterprise/REDConnectionEvents) categories -- no sample or value list for the Entra audit log. The Entra-related status strings AADAuthenticationFailure / MicrosoftEntraAuthenticationFailure / MicrosoftEntraTokenExpired in monitor-cache-reference describe the 'Connected Clients Using Microsoft Entra Token' metric, not this table's OperationName, so they are not reported here.",
+   "columns": {
+    "Authentication": "string",
+    "_BilledSize": "real",
+    "CacheName": "string",
+    "ClientId": "string",
+    "ClientName": "string",
+    "IpAddress": "string",
+    "_IsBillable": "string",
+    "Lifetime": "string",
+    "Location": "string",
+    "Message": "string",
+    "OperationName": "string",
+    "_ResourceId": "string",
+    "RoleInstance": "int",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string",
+    "Username": "string"
+   },
+   "diagnostic_category": "MSEntraAuthenticationAuditLog"
+  }
+ },
+ "api_references": {
+  "operations_source": "https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-monitor-diagnostic-settings"
+ },
+ "resource_log_categories": [
+  "ConnectedClientList",
+  "MSEntraAuthenticationAuditLog"
+ ]
+}

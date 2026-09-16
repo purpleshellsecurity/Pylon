@@ -1,0 +1,82 @@
+{
+ "resource_type": "Microsoft.Relay/namespaces",
+ "service_name": "Azure Relay",
+ "logging_docs": {
+  "monitor_page": "https://learn.microsoft.com/en-us/azure/azure-relay/relay-metrics-azure-monitor",
+  "dedicated_logging_page": "https://learn.microsoft.com/en-us/azure/azure-relay/diagnostic-logs",
+  "monitoring_data_reference": null,
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-relay-namespaces-logs"
+ },
+ "tables": {
+  "AZMSHybridConnectionsEvents": {
+   "schema_mode": "resource-specific",
+   "operation_field": "OperationName",
+   "operations": [
+    "AuthorizationFailed",
+    "InvalidSasToken",
+    "ListenerAcceptingConnection",
+    "ListenerAcceptingConnectionTimeout",
+    "ListenerAcceptingHttpRequestFailed",
+    "ListenerAcceptingRequestTimeout",
+    "ListenerClosingFromExpiredToken",
+    "ListenerClosingFromUnauthorizedRenewToken",
+    "ListenerRejectedConnection",
+    "ListenerReturningHttpResponse",
+    "ListenerReturningHttpResponseFailed",
+    "ListenerSentHttpResponse",
+    "ListenerUnregistered",
+    "ListenerUnresponsive",
+    "MessageSendingToListener",
+    "MessageSentToListener",
+    "NewListenerRegistered",
+    "NewSenderRegistering",
+    "ProcessingRequestFailed",
+    "SenderConnectionClosed",
+    "SenderListenerConnectionEstablished",
+    "SenderSentHttpRequest"
+   ],
+   "columns": {
+    "ActivityId": "string",
+    "_BilledSize": "real",
+    "Endpoint": "string",
+    "_IsBillable": "string",
+    "Message": "string",
+    "OperationName": "string",
+    "Provider": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string"
+   }
+  },
+  "AZMSVnetConnectionEvents": {
+   "schema_mode": "resource-specific",
+   "operations_status": "n/a \u2014 no OperationName column in this table's schema; its action field is 'Action' (columns below are the verified allowlist)",
+   "columns": {
+    "Action": "string",
+    "AddressIp": "string",
+    "_BilledSize": "real",
+    "Count": "int",
+    "_IsBillable": "string",
+    "Message": "string",
+    "NamespaceName": "string",
+    "Provider": "string",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "Type": "string"
+   }
+  }
+ },
+ "api_references": {
+  "operations_source": "https://learn.microsoft.com/en-us/azure/azure-relay/diagnostic-logs"
+ },
+ "resource_log_categories": [
+  "HybridConnectionsEvent",
+  "VNetAndIPFilteringLogs"
+ ]
+}

@@ -1,0 +1,136 @@
+[project]
+name = "pylon"
+version = "1.0.0"
+description = "Read a Sentinel tenant, say what it detects, and write what it does not."
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+# Every version this file claims to support is tested. `requires-python` said
+# 3.11 while CI tested 3.13 only, and cli.py did not compile on 3.11 at all --
+# a backslash inside an f-string expression, which PEP 701 did not allow until
+# 3.12. Every command failed to import on the lowest version the project
+# promised, and CI was green because it never looked.
+# No `License ::` classifier: setuptools rejects one alongside the PEP 639
+# SPDX `license` field above, and fails the BUILD rather than warning. Found by
+# installing into a 3.11 venv immediately after adding it.
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+# `analyze` and `recommend` measure a tenant and cost nothing to run. They must
+# stay installable without a model provider, which is why the agent stack is an
+# extra rather than a dependency: a scan that has to import an LLM SDK to tell
+# you which tables are dark has the wrong shape.
+dependencies = [
+    "pydantic>=2.13.5",
+    # The catalogues are YAML and three of them are read by commands that cost
+    # nothing: `design list` prints the targets, and correlation, data-plane
+    # operations and the no-detection-surface list are all read outside a paid
+    # run. This was declared only under the `design` extra, so a base install
+    # crashed on `pylon design list` with ModuleNotFoundError: No module named
+    # 'yaml' -- on the one command a new reader runs first to see what the tool
+    # can do. Pure Python, no build step, and it belongs with the data it reads.
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+# Everything `design` needs. Installing this is the moment the tool starts
+# costing money, and the separation is deliberate rather than tidy.
+design = [
+    "agent-framework-core==1.18.0",
+    "agent-framework-openai==1.14.3",
+    "httpx",
+    # `sentinel.py` came across in the generation closure and reaches the
+    # workspace through the SDK rather than `az rest`, so the engine needs the
+    # Azure stack even for a run that only generates. Leaving these out made
+    # the first live run die on `No module named 'azure'` after the provider
+    # banner had already printed, which reads as a model problem and is not.
+    "azure-identity",
+    "azure-mgmt-securityinsight==1.0.0",
+    "azure-monitor-query>=2.0.0",
+    "aiohttp",
+]
+anthropic = ["agent-framework-anthropic"]
+# Headless PDF of the detections page. Optional on purpose: the page's print
+# stylesheet means Ctrl+P in any browser already produces the same document,
+# and on some platforms WeasyPrint wants system libraries nobody should have to
+# install to read a report. With it, `design` writes the PDF itself.
+pdf = ["weasyprint"]
+dev = ["pytest"]
+
+[project.scripts]
+pylon = "pylon.cli:main"
+
+[build-system]
+# 77+, not 68: the PEP 639 `license = "MIT"` field above is rejected
+# by older setuptools as an invalid config, and it fails the BUILD rather
+# than warning. Verified by validating this file against 68, 74 and 80.
+requires = ["setuptools>=84.0.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+# The catalogues are the product, not incidental data. A wheel without them
+# generates from memory, which is the failure the grounding exists to prevent.
+pylon = [
+    "catalog/*.json",
+    "catalog/mitre_index.json",
+    "catalog/*.yaml",
+    "catalog/contracts/*.yaml",
+    "catalog/*.gz",
+    "catalog/*.md",
+    "catalog/service_files/*.json",
+    "catalog/attacks/*",
+    "catalog/golden/*",
+    "prompts/assets/**/*.md",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "real_chat_client: hits a live model provider; skipped unless explicitly selected",
+]
+# A DEPRECATION IS A BREAKING CHANGE WITH A COUNTDOWN. The suite emitted 18
+# warnings nobody read, among them `re.split(pattern, string, 1)` -- positional
+# `maxsplit`, deprecated in 3.13 and a TypeError in a later Python. The file
+# that would have broken is the one enforcing that the free commands import
+# without the model SDK, which is what makes the free/paid split true.
+#
+# Erroring turns "a line nobody reads" into "CI fails the day Python deprecates
+# something" -- a year of notice for the cost of one setting.
+#
+# Scoped to DeprecationWarning and FutureWarning. ResourceWarning is deliberately
+# left as a warning: it fires when the garbage collector happens to run, so
+# erroring on it makes the suite flaky rather than strict.
+filterwarnings = [
+    "error::DeprecationWarning",
+    "error::FutureWarning",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+# Ruff's own defaults and nothing more. The review's advice was "add it, fix
+# what it finds at defaults, stop there" -- a wider selection on a finished
+# 29k-line codebase is a multi-week detour that fixes no bug.
+#
+# It earned its place immediately: F821 found `tuning._severity`, which
+# referenced three names that do not exist in its scope. It raised NameError on
+# every call, nothing called it, and 3,165 tests were green. It was a stale
+# duplicate of `knowledge.mapped_tiers`, which works.
+select = ["E4", "E7", "E9", "F"]
+
+[tool.ruff.lint.per-file-ignores]
+# A test may configure the environment -- delete an env var, install a
+# monkeypatch -- before importing the module under test. That is the point of
+# the import being late, not an oversight.
+"tests/*" = ["E402"]
+# One-off dev scripts, not shipped behaviour. `a = 1; b = 2` in a harvest
+# script is not worth a diff.
+"scripts/*" = ["E402", "E702", "E741"]

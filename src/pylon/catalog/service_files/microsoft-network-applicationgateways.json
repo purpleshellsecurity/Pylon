@@ -1,0 +1,140 @@
+{
+ "resource_type": "Microsoft.Network/applicationgateways",
+ "service_name": "Azure Application Gateway",
+ "logging_docs": {
+  "monitor_page": "https://learn.microsoft.com/en-us/azure/application-gateway/monitor-application-gateway",
+  "dedicated_logging_page": "https://learn.microsoft.com/en-us/azure/application-gateway/application-gateway-diagnostics",
+  "monitoring_data_reference": "https://learn.microsoft.com/en-us/azure/application-gateway/monitor-application-gateway-reference",
+  "supported_logs_reference": "https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/microsoft-network-applicationgateways-logs"
+ },
+ "tables": {
+  "AGWAccessLogs": {
+   "schema_mode": "resource-specific",
+   "operation_field": "OperationName",
+   "operations": [
+    "ApplicationGatewayAccess"
+   ],
+   "columns": {
+    "BackendPoolName": "string",
+    "BackendSettingName": "string",
+    "BackendSslCipher": "string",
+    "BackendSslProtocol": "string",
+    "_BilledSize": "real",
+    "ClientIp": "string",
+    "ClientPort": "int",
+    "ClientResponseTime": "real",
+    "ErrorInfo": "string",
+    "Host": "string",
+    "HttpMethod": "string",
+    "HttpStatus": "int",
+    "HttpVersion": "string",
+    "InstanceId": "string",
+    "_IsBillable": "string",
+    "ListenerName": "string",
+    "OperationName": "string",
+    "OriginalHost": "string",
+    "OriginalRequestUriWithArgs": "string",
+    "ReceivedBytes": "int",
+    "RequestQuery": "string",
+    "RequestUri": "string",
+    "_ResourceId": "string",
+    "RuleName": "string",
+    "SentBytes": "int",
+    "ServerConnectTime": "real",
+    "ServerHeaderTime": "real",
+    "ServerResponseLatency": "real",
+    "ServerRouted": "string",
+    "ServerStatus": "int",
+    "SourceSystem": "string",
+    "SslCipher": "string",
+    "SslClientCertificateFingerprint": "string",
+    "SslClientCertificateIssuerName": "string",
+    "SslClientVerify": "string",
+    "SslEnabled": "string",
+    "SslProtocol": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "TimeTaken": "real",
+    "TransactionId": "string",
+    "Type": "string",
+    "UpstreamSourcePort": "int",
+    "UserAgent": "string",
+    "WafEvaluationTime": "real",
+    "WafMode": "string",
+    "WafPolicyId": "string"
+   }
+  },
+  "AGWFirewallLogs": {
+   "schema_mode": "resource-specific",
+   "operation_field": "OperationName",
+   "operations": [
+    "ApplicationGatewayFirewall"
+   ],
+   "columns": {
+    "Action": "string",
+    "_BilledSize": "real",
+    "ClientIp": "string",
+    "ClientPort": "int",
+    "DetailedData": "string",
+    "DetailedMessage": "string",
+    "FileDetails": "string",
+    "Hostname": "string",
+    "InstanceId": "string",
+    "_IsBillable": "string",
+    "LineDetails": "string",
+    "Message": "string",
+    "OperationName": "string",
+    "ParanoiaLevel": "string",
+    "PolicyId": "string",
+    "PolicyScope": "string",
+    "PolicyScopeName": "string",
+    "RequestUri": "string",
+    "_ResourceId": "string",
+    "RuleId": "string",
+    "RuleSetType": "string",
+    "RuleSetVersion": "string",
+    "Site": "string",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "TimeGenerated": "datetime",
+    "TransactionId": "string",
+    "Type": "string"
+   }
+  },
+  "AGWPerformanceLogs": {
+   "schema_mode": "resource-specific",
+   "operation_field": "OperationName",
+   "operations": [
+    "ApplicationGatewayPerformance"
+   ],
+   "columns": {
+    "_BilledSize": "real",
+    "FailedRequestCount": "int",
+    "HealthyHostCount": "int",
+    "InstanceId": "string",
+    "_IsBillable": "string",
+    "Latency": "int",
+    "OperationName": "string",
+    "RequestCount": "int",
+    "_ResourceId": "string",
+    "SourceSystem": "string",
+    "_SubscriptionId": "string",
+    "TenantId": "string",
+    "Throughput": "int",
+    "TimeGenerated": "datetime",
+    "Type": "string",
+    "UnHealthyHostCount": "int"
+   }
+  }
+ },
+ "api_references": {
+  "operations_source": "https://learn.microsoft.com/en-us/azure/application-gateway/monitor-application-gateway-reference"
+ },
+ "resource_log_categories": [
+  "ApplicationGatewayAccessLog",
+  "ApplicationGatewayFirewallLog",
+  "ApplicationGatewayPerformanceLog"
+ ]
+}
