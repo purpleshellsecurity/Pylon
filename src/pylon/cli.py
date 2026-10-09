@@ -2225,7 +2225,13 @@ def _design_grade(args: argparse.Namespace) -> int:
               f"this size may not hold: {', '.join(silent[:4])}", file=sys.stderr)
     if errors or failed:
         print(f"  {len(errors) + failed} could not be run.", file=sys.stderr)
-    return 1 if (noisy or errors) else 0
+    from .grading_policy import grade_exit_status
+
+    return grade_exit_status(
+        noisy=len(noisy), errors=len(errors), unreadable=failed,
+        known_silent=len(known), inconclusive=len(silent),
+        strict=getattr(args, "strict", False),
+    )
 
 
 def _design_coverage(args: argparse.Namespace) -> int:
@@ -2622,6 +2628,9 @@ def build_parser() -> argparse.ArgumentParser:
                             "stay quiet on the benign")
     dg.add_argument("--fixtures", default="fixtures", metavar="DIR",
                     help="where `design record` wrote them (default: fixtures)")
+    dg.add_argument("--strict", action="store_true",
+                    help="release gate: require every fixture to fire on the attack "
+                         "and stay quiet on benign input; inconclusive cases fail")
     dg.set_defaults(func=_design_grade)
 
     dc = dn.add_parser("coverage",
